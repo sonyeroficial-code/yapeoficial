@@ -1,0 +1,16 @@
+APP WEB CORREGIDA - CARGA DE IMÁGENES Y MODO SIN INTERNET
+
+1. Suba y extraiga TODO el contenido de esta carpeta en el mismo directorio del hosting.
+2. No suba solamente index.html: deben conservarse assets/, img/, media/, manifest.webmanifest y service-worker.js.
+3. Debe abrirse mediante HTTPS. El Service Worker no funciona en HTTP público; localhost sí está permitido.
+4. Después de actualizar, cierre la app y ábrala una vez con internet. Luego quedará preparada para abrir sin internet.
+5. Si el hosting usa caché, no debe cachear service-worker.js por varios días.
+
+Correcciones aplicadas:
+- Se eliminó el código que desregistraba el Service Worker y borraba todas las cachés.
+- Se unificó sw.js con service-worker.js para que no compitan entre sí.
+- Se corrigieron rutas sensibles a mayúsculas/minúsculas.
+- Se agregó el archivo faltante img/iconos/servicios.png.
+- Se añadieron alias para recursos usados por pantallas antiguas.
+- Los iconos críticos del Home quedaron incrustados en index.html para evitar cuadros de imagen rota.
+- Se regeneró la precarga offline usando solamente archivos que existen.

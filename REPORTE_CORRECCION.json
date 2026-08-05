@@ -1,0 +1,18 @@
+{
+  "fatal_sw_disabler_removed": true,
+  "cache_deletion_removed": true,
+  "critical_assets_inlined": 25,
+  "precache_files": 152,
+  "index_size_bytes": 5510549,
+  "cache_version": "yape-pwa-v20260805-1",
+  "aliases_created": [
+    "assets/Santa-rosa-de-lima.png",
+    "assets/abraham-vadelomar.png",
+    "assets/abraham-valdelomar.png",
+    "assets/miguel-grau.png",
+    "assets/pedro-paulet.png",
+    "assets/jose-quinones.png",
+    "img/iconos/servicios.png",
+    "s-icon.png"
+  ]
+}
