@@ -1,0 +1,31 @@
+APP WEB CORREGIDA — ESTABILIDAD Y MODO SIN CONEXIÓN
+=====================================================
+
+ARCHIVOS IMPORTANTES MODIFICADOS
+- index.html
+- service-worker.js
+- sw.js
+- vercel.json
+
+CÓMO SUBIRLA
+1. Sube TODO el contenido del ZIP y reemplaza la versión anterior.
+2. Conserva las carpetas assets, img y media exactamente como están.
+3. No subas solamente index.html.
+4. En Vercel, realiza un nuevo despliegue completo.
+5. Después del despliegue, cierra la app instalada y vuelve a abrirla.
+
+PRIMERA APERTURA
+- Ábrela una vez con internet para guardar el HTML y los recursos esenciales.
+- Después podrá iniciar sin conexión usando lo guardado.
+- Firebase, notificaciones y consultas externas siguen necesitando internet.
+
+SI UN CELULAR SIGUE MOSTRANDO LA VERSIÓN ANTIGUA
+- Cierra la app completamente y vuelve a abrirla.
+- Solo si continúa igual, borra una vez los datos/caché del sitio y abre de nuevo.
+
+CORRECCIONES PRINCIPALES
+- Arranque progresivo: ya no intenta guardar todos los archivos al mismo tiempo.
+- Un solo Service Worker controla la aplicación.
+- Recuperación automática si el splash queda visible al reanudar.
+- Dependencias externas no bloqueantes.
+- Errores de sintaxis y rutas de imágenes corregidos.

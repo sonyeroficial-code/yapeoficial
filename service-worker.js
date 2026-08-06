@@ -1,247 +1,193 @@
-/* Yape PWA: recursos externos en carpetas + modo offline */
-const CACHE_NAME = 'yape-pwa-v20260805-proper-1';
+/* Yape PWA estable: arranque rápido, caché progresiva y modo sin conexión. */
+const CACHE_VERSION = '20260806-stable-1';
+const SHELL_CACHE = `yape-shell-${CACHE_VERSION}`;
+const RUNTIME_CACHE = `yape-runtime-${CACHE_VERSION}`;
 const OFFLINE_URL = './offline.html';
-const NETWORK_TIMEOUT_MS = 3500;
-const REMOTE_TIMEOUT_MS = 2500;
+const INDEX_URL = './index.html';
+const NETWORK_TIMEOUT_MS = 4500;
+const REMOTE_TIMEOUT_MS = 3500;
 
-const PRECACHE_URLS = [
-  "./",
-  "./index.html",
-  "./offline.html",
-  "./manifest.webmanifest",
-  "./animacion_confetti.gif",
-  "./assets/Abraham-vadelomar.png",
-  "./assets/Abraham-valdelomar.png",
-  "./assets/Bebote.png",
-  "./assets/Finalizar.png",
-  "./assets/Jhonker.png",
-  "./assets/Miguel-grau.png",
-  "./assets/Pedro-paulet.png",
-  "./assets/Santa-rosa-de-lima.png",
-  "./assets/Sonyer.png",
-  "./assets/abraham-vadelomar.png",
-  "./assets/abraham-valdelomar.png",
-  "./assets/animacion_confetti.gif",
-  "./assets/animacion_yape_confetti.js",
-  "./assets/animacion_yape_confetti_v3.js",
-  "./assets/aprobacion.png",
-  "./assets/audio_app.mp3",
-  "./assets/barra_opciones_perfil.webp",
-  "./assets/biometria.png",
-  "./assets/carga.png",
-  "./assets/carrito.png",
-  "./assets/compartir.png",
-  "./assets/creditos.png",
-  "./assets/dolares.png",
-  "./assets/embedded/icono-ayuda-soporte.svg",
-  "./assets/embedded/icono-biometria-huella.svg",
-  "./assets/embedded/icono-cerrar-gris.svg",
-  "./assets/embedded/icono-cerrar-sesion.svg",
-  "./assets/embedded/icono-compartir-comprobante.png",
-  "./assets/embedded/icono-compras-internet-pos.svg",
-  "./assets/embedded/icono-confirmacion-yapeo-alto.svg",
-  "./assets/embedded/icono-eliminar-cuenta.svg",
-  "./assets/embedded/icono-fecha-calendario.svg",
-  "./assets/embedded/icono-flecha-volver-negra.svg",
-  "./assets/embedded/icono-hora-reloj.svg",
-  "./assets/embedded/icono-informacion-seguridad.svg",
-  "./assets/embedded/icono-limites-transaccionales.svg",
-  "./assets/embedded/icono-mi-qr.svg",
-  "./assets/embedded/icono-mis-datos.svg",
-  "./assets/embedded/icono-mis-direcciones.svg",
-  "./assets/embedded/icono-notificaciones-yapeo.svg",
-  "./assets/embedded/icono-politica-privacidad.svg",
-  "./assets/embedded/icono-terminos-condiciones.svg",
-  "./assets/embedded/icono-transferencia-bancaria.svg",
-  "./assets/embedded/icono-volver-gris.svg",
-  "./assets/embedded/logo-yape-circular.svg",
-  "./assets/embedded/logo-yape-principal.svg",
-  "./assets/embedded/pixel-transparente.svg",
-  "./assets/fuente_roboto_01.woff2",
-  "./assets/fuente_roboto_02.woff2",
-  "./assets/icono_app_yape.svg",
-  "./assets/icono_aprobar_compras.svg",
-  "./assets/icono_campana.svg",
-  "./assets/icono_contactos_yape.webp",
-  "./assets/icono_creditos.svg",
-  "./assets/icono_dolares.svg",
-  "./assets/icono_escanear_qr.svg",
-  "./assets/icono_flecha_movimientos.svg",
-  "./assets/icono_gaming.webp",
-  "./assets/icono_huella_morada.webp",
-  "./assets/icono_movimientos.svg",
-  "./assets/icono_ojo_mostrar_saldo.svg",
-  "./assets/icono_ojo_ocultar_saldo.png",
-  "./assets/icono_ojo_ocultar_saldo_backup.svg",
-  "./assets/icono_perfil.svg",
-  "./assets/icono_promos.webp",
-  "./assets/icono_recargar_celular.svg",
-  "./assets/icono_remesas.svg",
-  "./assets/icono_soat.svg",
-  "./assets/icono_soporte.svg",
-  "./assets/icono_tienda.svg",
-  "./assets/icono_ver_todo_base.webp",
-  "./assets/icono_viajar_bus.webp",
-  "./assets/icono_yape_svg.svg",
-  "./assets/icono_yapear_boton.svg",
-  "./assets/icono_yapear_servicios.svg",
-  "./assets/jose-quinones.png",
-  "./assets/llama.png",
-  "./assets/logo-movimiendos.png",
-  "./assets/logo_yape_principal.webp",
-  "./assets/logobaucher.gif",
-  "./assets/mensaje.png",
-  "./assets/miguel-grau.png",
-  "./assets/movimientosanuncio.png",
-  "./assets/pedro-paulet.png",
-  "./assets/promo_01.webp",
-  "./assets/promo_02.webp",
-  "./assets/promo_03.webp",
-  "./assets/promo_04.webp",
-  "./assets/promo_05.webp",
-  "./assets/promo_06.webp",
-  "./assets/qr_yape_morado.webp",
-  "./assets/recargar.png",
-  "./assets/remesas.png",
-  "./assets/roboto_latin.woff2",
-  "./assets/roboto_simbolos.woff2",
-  "./assets/santa-rosa-de-lima.png",
-  "./assets/soat.png",
-  "./assets/tienda.png",
-  "./assets/watermark-jose-quinones.png",
-  "./assets/yape_personaje.svg",
-  "./bcp.png",
-  "./compartir.png",
-  "./icon-192.png",
-  "./icon-512.png",
-  "./img/iconos/aprende_yape.png",
-  "./img/iconos/aprobacion.png",
-  "./img/iconos/biometria.png",
-  "./img/iconos/bus.png",
-  "./img/iconos/creditos.png",
-  "./img/iconos/dolares.png",
-  "./img/iconos/elecciones.png",
-  "./img/iconos/entradas.png",
-  "./img/iconos/enviar_exterior.png",
-  "./img/iconos/escanear_qr.png",
-  "./img/iconos/gaming.png",
-  "./img/iconos/hijos.png",
-  "./img/iconos/mostrar_saldo.png",
-  "./img/iconos/movimientos_icon.png",
-  "./img/iconos/mundo_proteccion.png",
-  "./img/iconos/ocultar_saldo.png",
-  "./img/iconos/promos.png",
-  "./img/iconos/recargar.png",
-  "./img/iconos/recargar_transporte.png",
-  "./img/iconos/remesas.png",
-  "./img/iconos/servicios.png",
-  "./img/iconos/soat.png",
-  "./img/iconos/tienda.png",
-  "./img/iconos/vermas.png",
-  "./img/iconos/yapear.png",
-  "./img/iconos/yapear_dolares.png",
-  "./img/iconos/yapear_servicios.png",
-  "./img/promos/promo1.png",
-  "./img/promos/promo2.png",
-  "./img/promos/promo3.png",
-  "./img/promos/promo4.png",
-  "./logobaucher.gif",
-  "./logomovimientos.svg",
-  "./manifest.json",
-  "./media/aprende.png",
-  "./media/biometria.png",
-  "./media/bitel.png",
-  "./media/claro.png",
-  "./media/entel.png",
-  "./media/entradas.png",
-  "./media/enviar_exterior.png",
-  "./media/giro.png",
-  "./media/logo.gif",
-  "./media/movistar.png",
-  "./media/seguros.png",
-  "./media/yapear_servicios.mp4",
-  "./movimientosanuncio.png",
-  "./msg-icon.png",
-  "./notificacion.mp3",
-  "./qr.png",
-  "./roboto_latin.woff2",
-  "./s-icon.png"
+/* Solo recursos pequeños y esenciales durante la instalación.
+   El index (aprox. 3 MB) se guarda después, cuando la app ya está visible. */
+const INSTALL_CORE = [
+  OFFLINE_URL,
+  './manifest.webmanifest',
+  './icon-192.png',
+  './icon-512.png',
+  './bcp.png',
+  './assets/embedded/logo-yape-principal.svg',
+  './assets/embedded/pixel-transparente.svg'
 ];
 
-function timeoutPromise(ms) {
-  return new Promise((_, reject) => setTimeout(() => reject(new Error('network-timeout')), ms));
-}
+const WARM_SHELL = [
+  INDEX_URL,
+  './',
+  './roboto_latin.woff2',
+  './notificacion.mp3',
+  './assets/animacion_yape_confetti_v3.js',
+  './assets/icono_ojo_mostrar_saldo.svg',
+  './assets/icono_ojo_ocultar_saldo.png',
+  './assets/icono_escanear_qr.svg',
+  './assets/icono_yapear_boton.svg',
+  './assets/icono_yapear_servicios.svg',
+  './assets/icono_recargar_celular.svg',
+  './assets/icono_perfil.svg',
+  './assets/icono_campana.svg',
+  './assets/logo_yape_principal.webp',
+  './assets/watermark-jose-quinones.png'
+];
+
 function fetchWithTimeout(request, ms) {
-  return Promise.race([fetch(request), timeoutPromise(ms || NETWORK_TIMEOUT_MS)]);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms || NETWORK_TIMEOUT_MS);
+  const source = request instanceof Request ? request : new Request(request);
+  const timed = new Request(source, { signal: controller.signal });
+  return fetch(timed).finally(() => clearTimeout(timer));
 }
+
 async function putSafe(cache, request, response) {
-  try { if(response && response.ok) await cache.put(request, response.clone()); } catch (_) {}
+  try {
+    if (response && response.ok && response.type !== 'opaque') {
+      await cache.put(request, response.clone());
+    } else if (response && response.type === 'opaque') {
+      await cache.put(request, response.clone());
+    }
+  } catch (_) {}
 }
+
 function jsResponse(code) {
-  return new Response(code, {status:200,headers:{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-store'}});
+  return new Response(code || '', {
+    status: 200,
+    headers: { 'Content-Type': 'application/javascript; charset=utf-8', 'Cache-Control': 'no-store' }
+  });
 }
-function emptyJs() { return jsResponse('/* offline fallback */\n'); }
+function emptyJs(){ return jsResponse(''); }
+
 function firebaseStub(url) {
-  const p=url.pathname || '';
-  if(p.includes('firebase-app')) return jsResponse(`const __apps=[];export function initializeApp(config={},name='[DEFAULT]'){const app={config,name,options:config};__apps.push(app);return app}export function getApps(){return __apps.slice()}export function getApp(name='[DEFAULT]'){return __apps.find(a=>a.name===name)||initializeApp({},name)}export async function deleteApp(){return true}`);
-  if(p.includes('firebase-analytics')) return jsResponse(`export function getAnalytics(){return {}}export async function isSupported(){return false}export function logEvent(){}`);
-  if(p.includes('firebase-messaging')) return jsResponse(`export async function isSupported(){return false}export function getMessaging(){return {}}export async function getToken(){return ''}export async function deleteToken(){return true}export function onMessage(){return function(){}}`);
-  if(p.includes('firebase-firestore')) return jsResponse(`const e=()=>new Error('offline network unavailable');export function getFirestore(){return {}}export function doc(){return {path:[...arguments].join('/')}}export function collection(){return {path:[...arguments].join('/')}}export function query(){return {args:[...arguments]}}export function where(){return {where:[...arguments]}}export function limit(n){return {limit:n}}export async function getDoc(){throw e()}export async function getDocs(){throw e()}export async function setDoc(){throw e()}export async function updateDoc(){throw e()}export async function deleteDoc(){throw e()}export function onSnapshot(r,o,f){try{if(typeof f==='function')setTimeout(()=>f(e()),0)}catch(_){}return function(){}}export function serverTimestamp(){return new Date()}export function arrayUnion(){return [...arguments]}export function arrayRemove(){return [...arguments]}export class Timestamp{constructor(seconds=0,nanoseconds=0){this.seconds=seconds;this.nanoseconds=nanoseconds}toDate(){return new Date(this.seconds*1000)}static now(){return new Timestamp(Math.floor(Date.now()/1000),0)}static fromDate(d){return new Timestamp(Math.floor(d.getTime()/1000),0)}}`);
+  const p = url.pathname;
+  if (p.includes('firebase-app')) return jsResponse(`export function initializeApp(o,n){return{name:n||'[DEFAULT]',options:o||{}}}export function getApps(){return[]}export function getApp(){return{}}`);
+  if (p.includes('firebase-analytics')) return jsResponse(`export function getAnalytics(){return {}}export async function isSupported(){return false}export function logEvent(){}`);
+  if (p.includes('firebase-messaging')) return jsResponse(`export async function isSupported(){return false}export function getMessaging(){return {}}export async function getToken(){return ''}export async function deleteToken(){return true}export function onMessage(){return function(){}}`);
+  if (p.includes('firebase-firestore')) return jsResponse(`const e=()=>new Error('offline network unavailable');export function getFirestore(){return {}}export function doc(){return {path:[...arguments].join('/')}}export function collection(){return {path:[...arguments].join('/')}}export function query(){return {args:[...arguments]}}export function where(){return {where:[...arguments]}}export function limit(n){return {limit:n}}export async function getDoc(){throw e()}export async function getDocs(){throw e()}export async function setDoc(){throw e()}export async function updateDoc(){throw e()}export async function deleteDoc(){throw e()}export function onSnapshot(r,o,f){try{if(typeof f==='function')setTimeout(()=>f(e()),0)}catch(_){}return function(){}}export function serverTimestamp(){return new Date()}export function arrayUnion(){return [...arguments]}export function arrayRemove(){return [...arguments]}export class Timestamp{constructor(seconds=0,nanoseconds=0){this.seconds=seconds;this.nanoseconds=nanoseconds}toDate(){return new Date(this.seconds*1000)}static now(){return new Timestamp(Math.floor(Date.now()/1000),0)}static fromDate(d){return new Timestamp(Math.floor(d.getTime()/1000),0)}}`);
   return emptyJs();
 }
-async function remoteScriptStrategy(request) {
-  const url=new URL(request.url), cache=await caches.open(CACHE_NAME), cached=await caches.match(request);
-  if(cached) { fetchWithTimeout(request,REMOTE_TIMEOUT_MS).then(r=>putSafe(cache,request,r)).catch(()=>{}); return cached; }
-  try { const fresh=await fetchWithTimeout(request,REMOTE_TIMEOUT_MS); await putSafe(cache,request,fresh); return fresh; }
-  catch (_) {
-    if(url.hostname==='www.gstatic.com' && url.pathname.includes('/firebasejs/')) return firebaseStub(url);
-    if(url.hostname.includes('cdnjs.cloudflare.com') && url.pathname.includes('lottie')) return jsResponse('window.lottie=window.lottie||{loadAnimation:function(){return{destroy:function(){},play:function(){},stop:function(){}}}};');
-    if(url.hostname.includes('cdn.jsdelivr.net') && url.pathname.toLowerCase().includes('jsqr')) return jsResponse('window.jsQR=window.jsQR||function(){return null};');
-    return emptyJs();
+
+async function cacheSequential(urls) {
+  const cache = await caches.open(SHELL_CACHE);
+  for (const url of urls) {
+    try {
+      const existing = await cache.match(url);
+      if (existing) continue;
+      const response = await fetchWithTimeout(new Request(url, { cache:'reload' }), 7000);
+      await putSafe(cache, url, response);
+    } catch (_) {}
   }
 }
-async function cacheFirst(request) {
-  const cache=await caches.open(CACHE_NAME), cached=await caches.match(request);
-  if(cached) { fetchWithTimeout(request,NETWORK_TIMEOUT_MS).then(r=>putSafe(cache,request,r)).catch(()=>{}); return cached; }
-  const fresh=await fetchWithTimeout(request,NETWORK_TIMEOUT_MS); await putSafe(cache,request,fresh); return fresh;
-}
+
 self.addEventListener('install', event => {
   self.skipWaiting();
-  event.waitUntil((async()=>{
-    const cache=await caches.open(CACHE_NAME);
-    await Promise.allSettled(PRECACHE_URLS.map(async url=>{try{await cache.add(new Request(url,{cache:'reload'}))}catch(_){}}));
-  })());
+  event.waitUntil(cacheSequential(INSTALL_CORE));
 });
+
 self.addEventListener('activate', event => {
-  event.waitUntil((async()=>{
-    const keys=await caches.keys();
-    await Promise.all(keys.filter(k=>(k.startsWith('yape-pwa-')||k.startsWith('app-cache-')) && k!==CACHE_NAME).map(k=>caches.delete(k)));
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys
+      .filter(k => (k.startsWith('yape-') || k.startsWith('app-cache-') || k.startsWith('pwa-shell-')) && ![SHELL_CACHE, RUNTIME_CACHE].includes(k))
+      .map(k => caches.delete(k)));
     await self.clients.claim();
   })());
 });
-self.addEventListener('message', event => { if(event.data && event.data.type==='SKIP_WAITING') self.skipWaiting(); });
-self.addEventListener('fetch', event => {
-  const req=event.request;
-  if(req.method!=='GET') return;
-  const url=new URL(req.url);
-  if(url.origin!==self.location.origin) {
-    if(req.destination==='script' || url.hostname==='www.gstatic.com' || url.hostname.includes('cdnjs.cloudflare.com') || url.hostname.includes('cdn.jsdelivr.net')) event.respondWith(remoteScriptStrategy(req));
-    return;
-  }
-  if(req.mode==='navigate' || req.destination==='document') {
-    event.respondWith((async()=>{
-      try { const fresh=await fetchWithTimeout(req,NETWORK_TIMEOUT_MS); const cache=await caches.open(CACHE_NAME); await putSafe(cache,req,fresh); await putSafe(cache,'./index.html',fresh); return fresh; }
-      catch (_) { return (await caches.match(req)) || (await caches.match('./index.html')) || (await caches.match(OFFLINE_URL)) || new Response('Sin conexión',{status:200,headers:{'Content-Type':'text/html; charset=utf-8'}}); }
-    })());
-    return;
-  }
-  event.respondWith((async()=>{
-    try { return await cacheFirst(req); }
-    catch (_) {
-      if(req.destination==='image') return (await caches.match('./assets/embedded/pixel-transparente.svg')) || new Response('',{status:204});
-      if(req.destination==='style') return new Response('',{status:200,headers:{'Content-Type':'text/css'}});
-      if(req.destination==='script') return emptyJs();
-      return new Response('',{status:504,statusText:'Offline'});
+
+self.addEventListener('message', event => {
+  if (!event.data) return;
+  if (event.data.type === 'SKIP_WAITING') self.skipWaiting();
+  if (event.data.type === 'CACHE_APP_SHELL') event.waitUntil(cacheSequential(WARM_SHELL));
+});
+
+async function navigationStrategy(request, event) {
+  const shell = await caches.open(SHELL_CACHE);
+  const cached = (await shell.match(request)) || (await shell.match(INDEX_URL)) || (await shell.match('./'));
+
+  if (cached) {
+    if (self.navigator.onLine !== false) {
+      const refresh = fetchWithTimeout(request, NETWORK_TIMEOUT_MS)
+        .then(async response => {
+          if (response && response.ok) {
+            await putSafe(shell, request, response);
+            await putSafe(shell, INDEX_URL, response);
+          }
+        }).catch(() => {});
+      event.waitUntil(refresh);
     }
-  })());
+    return cached;
+  }
+
+  try {
+    const response = await fetchWithTimeout(request, NETWORK_TIMEOUT_MS);
+    await putSafe(shell, request, response);
+    await putSafe(shell, INDEX_URL, response);
+    return response;
+  } catch (_) {
+    return (await shell.match(OFFLINE_URL)) || new Response('Sin conexión', {
+      status: 200,
+      headers: { 'Content-Type':'text/html; charset=utf-8' }
+    });
+  }
+}
+
+async function sameOriginAssetStrategy(request) {
+  if (request.headers.has('range')) return fetch(request);
+  const cache = await caches.open(RUNTIME_CACHE);
+  const cached = await cache.match(request);
+  if (cached) return cached;
+  try {
+    const response = await fetchWithTimeout(request, NETWORK_TIMEOUT_MS);
+    await putSafe(cache, request, response);
+    return response;
+  } catch (_) {
+    if (request.destination === 'image') {
+      return (await caches.match('./assets/embedded/pixel-transparente.svg')) || new Response('', {status:204});
+    }
+    if (request.destination === 'style') return new Response('', {status:200, headers:{'Content-Type':'text/css'}});
+    if (request.destination === 'script') return emptyJs();
+    return new Response('', {status:504, statusText:'Offline'});
+  }
+}
+
+async function remoteScriptStrategy(request) {
+  const cache = await caches.open(RUNTIME_CACHE);
+  const cached = await cache.match(request);
+  if (cached) return cached;
+  const url = new URL(request.url);
+  try {
+    const response = await fetchWithTimeout(request, REMOTE_TIMEOUT_MS);
+    await putSafe(cache, request, response);
+    return response;
+  } catch (_) {
+    if (url.hostname === 'www.gstatic.com' && url.pathname.includes('/firebasejs/')) return firebaseStub(url);
+    if (url.hostname.includes('cdnjs.cloudflare.com') && url.pathname.includes('lottie')) return jsResponse('window.lottie=window.lottie||{loadAnimation:function(){return{destroy:function(){},play:function(){},stop:function(){}}}};');
+    if (url.hostname.includes('cdn.jsdelivr.net') && url.pathname.toLowerCase().includes('jsqr')) return jsResponse('window.jsQR=window.jsQR||function(){return null};');
+    return emptyJs();
+  }
+}
+
+self.addEventListener('fetch', event => {
+  const request = event.request;
+  if (request.method !== 'GET') return;
+  const url = new URL(request.url);
+
+  if (url.origin !== self.location.origin) {
+    if (request.destination === 'script' || url.hostname === 'www.gstatic.com' || url.hostname.includes('cdnjs.cloudflare.com') || url.hostname.includes('cdn.jsdelivr.net')) {
+      event.respondWith(remoteScriptStrategy(request));
+    }
+    return;
+  }
+
+  if (request.mode === 'navigate' || request.destination === 'document') {
+    event.respondWith(navigationStrategy(request, event));
+    return;
+  }
+
+  event.respondWith(sameOriginAssetStrategy(request));
 });

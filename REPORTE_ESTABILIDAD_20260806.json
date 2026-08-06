@@ -1,0 +1,29 @@
+{
+  "fecha": "2026-08-06",
+  "version": "stable-1",
+  "problemas_corregidos": [
+    "El Service Worker ya no intenta precargar aproximadamente 15 MB de archivos durante el arranque.",
+    "Las pantallas internas ya no pueden reemplazar el Service Worker principal con sw.js.",
+    "La navegación abre desde caché de inmediato y actualiza el HTML silenciosamente.",
+    "Las solicitudes lentas se cancelan con AbortController en lugar de quedar pendientes.",
+    "La comprobación manual de actualizaciones se limita a una vez cada 6 horas.",
+    "El splash se libera más rápido para usuarios con sesión y se recupera al reanudar la app.",
+    "Lottie y jsQR se cargan sin bloquear el análisis del HTML.",
+    "Se corrigieron dos errores de sintaxis JavaScript preexistentes.",
+    "Se corrigieron dos rutas de precarga con mayúsculas incorrectas.",
+    "Se configuraron cabeceras estables para Vercel."
+  ],
+  "archivos_modificados": [
+    "index.html",
+    "service-worker.js",
+    "sw.js",
+    "vercel.json"
+  ],
+  "validaciones": [
+    "140 scripts clásicos validados sin errores de sintaxis.",
+    "10 módulos JavaScript validados sin errores de sintaxis.",
+    "service-worker.js validado con node --check.",
+    "manifest.webmanifest y vercel.json validados como JSON.",
+    "Todos los recursos esenciales del nuevo caché existen."
+  ]
+}
