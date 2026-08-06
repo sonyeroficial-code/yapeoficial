@@ -40187,3 +40187,254 @@ html.yosi-ios-standalone-full-v13 .stage > iframe{
 <!-- V23: misma lógica V22 + huella SVG integrada y siempre visible -->
 
 <!-- V25: corrección segura, sin cambiar width/height del botón -->
+
+<!-- FIX 2026-08-05: la pantalla de configuración mantiene su altura al abrir el teclado. -->
+<style id="bridge-entry-keyboard-safe-fix-v1">
+  html.bridge-account-entry-open,
+  html.bridge-account-entry-open body{
+    overflow:hidden !important;
+    overscroll-behavior:none !important;
+  }
+
+  /*
+    La variable global --app-vh se reduce cuando aparece el teclado de Android.
+    Esta pantalla no debe usar esa altura reducida porque deja ver Ajustes/Home debajo.
+  */
+  html.bridge-account-entry-open #bridgeAccountEntry{
+    position:fixed !important;
+    left:0 !important;
+    top:0 !important;
+    right:auto !important;
+    bottom:auto !important;
+    width:100vw !important;
+    height:var(--bridge-entry-locked-height, 100vh) !important;
+    min-height:var(--bridge-entry-locked-height, 100vh) !important;
+    max-height:none !important;
+    overflow:hidden !important;
+    visibility:visible !important;
+    opacity:1 !important;
+    background:#fff !important;
+    contain:layout paint style !important;
+  }
+
+  html.bridge-account-entry-open #bridgeAccountEntry.mode-loading{
+    background:#742284 !important;
+  }
+
+  html.bridge-account-entry-open #bridgeAccountEntry.mode-setup{
+    background:linear-gradient(165deg,#ffffff 0%,#fbf7fc 56%,#f5edf8 100%) !important;
+  }
+
+  html.bridge-account-entry-open #bridgeAccountEntry .bridgeEntryView,
+  html.bridge-account-entry-open #bridgeAccountEntry .bridgeEntrySetup,
+  html.bridge-account-entry-open #bridgeAccountEntry .bridgeEntryLoading{
+    width:100% !important;
+    height:100% !important;
+    min-height:100% !important;
+    max-height:none !important;
+  }
+
+  html.bridge-account-entry-open #bridgeAccountEntry .bridgeEntrySetup{
+    overscroll-behavior:contain !important;
+    scroll-behavior:auto !important;
+    touch-action:pan-y !important;
+  }
+
+  /* Evita que cualquier pantalla que está detrás se vea durante la configuración. */
+  html.bridge-account-entry-open body > #appWrap,
+  html.bridge-account-entry-open body > #loginWrap,
+  html.bridge-account-entry-open body > .stage,
+  html.bridge-account-entry-open body > #preSplash,
+  html.bridge-account-entry-open body > #__yapeSplash{
+    visibility:hidden !important;
+    pointer-events:none !important;
+  }
+
+  html.bridge-account-entry-open body > #bridgeAccountEntry{
+    visibility:visible !important;
+    pointer-events:auto !important;
+  }
+</style>
+<script id="bridge-entry-keyboard-safe-fix-v1-script">
+(function(){
+  if(window.__bridgeEntryKeyboardSafeFixV1) return;
+  window.__bridgeEntryKeyboardSafeFixV1 = true;
+
+  var ROOT_ID = 'bridgeAccountEntry';
+  var lockedHeight = 0;
+  var lockedWidth = 0;
+  var rafId = 0;
+  var lastOrientation = getOrientation();
+
+  function getRoot(){
+    return document.getElementById(ROOT_ID);
+  }
+
+  function isOpen(root){
+    return !!(root && root.classList.contains('is-open'));
+  }
+
+  function getOrientation(){
+    try{
+      var type = window.screen && window.screen.orientation && window.screen.orientation.type;
+      if(type) return String(type).indexOf('landscape') === 0 ? 'landscape' : 'portrait';
+    }catch(e){}
+    try{
+      return window.screen && window.screen.width > window.screen.height ? 'landscape' : 'portrait';
+    }catch(e){}
+    return 'portrait';
+  }
+
+  function currentLayoutHeight(){
+    return Math.max(
+      Number(window.innerHeight) || 0,
+      Number(document.documentElement && document.documentElement.clientHeight) || 0
+    );
+  }
+
+  function currentLayoutWidth(){
+    return Math.max(
+      Number(window.innerWidth) || 0,
+      Number(document.documentElement && document.documentElement.clientWidth) || 0
+    );
+  }
+
+  function activeInputIsInside(root){
+    var active = document.activeElement;
+    return !!(root && active && root.contains(active) && /^(INPUT|TEXTAREA|SELECT)$/.test(active.tagName));
+  }
+
+  function setCssVars(root){
+    if(!isOpen(root)) return;
+
+    var vv = window.visualViewport;
+    var layoutH = currentLayoutHeight();
+    var layoutW = currentLayoutWidth();
+    var visibleH = vv && vv.height ? Number(vv.height) : layoutH;
+    var orientation = getOrientation();
+    var inputFocused = activeInputIsInside(root);
+    var keyboardLikelyOpen = !!(
+      inputFocused &&
+      lockedHeight > 0 &&
+      visibleH > 0 &&
+      visibleH < lockedHeight * 0.82
+    );
+
+    if(!lockedHeight || !lockedWidth || orientation !== lastOrientation){
+      lockedHeight = Math.max(layoutH, visibleH);
+      lockedWidth = layoutW;
+      lastOrientation = orientation;
+    }else if(!keyboardLikelyOpen){
+      /* Solo aumenta la base cuando el teclado está cerrado. Nunca la reduce por el teclado. */
+      lockedHeight = Math.max(lockedHeight, layoutH, visibleH);
+      lockedWidth = Math.max(lockedWidth, layoutW);
+    }
+
+    if(lockedHeight < 320) lockedHeight = Math.max(layoutH, 320);
+
+    document.documentElement.style.setProperty('--bridge-entry-locked-height', Math.round(lockedHeight) + 'px');
+
+    root.style.setProperty('height', Math.round(lockedHeight) + 'px', 'important');
+    root.style.setProperty('min-height', Math.round(lockedHeight) + 'px', 'important');
+    root.style.setProperty('top', '0px', 'important');
+  }
+
+  function keepFocusedFieldVisible(root){
+    if(!isOpen(root)) return;
+    var active = document.activeElement;
+    if(!active || !root.contains(active) || !/^(INPUT|TEXTAREA|SELECT)$/.test(active.tagName)) return;
+
+    var scroller = root.querySelector('.bridgeEntrySetup');
+    var field = active.closest ? active.closest('.bridgeEntryField') : null;
+    if(!scroller || !field) return;
+
+    var vv = window.visualViewport;
+    var topLimit = (vv && vv.offsetTop ? vv.offsetTop : 0) + 12;
+    var bottomLimit = topLimit + (vv && vv.height ? vv.height : window.innerHeight) - 18;
+    var rect = field.getBoundingClientRect();
+
+    if(rect.bottom > bottomLimit){
+      scroller.scrollTop += Math.ceil(rect.bottom - bottomLimit + 14);
+    }else if(rect.top < topLimit){
+      scroller.scrollTop -= Math.ceil(topLimit - rect.top + 14);
+    }
+  }
+
+  function sync(){
+    rafId = 0;
+    var root = getRoot();
+    if(!isOpen(root)){
+      lockedHeight = 0;
+      lockedWidth = 0;
+      document.documentElement.style.removeProperty('--bridge-entry-locked-height');
+      return;
+    }
+
+    setCssVars(root);
+    requestAnimationFrame(function(){
+      setCssVars(root);
+      keepFocusedFieldVisible(root);
+    });
+  }
+
+  function queueSync(delay){
+    if(delay){
+      setTimeout(queueSync, delay);
+      return;
+    }
+    if(rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(sync);
+  }
+
+  document.addEventListener('focusin', function(event){
+    var root = getRoot();
+    if(!isOpen(root) || !root.contains(event.target)) return;
+    setCssVars(root);
+    queueSync(80);
+    queueSync(260);
+  }, true);
+
+  document.addEventListener('focusout', function(){
+    var root = getRoot();
+    if(!isOpen(root)) return;
+    queueSync(120);
+    queueSync(360);
+  }, true);
+
+  window.addEventListener('resize', function(){ queueSync(); }, {passive:true});
+  window.addEventListener('orientationchange', function(){
+    lockedHeight = 0;
+    lockedWidth = 0;
+    queueSync(80);
+    queueSync(320);
+  }, {passive:true});
+
+  if(window.visualViewport){
+    window.visualViewport.addEventListener('resize', function(){ queueSync(); }, {passive:true});
+    window.visualViewport.addEventListener('scroll', function(){ queueSync(); }, {passive:true});
+  }
+
+  try{
+    new MutationObserver(function(mutations){
+      for(var i = 0; i < mutations.length; i++){
+        var mutation = mutations[i];
+        if(mutation.type === 'attributes' && mutation.target && mutation.target.id === ROOT_ID){
+          queueSync();
+          return;
+        }
+        if(mutation.type === 'childList'){
+          queueSync();
+          return;
+        }
+      }
+    }).observe(document.documentElement, {
+      subtree:true,
+      childList:true,
+      attributes:true,
+      attributeFilter:['class','aria-hidden']
+    });
+  }catch(e){}
+
+  queueSync();
+})();
+</script>
