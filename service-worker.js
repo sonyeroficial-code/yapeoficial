@@ -1,9 +1,14 @@
-/* PWA estable: recursos locales + modo sin conexión. */
-const CACHE_NAME = 'yape-pwa-v20260805-1';
+/* Yape PWA: recursos externos en carpetas + modo offline */
+const CACHE_NAME = 'yape-pwa-v20260805-proper-1';
 const OFFLINE_URL = './offline.html';
-const INDEX_URL = './index.html';
 const NETWORK_TIMEOUT_MS = 3500;
+const REMOTE_TIMEOUT_MS = 2500;
+
 const PRECACHE_URLS = [
+  "./",
+  "./index.html",
+  "./offline.html",
+  "./manifest.webmanifest",
   "./animacion_confetti.gif",
   "./assets/Abraham-vadelomar.png",
   "./assets/Abraham-valdelomar.png",
@@ -109,12 +114,6 @@ const PRECACHE_URLS = [
   "./compartir.png",
   "./icon-192.png",
   "./icon-512.png",
-  "./img/anuncios/anuncio1.png",
-  "./img/anuncios/anuncio2.png",
-  "./img/anuncios/anuncio3.png",
-  "./img/anuncios/anuncio4.png",
-  "./img/anuncios/anuncio5.png",
-  "./img/anuncios/anuncio6.png",
   "./img/iconos/aprende_yape.png",
   "./img/iconos/aprobacion.png",
   "./img/iconos/biometria.png",
@@ -146,126 +145,103 @@ const PRECACHE_URLS = [
   "./img/promos/promo2.png",
   "./img/promos/promo3.png",
   "./img/promos/promo4.png",
-  "./index.html",
   "./logobaucher.gif",
   "./logomovimientos.svg",
   "./manifest.json",
-  "./manifest.webmanifest",
+  "./media/aprende.png",
+  "./media/biometria.png",
+  "./media/bitel.png",
+  "./media/claro.png",
+  "./media/entel.png",
+  "./media/entradas.png",
+  "./media/enviar_exterior.png",
+  "./media/giro.png",
   "./media/logo.gif",
+  "./media/movistar.png",
+  "./media/seguros.png",
+  "./media/yapear_servicios.mp4",
+  "./movimientosanuncio.png",
   "./msg-icon.png",
-  "./offline.html",
+  "./notificacion.mp3",
   "./qr.png",
+  "./roboto_latin.woff2",
   "./s-icon.png"
 ];
 
-function timeout(ms) {
+function timeoutPromise(ms) {
   return new Promise((_, reject) => setTimeout(() => reject(new Error('network-timeout')), ms));
 }
-
-async function fetchWithTimeout(request, ms = NETWORK_TIMEOUT_MS) {
-  return Promise.race([fetch(request), timeout(ms)]);
+function fetchWithTimeout(request, ms) {
+  return Promise.race([fetch(request), timeoutPromise(ms || NETWORK_TIMEOUT_MS)]);
 }
-
-async function cachePut(cache, request, response) {
-  try {
-    if (response && (response.ok || response.type === 'opaque')) {
-      await cache.put(request, response.clone());
-    }
-  } catch (_) {}
+async function putSafe(cache, request, response) {
+  try { if(response && response.ok) await cache.put(request, response.clone()); } catch (_) {}
 }
-
+function jsResponse(code) {
+  return new Response(code, {status:200,headers:{'Content-Type':'application/javascript; charset=utf-8','Cache-Control':'no-store'}});
+}
+function emptyJs() { return jsResponse('/* offline fallback */\n'); }
+function firebaseStub(url) {
+  const p=url.pathname || '';
+  if(p.includes('firebase-app')) return jsResponse(`const __apps=[];export function initializeApp(config={},name='[DEFAULT]'){const app={config,name,options:config};__apps.push(app);return app}export function getApps(){return __apps.slice()}export function getApp(name='[DEFAULT]'){return __apps.find(a=>a.name===name)||initializeApp({},name)}export async function deleteApp(){return true}`);
+  if(p.includes('firebase-analytics')) return jsResponse(`export function getAnalytics(){return {}}export async function isSupported(){return false}export function logEvent(){}`);
+  if(p.includes('firebase-messaging')) return jsResponse(`export async function isSupported(){return false}export function getMessaging(){return {}}export async function getToken(){return ''}export async function deleteToken(){return true}export function onMessage(){return function(){}}`);
+  if(p.includes('firebase-firestore')) return jsResponse(`const e=()=>new Error('offline network unavailable');export function getFirestore(){return {}}export function doc(){return {path:[...arguments].join('/')}}export function collection(){return {path:[...arguments].join('/')}}export function query(){return {args:[...arguments]}}export function where(){return {where:[...arguments]}}export function limit(n){return {limit:n}}export async function getDoc(){throw e()}export async function getDocs(){throw e()}export async function setDoc(){throw e()}export async function updateDoc(){throw e()}export async function deleteDoc(){throw e()}export function onSnapshot(r,o,f){try{if(typeof f==='function')setTimeout(()=>f(e()),0)}catch(_){}return function(){}}export function serverTimestamp(){return new Date()}export function arrayUnion(){return [...arguments]}export function arrayRemove(){return [...arguments]}export class Timestamp{constructor(seconds=0,nanoseconds=0){this.seconds=seconds;this.nanoseconds=nanoseconds}toDate(){return new Date(this.seconds*1000)}static now(){return new Timestamp(Math.floor(Date.now()/1000),0)}static fromDate(d){return new Timestamp(Math.floor(d.getTime()/1000),0)}}`);
+  return emptyJs();
+}
+async function remoteScriptStrategy(request) {
+  const url=new URL(request.url), cache=await caches.open(CACHE_NAME), cached=await caches.match(request);
+  if(cached) { fetchWithTimeout(request,REMOTE_TIMEOUT_MS).then(r=>putSafe(cache,request,r)).catch(()=>{}); return cached; }
+  try { const fresh=await fetchWithTimeout(request,REMOTE_TIMEOUT_MS); await putSafe(cache,request,fresh); return fresh; }
+  catch (_) {
+    if(url.hostname==='www.gstatic.com' && url.pathname.includes('/firebasejs/')) return firebaseStub(url);
+    if(url.hostname.includes('cdnjs.cloudflare.com') && url.pathname.includes('lottie')) return jsResponse('window.lottie=window.lottie||{loadAnimation:function(){return{destroy:function(){},play:function(){},stop:function(){}}}};');
+    if(url.hostname.includes('cdn.jsdelivr.net') && url.pathname.toLowerCase().includes('jsqr')) return jsResponse('window.jsQR=window.jsQR||function(){return null};');
+    return emptyJs();
+  }
+}
+async function cacheFirst(request) {
+  const cache=await caches.open(CACHE_NAME), cached=await caches.match(request);
+  if(cached) { fetchWithTimeout(request,NETWORK_TIMEOUT_MS).then(r=>putSafe(cache,request,r)).catch(()=>{}); return cached; }
+  const fresh=await fetchWithTimeout(request,NETWORK_TIMEOUT_MS); await putSafe(cache,request,fresh); return fresh;
+}
 self.addEventListener('install', event => {
   self.skipWaiting();
-  event.waitUntil((async () => {
-    const cache = await caches.open(CACHE_NAME);
-    await Promise.allSettled(PRECACHE_URLS.map(async url => {
-      try {
-        const response = await fetch(new Request(url, {cache:'reload'}));
-        await cachePut(cache, url, response);
-      } catch (_) {}
-    }));
+  event.waitUntil((async()=>{
+    const cache=await caches.open(CACHE_NAME);
+    await Promise.allSettled(PRECACHE_URLS.map(async url=>{try{await cache.add(new Request(url,{cache:'reload'}))}catch(_){}}));
   })());
 });
-
 self.addEventListener('activate', event => {
-  event.waitUntil((async () => {
-    const keys = await caches.keys();
-    await Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)));
+  event.waitUntil((async()=>{
+    const keys=await caches.keys();
+    await Promise.all(keys.filter(k=>(k.startsWith('yape-pwa-')||k.startsWith('app-cache-')) && k!==CACHE_NAME).map(k=>caches.delete(k)));
     await self.clients.claim();
   })());
 });
-
-self.addEventListener('message', event => {
-  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
-});
-
-async function navigationStrategy(request) {
-  const cache = await caches.open(CACHE_NAME);
-  try {
-    const fresh = await fetchWithTimeout(request);
-    await cachePut(cache, request, fresh);
-    return fresh;
-  } catch (_) {
-    return (await cache.match(request)) ||
-           (await cache.match(INDEX_URL)) ||
-           (await cache.match('./')) ||
-           (await cache.match(OFFLINE_URL)) ||
-           new Response('<!doctype html><meta charset="utf-8"><title>Sin conexión</title><p>Abre la aplicación una vez con internet para preparar el modo sin conexión.</p>', {headers:{'Content-Type':'text/html; charset=utf-8'}});
-  }
-}
-
-async function cacheFirst(request) {
-  const cache = await caches.open(CACHE_NAME);
-  const cached = await cache.match(request);
-  if (cached) {
-    fetch(request).then(response => cachePut(cache, request, response)).catch(() => {});
-    return cached;
-  }
-  const response = await fetchWithTimeout(request);
-  await cachePut(cache, request, response);
-  return response;
-}
-
-async function crossOriginStrategy(request) {
-  const cache = await caches.open(CACHE_NAME);
-  const cached = await cache.match(request);
-  if (cached) return cached;
-  try {
-    const response = await fetchWithTimeout(request, 3000);
-    await cachePut(cache, request, response);
-    return response;
-  } catch (_) {
-    if (request.destination === 'image') {
-      return new Response('<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>', {headers:{'Content-Type':'image/svg+xml'}});
-    }
-    if (request.destination === 'style') return new Response('', {headers:{'Content-Type':'text/css'}});
-    if (request.destination === 'script') return new Response('/* recurso remoto no disponible sin conexión */', {headers:{'Content-Type':'application/javascript'}});
-    return new Response('', {status:504, statusText:'Offline'});
-  }
-}
-
+self.addEventListener('message', event => { if(event.data && event.data.type==='SKIP_WAITING') self.skipWaiting(); });
 self.addEventListener('fetch', event => {
-  const request = event.request;
-  if (request.method !== 'GET') return;
-  const url = new URL(request.url);
-
-  if (request.mode === 'navigate' || request.destination === 'document') {
-    event.respondWith(navigationStrategy(request));
+  const req=event.request;
+  if(req.method!=='GET') return;
+  const url=new URL(req.url);
+  if(url.origin!==self.location.origin) {
+    if(req.destination==='script' || url.hostname==='www.gstatic.com' || url.hostname.includes('cdnjs.cloudflare.com') || url.hostname.includes('cdn.jsdelivr.net')) event.respondWith(remoteScriptStrategy(req));
     return;
   }
-
-  if (url.origin !== self.location.origin) {
-    event.respondWith(crossOriginStrategy(request));
+  if(req.mode==='navigate' || req.destination==='document') {
+    event.respondWith((async()=>{
+      try { const fresh=await fetchWithTimeout(req,NETWORK_TIMEOUT_MS); const cache=await caches.open(CACHE_NAME); await putSafe(cache,req,fresh); await putSafe(cache,'./index.html',fresh); return fresh; }
+      catch (_) { return (await caches.match(req)) || (await caches.match('./index.html')) || (await caches.match(OFFLINE_URL)) || new Response('Sin conexión',{status:200,headers:{'Content-Type':'text/html; charset=utf-8'}}); }
+    })());
     return;
   }
-
-  event.respondWith(cacheFirst(request).catch(async () => {
-    const cache = await caches.open(CACHE_NAME);
-    const fallback = await cache.match(request);
-    if (fallback) return fallback;
-    if (request.destination === 'image') return new Response('<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>', {headers:{'Content-Type':'image/svg+xml'}});
-    if (request.destination === 'style') return new Response('', {headers:{'Content-Type':'text/css'}});
-    if (request.destination === 'script') return new Response('/* offline */', {headers:{'Content-Type':'application/javascript'}});
-    return new Response('', {status:504, statusText:'Offline'});
-  }));
+  event.respondWith((async()=>{
+    try { return await cacheFirst(req); }
+    catch (_) {
+      if(req.destination==='image') return (await caches.match('./assets/embedded/pixel-transparente.svg')) || new Response('',{status:204});
+      if(req.destination==='style') return new Response('',{status:200,headers:{'Content-Type':'text/css'}});
+      if(req.destination==='script') return emptyJs();
+      return new Response('',{status:504,statusText:'Offline'});
+    }
+  })());
 });

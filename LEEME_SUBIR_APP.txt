@@ -1,0 +1,14 @@
+APP CORREGIDA CON ARCHIVOS SEPARADOS
+====================================
+
+1. No se incrustaron imágenes, videos, audios ni fuentes nuevos dentro de index.html.
+2. Debes subir TODO el contenido de esta carpeta conservando exactamente:
+   - index.html
+   - service-worker.js y sw.js
+   - manifest.webmanifest
+   - carpetas assets, img y media
+   - los demás archivos de la raíz
+3. No subas solamente index.html. Si faltan las carpetas, aparecerán imágenes rotas.
+4. La PWA necesita HTTPS en producción.
+5. Ábrela una primera vez con internet para guardar los recursos. Después podrá abrir las pantallas y recursos locales sin conexión. Firebase y servicios externos requieren internet.
+6. Tras reemplazar una versión anterior, cierra la app y ábrela dos veces. Si aún muestra la versión vieja, borra los datos del sitio una sola vez y vuelve a abrir.
