@@ -18737,6 +18737,32 @@ function safeMoney(value){
   return Number.isFinite(num) ? Math.max(0, num) : 0;
 }
 
+/* Envía el ID de una transferencia a la Function de Vercel.
+   La Function valida la transferencia en Firestore y manda el FCM al destinatario. */
+async function triggerTransferPush(transferId){
+  const id = String(transferId || "").trim();
+  if(!id) return false;
+  try {
+    const response = await fetch('/api/send-push', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ transferId: id }),
+      keepalive: true,
+      cache: 'no-store'
+    });
+    if(!response.ok){
+      let detail = '';
+      try { detail = await response.text(); } catch (_) {}
+      console.warn('Push Vercel no enviado:', response.status, detail);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.warn('Push Vercel no disponible:', error);
+    return false;
+  }
+}
+
 function getSpendableBalance(serverValue){
   let balance = safeMoney(serverValue);
   try {
@@ -21075,6 +21101,9 @@ async function handleExternalBankTransfer(homeWin, homeDoc, sender, destino){
       toRegistered: false
     });
 
+    // No bloquea el yapeo: Vercel procesa el push en segundo plano del request HTTP.
+    triggerTransferPush(transferRef.id);
+
     bridgeUser = {
       ...senderData,
       phone: senderData.phone || sender.phone,
@@ -21223,6 +21252,9 @@ async function handleTransfer(homeWin, homeDoc){
       type: "transfer",
       toRegistered: !!receiverExists
     });
+
+    // Dispara el push del destinatario desde Vercel (sin Cloud Functions de Firebase).
+    triggerTransferPush(transferRef.id);
 
     const result = {
       sender: { ...senderData, saldo: newSenderSaldo, yapeos: newSenderYapeos },
@@ -22179,7 +22211,11 @@ import { getFirestore, collection, query, where, onSnapshot, doc } from "https:/
         if(document.visibilityState === 'visible'){
           showForegroundToast(msg);
         } else {
-          await showSystemNotification(msg);
+          // Si FCM ya está listo, el Service Worker mostrará el push.
+          // Evita una segunda notificación producida por el listener de Firestore.
+          let fcmReady = false;
+          try { fcmReady = localStorage.getItem('yapeton_push_ready') === '1' && Notification.permission === 'granted'; } catch (e) {}
+          if(!fcmReady) await showSystemNotification(msg);
         }
       });
     }, (err) => {

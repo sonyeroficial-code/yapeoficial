@@ -7,6 +7,65 @@ const INDEX_URL = './index.html';
 const NETWORK_TIMEOUT_MS = 4500;
 const REMOTE_TIMEOUT_MS = 3500;
 
+/* FCM WEB PUSH
+   Este mismo Service Worker recibe el push aunque la página esté cerrada.
+   El click se registra ANTES de importar FCM para conservar el comportamiento personalizado. */
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const targetUrl = (event.notification && event.notification.data && event.notification.data.url) || './';
+  event.waitUntil((async () => {
+    try {
+      const allClients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+      for (const client of allClients) {
+        try {
+          const clientUrl = new URL(client.url);
+          const target = new URL(targetUrl, self.location.origin);
+          if (clientUrl.origin === target.origin) {
+            if ('navigate' in client) await client.navigate(target.href);
+            if ('focus' in client) return client.focus();
+          }
+        } catch (_) {}
+      }
+      return self.clients.openWindow(new URL(targetUrl, self.location.origin).href);
+    } catch (_) {}
+  })());
+});
+
+let yapeFcmMessaging = null;
+try {
+  importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
+  importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js');
+  firebase.initializeApp({
+    apiKey: 'AIzaSyC89Qpf_Ie85lVkm5V5wi_xBC5fajPngj8',
+    authDomain: 'yapeton.firebaseapp.com',
+    projectId: 'yapeton',
+    storageBucket: 'yapeton.firebasestorage.app',
+    messagingSenderId: '550981729513',
+    appId: '1:550981729513:web:b7b72dbcd5cad004410478',
+    measurementId: 'G-DS790H07HM'
+  });
+  yapeFcmMessaging = firebase.messaging();
+
+  yapeFcmMessaging.onBackgroundMessage(payload => {
+    const data = (payload && payload.data) || {};
+    const title = data.title || 'Confirmación de Pago';
+    const body = data.body || data.text || 'Recibiste un nuevo pago.';
+    const tag = 'yape-push-' + (data.transferId || Date.now());
+    self.registration.showNotification(title, {
+      body,
+      tag,
+      renotify: true,
+      vibrate: [180, 80, 180],
+      data: {
+        url: data.url || './',
+        transferId: data.transferId || ''
+      }
+    });
+  });
+} catch (error) {
+  console.warn('[SW] Firebase Messaging no pudo inicializarse:', error);
+}
+
 /* Solo recursos pequeños y esenciales durante la instalación.
    El index (aprox. 3 MB) se guarda después, cuando la app ya está visible. */
 const INSTALL_CORE = [
