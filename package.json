@@ -1,12 +1,6 @@
 {
-  "name": "notificacuon-vercel-push",
-  "version": "1.0.0",
-  "private": true,
-  "description": "PWA demo con Web Push FCM enviado desde Vercel Functions",
-  "engines": {
-    "node": "22.x"
-  },
+  "type": "module",
   "dependencies": {
-    "firebase-admin": "^14.2.0"
+    "twilio": "^5.5.0"
   }
 }
