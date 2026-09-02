@@ -1,11 +1,11 @@
 'use strict';
 
-const CACHE_NAME = 'yape-pwa-v210-20260902';
+const CACHE_NAME = 'yape-pwa-v211-20260902';
 const CACHE_PREFIX = 'yape-pwa-';
 const APP_SHELL = [
   './',
   './index.html',
-  './manifest.webmanifest?v=210',
+  './manifest.webmanifest?v=211',
   './manifest.json',
   './app-logo.png',
   './apple-touch-icon.png',

@@ -10,7 +10,7 @@
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait-primary",
-  "background_color": "#742284",
+  "background_color": "#780699",
   "theme_color": "#780699",
   "categories": ["finance", "utilities"],
   "prefer_related_applications": false,
