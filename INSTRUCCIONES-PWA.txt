@@ -1,0 +1,27 @@
+YAPE — ARCHIVOS PARA IPHONE Y ANDROID
+
+1. Entra al repositorio sonyeroficial-code/yapeoficial.
+2. Pulsa Add file > Upload files.
+3. Sube todos los archivos de este paquete a la raíz del repositorio, donde está index.html.
+4. Cuando GitHub pregunte, confirma el reemplazo de index.html.
+5. No borres la carpeta assets.
+6. Pulsa Commit changes y espera a que Vercel termine el despliegue.
+
+ARCHIVOS NUEVOS
+- manifest.webmanifest y manifest.json: permiten instalar la app.
+- service-worker.js: actualiza la app y permite funcionamiento sin conexión.
+- vercel.json: evita que Android conserve una versión antigua.
+- app-logo.png e iconos: usan el logo entregado para iPhone y Android.
+
+PROBAR EN ANDROID
+1. Elimina de la pantalla de inicio la versión anterior.
+2. En Chrome abre yapeoficial.vercel.app.
+3. Menú de Chrome > Instalar aplicación o Agregar a pantalla principal.
+
+PROBAR EN IPHONE
+1. Elimina de la pantalla de inicio la versión anterior.
+2. Abre yapeoficial.vercel.app usando Safari.
+3. Pulsa Compartir > Agregar a inicio.
+
+IMPORTANTE
+Si todavía aparece el icono anterior, borra los datos del sitio en Chrome o Safari y vuelve a instalarla.
