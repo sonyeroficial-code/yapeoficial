@@ -33,7 +33,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
-<meta name="yosi-build" content="biometria-perfil-v38-android-yapear-white-stable-20260903"/>
+<meta name="yosi-build" content="biometria-perfil-v38-android-voucher-stable-final-20260903"/>
 
 <link href="manifest.webmanifest" rel="manifest"/>
 <meta content="#780699" name="theme-color"/>
@@ -344,7 +344,7 @@
   window.addEventListener('resize', schedule, {passive:true});
   window.addEventListener('orientationchange', schedule, {passive:true});
   [0, 40, 100, 220, 500, 1000, 1800, 3000].forEach(function(ms){ setTimeout(schedule, ms); });
-  setInterval(schedule, 180);
+  setInterval(schedule, 1200); /* respaldo solamente; evita repintados continuos */
 })();</script>
 <style id="global-responsive-fix">:root{--app-vh:100dvh;--app-vw:100vw;--app-scale:1;--app-pad-x:clamp(10px,3.6vw,18px);--app-gap:clamp(8px,2.8vw,14px);--app-radius:clamp(16px,4vw,28px)} html{-webkit-text-size-adjust:100%;text-size-adjust:100%;overflow-x:hidden !important;background:#742284} body{width:100%;min-height:var(--app-vh);overflow-x:hidden !important} body,.stage,.device,.views,.screen,iframe{max-width:100vw !important} .stage,.device,.views,.screen{min-height:var(--app-vh)} img,video,canvas,svg{max-width:100%} input,textarea,select,button{font:inherit} *{min-width:0;word-wrap:break-word;overflow-wrap:anywhere} .screen{width:100%;padding-left:max(var(--app-pad-x),env(safe-area-inset-left)) !important;padding-right:max(var(--app-pad-x),env(safe-area-inset-right)) !important;padding-bottom:calc(env(safe-area-inset-bottom) + 6px) !important;gap:var(--app-gap) !important} .card,.sheet,.modal,.validate-modal,.netModalCard,.yNotifCard,.rcCard,.qrReg-card,.opCard{width:min(100%,100vw - 24px) !important;max-width:min(100%,520px) !important} .actions,.top,.bottom,.row,.chips,.tabs,.stories,.filters{max-width:100%} .actions,.chips,.tabs,.stories,.filters{overflow-x:auto;scrollbar-width:none} .actions::-webkit-scrollbar,.chips::-webkit-scrollbar,.tabs::-webkit-scrollbar,.stories::-webkit-scrollbar,.filters::-webkit-scrollbar{display:none} .keypad{gap:clamp(8px,2.2vw,12px) !important} .key{max-width:none !important} @media (max-width:430px){:root{--screenX:clamp(12px,3.8vw,16px);--screenY:clamp(10px,3vw,14px);--radiusCard:clamp(18px,5vw,24px);--radiusQr:clamp(12px,4vw,18px);--radiusKey:clamp(10px,3.2vw,12px)} .device{width:100vw !important;height:var(--app-vh) !important;border-radius:0 !important;box-shadow:none !important} .help-pill{padding:9px 13px !important;font-size:14px !important;gap:8px !important} .actions{justify-content:flex-start !important;padding-bottom:2px} .action{width:clamp(72px,23vw,88px) !important;flex:0 0 auto} .action .label{font-size:11.5px !important} .qr-box{width:clamp(138px,42vw,182px) !important;margin-top:30px !important} .title{font-size:clamp(19px,5vw,24px) !important} .forgot{font-size:14px !important}} @media (max-width:360px){:root{--app-pad-x:12px;--app-gap:8px} .screen{padding-top:calc(env(safe-area-inset-top) + 8px) !important} .qr-box{width:clamp(128px,40vw,160px) !important;margin-top:24px !important} .actions{margin-top:18px !important;gap:8px !important} .action{width:70px !important} .action .icon-wrap{width:44px !important;height:43px !important} .action .label{font-size:12px !important} .card{padding:12px 12px 8px !important} .key{height:clamp(38px,7vh,48px) !important;font-size:clamp(18px,5.5vw,24px) !important}} @media (max-height:740px){.screen{padding-top:calc(env(safe-area-inset-top) + 8px) !important;gap:8px !important} .qr-box{margin-top:24px !important} .actions{margin-top:14px !important} .card{padding-top:12px !important}} @media (max-height:680px){.qr-box{width:clamp(124px,38vw,152px) !important;margin-top:18px !important} .action .icon-wrap{width:42px !important;height:42px !important} .action .label{font-size:12px !important} .key{height:40px !important}}</style>
 <script id="global-responsive-fix-script">(function(){
@@ -633,6 +633,10 @@
   if(isIOS&&isStandalone) return;
   var css = 'background:#780699!important;background-image:linear-gradient(180deg,#780699 0%,#780699 100%)!important;';
   function paintOuter(){
+    try{
+      if(document.documentElement.classList.contains('__baucherTopActivo') ||
+         (document.body && document.body.classList.contains('__baucherTopActivo'))) return;
+    }catch(e){}
     try{['homeView','homeFrame','newHomeFrame'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.cssText+=';'+css;});}catch(e){}
     try{
       var hf=document.getElementById('homeFrame');
@@ -738,6 +742,11 @@
   var iosApp=isIOS&&isStandalone;
 
   function apply(){
+    try{
+      if(/Android/i.test(navigator.userAgent||'') &&
+         (document.documentElement.classList.contains('__baucherTopActivo') ||
+          (document.body && document.body.classList.contains('__baucherTopActivo')))) return;
+    }catch(e){}
     try{
       document.documentElement.style.backgroundColor=iosApp?APP:SPLASH;
       if(document.body){
@@ -27512,6 +27521,7 @@ import { getFirestore, doc, getDoc, collection, query, where, getDocs, limit } f
   var BAUCHER_TOP = '#4a1972';
   var current = null;
   var homeLockUntil = 0;
+  var voucherLockUntil = 0;
 
   function now(){ return Date.now ? Date.now() : new Date().getTime(); }
 
@@ -27633,19 +27643,29 @@ import { getFirestore, doc, getDoc, collection, query, where, getDocs, limit } f
   function voucherIsActive(doc){
     try{
       if(!doc) return false;
-      if(homeIsActive(doc)) return false;
+      /* IMPORTANTE:
+         El Home puede seguir montado/visible por debajo del comprobante.
+         Eso NO significa que el voucher esté cerrado. Primero manda el voucher. */
       return isShown(doc.getElementById('voucherView')) || isShown(doc.getElementById('rcvVoucher'));
     }catch(e){ return false; }
   }
 
   function detectActive(){
-    if(now() < homeLockUntil) return false;
+    var t = now();
+    if(t < homeLockUntil) return false;
+
+    /* Al abrir el voucher lo mantenemos bloqueado unos instantes.
+       Así ninguna mutación intermedia de clases/iframe puede devolver
+       el status bar al color del Home durante la transición. */
+    if(t < voucherLockUntil) return true;
+
     var hd = getHomeDoc();
     if(voucherIsActive(hd)) return true;
     return false;
   }
 
   function forceHome(ms){
+    voucherLockUntil = 0;
     homeLockUntil = Math.max(homeLockUntil, now() + (ms || 1000));
     current = null;
     apply(false); // inmediato: antes de pintar la vuelta al Home
@@ -27654,8 +27674,9 @@ import { getFirestore, doc, getDoc, collection, query, where, getDocs, limit } f
 
   function forceVoucher(){
     if(now() < homeLockUntil) return;
+    voucherLockUntil = Math.max(voucherLockUntil, now() + 2600);
     current = null;
-    apply(true); // inmediato: antes de mostrar el baucher
+    apply(true); // una sola transición estable al color del voucher
   }
 
   function queue(){
@@ -41349,7 +41370,23 @@ html.yosi-ios-standalone-full-v13 .stage > iframe{
   if(window.__yosiPagarServiciosV48Installed) return;
   window.__yosiPagarServiciosV48Installed = true;
 
-  var FRAME_HTML = "<!doctype html><html lang=\"es\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover\"><title>Pagar servicios</title><style>*{box-sizing:border-box;font-family:system-ui,-apple-system,\"Segoe UI\",Roboto,Arial,sans-serif;-webkit-tap-highlight-color:transparent}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#742284}button,input{font:inherit}.father{background:#fff;height:100dvh;width:100vw;border-radius:5vw 5vw 0 0;overflow:hidden;animation:none}@keyframes f{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}.head{height:15vw;display:flex;align-items:center;background:#fff;border-bottom:.25vw solid #f0f0f0}.head div{width:16vw;height:15vw;background-position:center;background-repeat:no-repeat;background-size:4.2vw;transition:.15s}.head div:first-child{background-image:url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAqCAYAAACk2+sZAAABCGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGA8wQAELAYMDLl5JUVB7k4KEZFRCuwPGBiBEAwSk4sLGHADoKpv1yBqL+viUYcLcKakFicD6Q9ArFIEtBxopAiQLZIOYWuA2EkQtg2IXV5SUAJkB4DYRSFBzkB2CpCtkY7ETkJiJxcUgdT3ANk2uTmlyQh3M/Ck5oUGA2kOIJZhKGYIYnBncAL5H6IkfxEDg8VXBgbmCQixpJkMDNtbGRgkbiHEVBYwMPC3MDBsO48QQ4RJQWJRIliIBYiZ0tIYGD4tZ2DgjWRgEL7AwMAVDQsIHG5TALvNnSEfCNMZchhSgSKeDHkMyQx6QJYRgwGDIYMZAKbWPz9HbOBQAAADBElEQVR4nMWYPWhUQRCAvxPB83LJaVBBFCQYBQtFhICNRQrFn0KjiGBlqUK0slC0iYqiWCm2gk1ENCoo/lQpbBRFUEhh/EljYQySk/POHwSL3b2bvMy8c98dOHDse7Pz9nuzM7s793KHBo+RQfLAjwj7AlAVLXOyUBVowf+CLEv0VxMtczNANW+riftPzQbJ4nHaFBdwL9YPPAeOir6SNMzicZAiUBHAqv8NAae8vg/oAi4BZflw1hgjoNCY6l0CGmSI2aFoCZyUA8AdRX9aM9bAHRmgm4Frin4cuCDu82ng79IgIUXlegB4oti+B1YzMyT1xLSmumDoZTJVgN3AiGI3AfQC841xTLBMBu3hKi6Rbit9Y0APsBioYcyeBZZrtebbvBhkAD2RfgHb/fUXZay6xKzjMMBO9OkFmNdkjG7gK+gem3HBLZm7Rl8OWOKvteldFKAWuKboANajL5k/AjrpdWF2ghPdwBRi20zbQOTS6QFeGXbLfTvJ7NUQnAie1rdNCyz34Q3AB8OuD33rbCoWOMSoF3hp2GwBXiTA/yxWVk8Ba4HXRv864KO47wK+xYAtjxcCj42+fg+VnkZB08D7gKWK/iIwajxTMvRR4C5D/4CZiSelTMTJZoGvGvpR3BEYRL5gHneytQSuAJuMvhFctsPM2MaUu6nr+CmwzegfB1b466jYNgNXPPwRsNGwmQDWkCjiWgWHgx7gGW7dajKWuC+qVhHg5Nb3Bnfwa/LWtyUidrGYKvMecFzRr8IlWZmIeMeWt+eBI4q+E3hHRLzTwPLt5XF3Gd3zlcD9doDl28uYd+A8P6E8swO46a+tErkp2JKwO50DTir9e4FbzcZu9S/MWeCgot+DO1Cg4fmCdoDlYNeBQcXmMPCQxlb6E1FIZgXnfDuNq6uuoCfcVg/H29ULyazgZAlcxCVc8i9qgEMbprpEo2rs9G3Ysc7gplhKGRea6VbBZVydDPA70VcAbgD7gc/AMO4InXVkZv0UETzWPsJUPXA4bYB2fhGIkv8G/gvOjpIqERBkiQAAAABJRU5ErkJggg==\")}.head div:last-child{background-image:url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACIAAAAiCAYAAAA6RwvCAAABCGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGA8wQAELAYMDLl5JUVB7k4KEZFRCuwPGBiBEAwSk4sLGHADoKpv1yBqL+viUYcLcKakFicD6Q9ArFIEtBxopAiQLZIOYWuA2EkQtg2IXV5SUAJkB4DYRSFBzkB2CpCtkY7ETkJiJxcUgdT3ANk2uTmlyQh3M/Ck5oUGA2kOIJZhKGYIYnBncAL5H6IkfxEDg8VXBgbmCQixpJkMDNtbGRgkbiHEVBYwMPC3MDBsO48QQ4RJQWJRIliIBYiZ0tIYGD4tZ2DgjWRgEL7AwMAVDQsIHG5TALvNnSEfCNMZchhSgSKeDHkMyQx6QJYRgwGDIYMZAKbWPz9HbOBQAAADdElEQVR4nK2XzUvUQRjHP2bg7qa7i1LhxTxliWESBR0s6xIdgsrSrKBDdOiNIqg/IfBUFF0SLALBIrKgS10qiSKSkiKsU0kv9ILh+rbbIeowM+7ss/O4P8HvZZ55Zn7PfOeZZ555fmVHT57FQyUwJfp/gSwLA2k/DfwBsovERDcp6fUXioRvP23bcWffJxK37WUgA1zF7GCh0Q18By4CMbe2TyQLXAFO2P4RYFAxFlP0S2xbRX5jPq4D54AK4BTQ49aWR3NM9FuAnLKoj2rbTlsykxQf6U3gkNAdtG1KEpkJLFIBPLJyjW0lud+ePB2wcRvoCOgdMpJImzKxDXOuY0Iv3e/33fH1Ae2K3SYnSCIvybtLYjkwZOWUbZ3746KfwHjtMbBfsbcXeOcILxaDCcwOPgNPAh+vw1y5tNA7AjFLYAb4ASxTSGzAbDpO4PpCPkYGgW2KkRRmJyG42Bmdg0S7JQFQ7pSSiI+HwC5lrBEYVsbeA3XK2FbgjpXjmASXKkUE4C7GjSE0AyNC9wloUOY3Aq+9vjvOTBQiYNwo77/DKuCZld8CK5R5+4CvmPgKQgYrFD9MADeAFxi3S2wE/mkLYDz3Zo5xIOwRScI9gB+AM6UMCnRFIaERcXC5YcLTXQA2RyTRBPRHnFtExH9tywljEOgsYXcP+hWPRGRKkZNiXncJu+dFPz1fIhr84xkF6kvMXwl89Prj8yGi1Rg+RtCTlUQ95paVKq5ikkiOsAsdwW+YvBHCFkXfgIkVF/ihzeYQ9UiMQhe6jxKYB7BWWWwn5pXtUsbrgAdWlrHm1shIj0imAJeATcoiLcA9K/cD65V5rRiP/hT62YQqgzXpsYwDt4ADivEdFD58CUy9onmmFnhlZRc3szdTVvETGE8kgGuY4iWEVuC+9x3kS4h+9KTXgjl+mb0LiPjFbg960uoEnirfOVKDwGHl+xSBtB/KIwPo5d12zHH58G9ClnwZ2Yt+TGsoLAmKiPRhbkEIq4HnAb0M8oxHcK4AXov5xQgS0TyxG/jiLRIFjuAQ+jF1AEtDREJoxhxXUYApCGXSXkyghvALiEkiMkMeJ2I94UESdgE8jPGsj9O2zfkVWiUmQ5YFjCcpfPiiwFV6/q0aUOzX+B4Jud65OSqJqhL2JJy3xnwiCU9OEq5dS2FS0acVEs5b1f8BRiOtQi4eJqkAAAAASUVORK5CYII=\")}.head div:active{transform:scale(.9);opacity:.8}.head h3{width:76vw;margin:0;font-size:5vw;font-weight:600;color:#212e41}.form{width:90%;padding:1vh;margin:auto}.form h3{margin:3.5vw 0 1.8vw;font-size:3.6vw;font-weight:500;color:#000}.form h3:first-child{margin-top:0}input{width:100%;height:5vh;padding:0 4vw;font-size:4vw;border-radius:3vw;border:.35vw solid #e6e7ea;background:#fafafa;color:#1f2a37;transition:.2s}input::placeholder{color:#9aa4b2}input:focus{outline:0;border-color:#b04ece;background:#fff;box-shadow:0 0 0 .35vw #b04ece40}.footer{position:fixed;bottom:0;width:100vw;padding:6vw 5vw calc(env(safe-area-inset-bottom,0px) + 4vw);background:linear-gradient(180deg,rgba(255,255,255,0),#fff 34%,#fff 100%);backdrop-filter:none;-webkit-backdrop-filter:none;transform:translateZ(0)}button{width:100%;padding:3.6vw 0;font-size:4.3vw;font-weight:600;border:0;border-radius:3vw;transition:.15s}.yapear{background:linear-gradient(135deg,#24c0b5,#00a692);color:#fff;box-shadow:0 10px 24px #00a69259}.yapear:not(:disabled):active{transform:scale(.97);box-shadow:0 6px 16px #00a69273}.yapear:disabled{background:#f1f2f4;color:#b0b6be;box-shadow:none}\n.load{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:#0008;z-index:99}\n.load.on{display:flex}\n.loadbox{width:70vw;height:30vw;background:#fff;border-radius:3vw;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5vw;box-shadow:0 10px 35px #0002}\n.spin{width:9vw;height:9vw;border:1.1vw solid #28c1bb;border-right-color:transparent;border-bottom-color:transparent;border-radius:50%;animation:sp .8s linear infinite}\n.loadbox strong{font-size:4.7vw;color:#050505;font-weight:700}\n@keyframes sp{to{transform:rotate(360deg)}}\n@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}\nhtml,body,*{\n  -webkit-user-select:none!important;\n  user-select:none!important;\n  -webkit-touch-callout:none!important;\n}\n</style></head><body><div class=\"father\"><div class=\"head\"><div id=\"b\" aria-label=\"Volver\"></div><h3>Pagar servicios</h3><div id=\"c\" aria-label=\"Cerrar\"></div></div><div class=\"form\"><h3>Empresa</h3><input id=\"e\" placeholder=\"Claro\"><h3>Monto</h3><input id=\"m\" placeholder=\"500\" type=\"number\"><h3>Servicio</h3><input id=\"s\" placeholder=\"Línea postpago\"><h3>Código de cliente</h3><input id=\"cc\" placeholder=\"999888777\"><h3>Titular</h3><input id=\"t\" placeholder=\"Sonyer Bogani\"></div><div class=\"footer\"><button id=\"y\" class=\"yapear\" disabled>Yapear</button></div></div><div id=\"load\" class=\"load\"><div class=\"loadbox\"><div class=\"spin\"></div><strong>Yapeando...</strong></div></div><script>(()=>{const $=id=>document.getElementById(id),m=$('m'),y=$('y'),l=$('load'),v=()=>{try{if(parent&&typeof parent.__closePagarServiciosV48==='function'){parent.__closePagarServiciosV48();return}}catch(e){}try{parent.postMessage({type:'yosi_pagar_servicios_v48_close'},'*')}catch(e){}};m.oninput=()=>y.disabled=!(+m.value>0);$('b').onclick=$('c').onclick=v;y.onclick=()=>{l.classList.add('on');y.disabled=true;const d={nombre:$('e').value,monto:+m.value,servicio:$('s').value,codigoCliente:$('cc').value,titular:$('t').value};dispatchEvent(new CustomEvent('pagar-servicios:yapear',{detail:d}));try{parent.postMessage({type:'yosi_pagar_servicios_v48_yapear',detail:d},'*')}catch(e){}window.onPagarServiciosYapear?.(d)}})()\ndocument.addEventListener('selectstart',e=>e.preventDefault());\ndocument.addEventListener('contextmenu',e=>e.preventDefault());\n<\/script></body></html>";
+  var FRAME_HTML = "<!doctype html><html lang=\"es\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover\"><title>Pagar servicios</title><style>*{box-sizing:border-box;font-family:system-ui,-apple-system,\"Segoe UI\",Roboto,Arial,sans-serif;-webkit-tap-highlight-color:transparent}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#742284}button,input{font:inherit}.father{background:#fff;height:100dvh;width:100vw;border-radius:5vw 5vw 0 0;overflow:hidden;animation:none}@keyframes f{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}.head{height:15vw;display:flex;align-items:center;background:#fff;border-bottom:.25vw solid #f0f0f0}.head div{width:16vw;height:15vw;background-position:center;background-repeat:no-repeat;background-size:4.2vw;transition:.15s}.head div:first-child{background-image:url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAqCAYAAACk2+sZAAABCGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGA8wQAELAYMDLl5JUVB7k4KEZFRCuwPGBiBEAwSk4sLGHADoKpv1yBqL+viUYcLcKakFicD6Q9ArFIEtBxopAiQLZIOYWuA2EkQtg2IXV5SUAJkB4DYRSFBzkB2CpCtkY7ETkJiJxcUgdT3ANk2uTmlyQh3M/Ck5oUGA2kOIJZhKGYIYnBncAL5H6IkfxEDg8VXBgbmCQixpJkMDNtbGRgkbiHEVBYwMPC3MDBsO48QQ4RJQWJRIliIBYiZ0tIYGD4tZ2DgjWRgEL7AwMAVDQsIHG5TALvNnSEfCNMZchhSgSKeDHkMyQx6QJYRgwGDIYMZAKbWPz9HbOBQAAADBElEQVR4nMWYPWhUQRCAvxPB83LJaVBBFCQYBQtFhICNRQrFn0KjiGBlqUK0slC0iYqiWCm2gk1ENCoo/lQpbBRFUEhh/EljYQySk/POHwSL3b2bvMy8c98dOHDse7Pz9nuzM7s793KHBo+RQfLAjwj7AlAVLXOyUBVowf+CLEv0VxMtczNANW+riftPzQbJ4nHaFBdwL9YPPAeOir6SNMzicZAiUBHAqv8NAae8vg/oAi4BZflw1hgjoNCY6l0CGmSI2aFoCZyUA8AdRX9aM9bAHRmgm4Frin4cuCDu82ng79IgIUXlegB4oti+B1YzMyT1xLSmumDoZTJVgN3AiGI3AfQC841xTLBMBu3hKi6Rbit9Y0APsBioYcyeBZZrtebbvBhkAD2RfgHb/fUXZay6xKzjMMBO9OkFmNdkjG7gK+gem3HBLZm7Rl8OWOKvteldFKAWuKboANajL5k/AjrpdWF2ghPdwBRi20zbQOTS6QFeGXbLfTvJ7NUQnAie1rdNCyz34Q3AB8OuD33rbCoWOMSoF3hp2GwBXiTA/yxWVk8Ba4HXRv864KO47wK+xYAtjxcCj42+fg+VnkZB08D7gKWK/iIwajxTMvRR4C5D/4CZiSelTMTJZoGvGvpR3BEYRL5gHneytQSuAJuMvhFctsPM2MaUu6nr+CmwzegfB1b466jYNgNXPPwRsNGwmQDWkCjiWgWHgx7gGW7dajKWuC+qVhHg5Nb3Bnfwa/LWtyUidrGYKvMecFzRr8IlWZmIeMeWt+eBI4q+E3hHRLzTwPLt5XF3Gd3zlcD9doDl28uYd+A8P6E8swO46a+tErkp2JKwO50DTir9e4FbzcZu9S/MWeCgot+DO1Cg4fmCdoDlYNeBQcXmMPCQxlb6E1FIZgXnfDuNq6uuoCfcVg/H29ULyazgZAlcxCVc8i9qgEMbprpEo2rs9G3Ysc7gplhKGRea6VbBZVydDPA70VcAbgD7gc/AMO4InXVkZv0UETzWPsJUPXA4bYB2fhGIkv8G/gvOjpIqERBkiQAAAABJRU5ErkJggg==\")}.head div:last-child{background-image:url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACIAAAAiCAYAAAA6RwvCAAABCGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGA8wQAELAYMDLl5JUVB7k4KEZFRCuwPGBiBEAwSk4sLGHADoKpv1yBqL+viUYcLcKakFicD6Q9ArFIEtBxopAiQLZIOYWuA2EkQtg2IXV5SUAJkB4DYRSFBzkB2CpCtkY7ETkJiJxcUgdT3ANk2uTmlyQh3M/Ck5oUGA2kOIJZhKGYIYnBncAL5H6IkfxEDg8VXBgbmCQixpJkMDNtbGRgkbiHEVBYwMPC3MDBsO48QQ4RJQWJRIliIBYiZ0tIYGD4tZ2DgjWRgEL7AwMAVDQsIHG5TALvNnSEfCNMZchhSgSKeDHkMyQx6QJYRgwGDIYMZAKbWPz9HbOBQAAADdElEQVR4nK2XzUvUQRjHP2bg7qa7i1LhxTxliWESBR0s6xIdgsrSrKBDdOiNIqg/IfBUFF0SLALBIrKgS10qiSKSkiKsU0kv9ILh+rbbIeowM+7ss/O4P8HvZZ55Zn7PfOeZZ555fmVHT57FQyUwJfp/gSwLA2k/DfwBsovERDcp6fUXioRvP23bcWffJxK37WUgA1zF7GCh0Q18By4CMbe2TyQLXAFO2P4RYFAxFlP0S2xbRX5jPq4D54AK4BTQ49aWR3NM9FuAnLKoj2rbTlsykxQf6U3gkNAdtG1KEpkJLFIBPLJyjW0lud+ePB2wcRvoCOgdMpJImzKxDXOuY0Iv3e/33fH1Ae2K3SYnSCIvybtLYjkwZOWUbZ3746KfwHjtMbBfsbcXeOcILxaDCcwOPgNPAh+vw1y5tNA7AjFLYAb4ASxTSGzAbDpO4PpCPkYGgW2KkRRmJyG42Bmdg0S7JQFQ7pSSiI+HwC5lrBEYVsbeA3XK2FbgjpXjmASXKkUE4C7GjSE0AyNC9wloUOY3Aq+9vjvOTBQiYNwo77/DKuCZld8CK5R5+4CvmPgKQgYrFD9MADeAFxi3S2wE/mkLYDz3Zo5xIOwRScI9gB+AM6UMCnRFIaERcXC5YcLTXQA2RyTRBPRHnFtExH9tywljEOgsYXcP+hWPRGRKkZNiXncJu+dFPz1fIhr84xkF6kvMXwl89Prj8yGi1Rg+RtCTlUQ95paVKq5ikkiOsAsdwW+YvBHCFkXfgIkVF/ihzeYQ9UiMQhe6jxKYB7BWWWwn5pXtUsbrgAdWlrHm1shIj0imAJeATcoiLcA9K/cD65V5rRiP/hT62YQqgzXpsYwDt4ADivEdFD58CUy9onmmFnhlZRc3szdTVvETGE8kgGuY4iWEVuC+9x3kS4h+9KTXgjl+mb0LiPjFbg960uoEnirfOVKDwGHl+xSBtB/KIwPo5d12zHH58G9ClnwZ2Yt+TGsoLAmKiPRhbkEIq4HnAb0M8oxHcK4AXov5xQgS0TyxG/jiLRIFjuAQ+jF1AEtDREJoxhxXUYApCGXSXkyghvALiEkiMkMeJ2I94UESdgE8jPGsj9O2zfkVWiUmQ5YFjCcpfPiiwFV6/q0aUOzX+B4Jud65OSqJqhL2JJy3xnwiCU9OEq5dS2FS0acVEs5b1f8BRiOtQi4eJqkAAAAASUVORK5CYII=\")}.head div:active{transform:scale(.9);opacity:.8}.head h3{width:76vw;margin:0;font-size:5vw;font-weight:600;color:#212e41}.form{width:90%;padding:1vh;margin:auto}.form h3{margin:3.5vw 0 1.8vw;font-size:3.6vw;font-weight:500;color:#000}.form h3:first-child{margin-top:0}input{width:100%;height:5vh;padding:0 4vw;font-size:4vw;border-radius:3vw;border:.35vw solid #e6e7ea;background:#fafafa;color:#1f2a37;transition:.2s}input::placeholder{color:#9aa4b2}input:focus{outline:0;border-color:#b04ece;background:#fff;box-shadow:0 0 0 .35vw #b04ece40}.footer{position:fixed;bottom:0;width:100vw;padding:6vw 5vw calc(env(safe-area-inset-bottom,0px) + 4vw);background:linear-gradient(180deg,rgba(255,255,255,0),#fff 34%,#fff 100%);backdrop-filter:none;-webkit-backdrop-filter:none;transform:translateZ(0)}button{width:100%;padding:3.6vw 0;font-size:4.3vw;font-weight:600;border:0;border-radius:3vw;transition:.15s}.yapear{background:linear-gradient(135deg,#24c0b5,#00a692);color:#fff;box-shadow:0 10px 24px #00a69259}.yapear:not(:disabled):active{transform:scale(.97);box-shadow:0 6px 16px #00a69273}.yapear:disabled{background:#f1f2f4;color:#b0b6be;box-shadow:none}\n.load{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:#0008;z-index:99}\n.load.on{display:flex}\n.loadbox{width:70vw;height:30vw;background:#fff;border-radius:3vw;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5vw;box-shadow:0 10px 35px #0002}\n.spin{width:9vw;height:9vw;border:1.1vw solid #28c1bb;border-right-color:transparent;border-bottom-color:transparent;border-radius:50%;animation:sp .8s linear infinite}\n.loadbox strong{font-size:4.7vw;color:#050505;font-weight:700}\n@keyframes sp{to{transform:rotate(360deg)}}\n@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}\nhtml,body,*{\n  -webkit-user-select:none!important;\n  user-select:none!important;\n  -webkit-touch-callout:none!important;\n}\n</style></head><body><div class=\"father\"><div class=\"head\"><div id=\"b\" aria-label=\"Volver\"></div><h3>Pagar servicios</h3><div id=\"c\" aria-label=\"Cerrar\"></div></div><div class=\"form\"><h3>Empresa</h3><input id=\"e\" placeholder=\"Claro\"><h3>Monto</h3><input id=\"m\" placeholder=\"500\" type=\"number\"><h3>Servicio</h3><input id=\"s\" placeholder=\"Línea postpago\"><h3>Código de cliente</h3><input id=\"cc\" placeholder=\"999888777\"><h3>Titular</h3><input id=\"t\" placeholder=\"Sonyer Bogani\"></div><div class=\"footer\"><button id=\"y\" class=\"yapear\" disabled>Yapear</button></div></div><div id=\"load\" class=\"load\"><div class=\"loadbox\"><div class=\"spin\"></div><strong>Yapeando...</strong></div></div><script>(()=>{const $=id=>document.getElementById(id),m=$('m'),y=$('y'),l=$('load'),v=()=>{try{if(parent&&typeof parent.__closePagarServiciosV48==='function'){parent.__closePagarServiciosV48();return}}catch(e){}try{parent.postMessage({type:'yosi_pagar_servicios_v48_close'},'*')}catch(e){}};m.oninput=()=>y.disabled=!(+m.value>0);$('b').onclick=$('c').onclick=v;y.onclick=()=>{l.classList.add('on');y.disabled=true;const d={nombre:$('e').value,monto:+m.value,servicio:$('s').value,codigoCliente:$('cc').value,titular:$('t').value};dispatchEvent(new CustomEvent('pagar-servicios:yapear',{detail:d}));try{parent.postMessage({type:'yosi_pagar_servicios_v48_yapear',detail:d},'*')}catch(e){}window.onPagarServiciosYapear?.(d)}})()\ndocument.addEventListener('selectstart',e=>e.preventDefault());\ndocument.addEventListener('contextmenu',e=>e.preventDefault());\n<\/script>
+<style id="android-voucher-estable-final-css">
+@media (display-mode:standalone){
+  html.__baucherTopActivo,
+  html.__baucherTopActivo body,
+  body.__baucherTopActivo,
+  body.__baucherTopActivo .stage,
+  html.__baucherTopActivo #homeFrame{
+    background:#4a1972 !important;
+    background-color:#4a1972 !important;
+    background-image:none !important;
+    transition:none !important;
+    animation:none !important;
+  }
+}
+</style>
+</body></html>";
   var host = null, frame = null;
   var frameReady = false;
   var pendingReveal = false;
@@ -42065,6 +42102,14 @@ html.yosi-ios-standalone-full-v13 .stage > iframe{
   }
 
   function run(){
+    /* NO repintar Home mientras el voucher está abierto.
+       Este setInterval de 900ms era uno de los que hacía alternar
+       #4a1972 -> #780699 -> #4a1972 y se veía como parpadeo. */
+    try{
+      if(document.documentElement.classList.contains('__baucherTopActivo') ||
+         (document.body && document.body.classList.contains('__baucherTopActivo'))) return;
+    }catch(e){}
+
     try{
       var hf=document.getElementById('homeFrame');
       if(hf) setBg(hf, SOLID);
