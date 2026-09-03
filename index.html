@@ -33,7 +33,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
-<meta name="yosi-build" content="biometria-perfil-v38-android-todas-pantallas-home-color-final-20260903"/>
+<meta name="yosi-build" content="biometria-perfil-v38-android-ultimas-2-pantallas-home-color-20260903"/>
 
 <link href="manifest.webmanifest" rel="manifest"/>
 <meta content="#780699" name="theme-color"/>
@@ -108,11 +108,11 @@
   }catch(e){ console.warn(e); }
 })();</script>
 
-<!-- V214: Android - todas las pantallas solicitadas usan el color del Home; Voucher conserva el suyo -->
-<script id="yosi-android-status-color-sync-v214">(function(){
+<!-- V215: Android - YapeMarket y Escáner QR también usan el color del Home; Voucher conserva el suyo -->
+<script id="yosi-android-status-color-sync-v215">(function(){
   'use strict';
-  if(!/Android/i.test(navigator.userAgent || '') || window.__yosiAndroidStatusColorSyncV214) return;
-  window.__yosiAndroidStatusColorSyncV214 = true;
+  if(!/Android/i.test(navigator.userAgent || '') || window.__yosiAndroidStatusColorSyncV215) return;
+  window.__yosiAndroidStatusColorSyncV215 = true;
 
   var HOME = '#780699';
   var BAUCHER = '#4a1972';
@@ -136,7 +136,7 @@
     }, false);
   }
 
-  /* En estas SEIS pantallas Android la barra superior NO toma el color propio
+  /* En estas OCHO pantallas Android la barra superior NO toma el color propio
      de la vista. Se mantiene EXACTAMENTE el mismo color del Home (#780699):
        - #yapearView            (lista de contactos)
        - #montoView             (ingresar monto)
@@ -144,6 +144,8 @@
        - #perfilScreen          (Mi Perfil)
        - #opcionesScreen        (OPCIONES)
        - #yosiNewAccountScreen  (Datos / configuración de la cuenta)
+       - #storeFrame            (YapeMarket / Servicios)
+       - #qrScanView            (Escáner QR con cámara)
      El contenido interno de cada pantalla queda intacto. */
   function homeLockedMode(doc, depth){
     if(!doc || depth > 8) return '';
@@ -167,6 +169,15 @@
 
     var da = safe(function(){ return doc.getElementById('yosiNewAccountScreen'); }, null);
     if(isVisible(da, win)) return 'datos';
+
+    /* Escáner QR con cámara: usa el color del Home arriba. */
+    var qs = safe(function(){ return doc.getElementById('qrScanView'); }, null);
+    if(isVisible(qs, win)) return 'qrscan';
+
+    /* YapeMarket/Servicios: el iframe puede tener fondo oscuro, pero la barra
+       superior de Android debe seguir usando exactamente el color del Home. */
+    var sf = safe(function(){ return doc.getElementById('storeFrame'); }, null);
+    if(isVisible(sf, win)) return 'market';
 
     var frames = safe(function(){ return doc.querySelectorAll('iframe'); }, []);
     for(var i=0;i<frames.length;i++){
@@ -326,15 +337,15 @@
     var mode = voucherLocked ? 'voucher' : (homeLocked ? lockedMode : 'auto');
 
     /* El voucher conserva su color propio.
-       Yapear, Monto, Otros bancos, Mi Perfil, Opciones y Datos/configuración
-       usan siempre el mismo #780699 del Home en la barra superior. */
+       Yapear, Monto, Otros bancos, Mi Perfil, Opciones, Datos/configuración,
+       YapeMarket y Escáner QR usan siempre el mismo #780699 del Home arriba. */
     var color = voucherLocked ? BAUCHER : (homeLocked ? HOME : visibleTopColor());
 
     setTopMeta(color);
 
     /* Reaplica al cambiar de pantalla aunque el color siga siendo HOME.
-       Así Android no alcanza a tomar por un instante el blanco de Mi Perfil
-       ni los fondos oscuros de Opciones/Datos. */
+       Así Android no toma por un instante el fondo oscuro de YapeMarket ni
+       la imagen de cámara del Escáner QR como color de la barra superior. */
     if(color !== lastApplied || mode !== lastMode){
       lastApplied = color;
       lastMode = mode;
@@ -348,9 +359,8 @@
     (window.requestAnimationFrame || function(fn){ return setTimeout(fn, 16); })(apply);
   }
 
-  /* Observa también los documentos de los iframes de la app. Perfil/Opciones/Datos
-     viven dentro de vistas internas; así el color del Home se fija en el mismo cambio
-     de pantalla y no espera al polling de respaldo. */
+  /* Observa también los documentos de los iframes de la app para fijar
+     inmediatamente el color del Home al abrir cualquiera de estas pantallas. */
   var watchedDocs = (typeof WeakSet === 'function') ? new WeakSet() : null;
   function watchDocTree(doc, depth){
     if(!doc || depth > 8) return;
@@ -359,8 +369,8 @@
       already = safe(function(){ return watchedDocs.has(doc); }, false);
       if(!already) safe(function(){ watchedDocs.add(doc); });
     }else{
-      already = !!doc.__yosiTopColorWatchedV214;
-      if(!already) safe(function(){ doc.__yosiTopColorWatchedV214 = true; });
+      already = !!doc.__yosiTopColorWatchedV215;
+      if(!already) safe(function(){ doc.__yosiTopColorWatchedV215 = true; });
     }
     if(!already && doc.documentElement){
       safe(function(){
@@ -376,8 +386,8 @@
     for(var i=0;i<frames.length;i++){
       (function(frame){
         safe(function(){
-          if(!frame.__yosiTopColorLoadV214){
-            frame.__yosiTopColorLoadV214 = true;
+          if(!frame.__yosiTopColorLoadV215){
+            frame.__yosiTopColorLoadV215 = true;
             frame.addEventListener('load', function(){
               var child = safe(function(){ return frame.contentDocument || (frame.contentWindow && frame.contentWindow.document); }, null);
               if(child) watchDocTree(child, depth + 1);
