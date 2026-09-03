@@ -108,13 +108,14 @@
   }catch(e){ console.warn(e); }
 })();</script>
 
-<!-- V211: Android - Yapear contactos y Monto conservan EXACTAMENTE el color superior del Home -->
-<script id="yosi-android-status-color-sync-v211">(function(){
+<!-- V212: Android - colores superiores estables: Home/Yapear/Monto y Voucher sin parpadeo -->
+<script id="yosi-android-status-color-sync-v212">(function(){
   'use strict';
-  if(!/Android/i.test(navigator.userAgent || '') || window.__yosiAndroidStatusColorSyncV211) return;
-  window.__yosiAndroidStatusColorSyncV211 = true;
+  if(!/Android/i.test(navigator.userAgent || '') || window.__yosiAndroidStatusColorSyncV212) return;
+  window.__yosiAndroidStatusColorSyncV212 = true;
 
   var HOME = '#780699';
+  var BAUCHER = '#4a1972';
   var FALLBACK = HOME;
   var lastApplied = '';
   var queued = false;
@@ -163,6 +164,13 @@
   window.__yosiAndroidYapearHomeStatusActive = function(){
     return hasHomeLockedView(document, 0);
   };
+
+  function voucherTopLocked(){
+    return safe(function(){
+      return document.documentElement.classList.contains('__baucherTopActivo') ||
+             !!(document.body && document.body.classList.contains('__baucherTopActivo'));
+    }, false);
+  }
 
   function byteHex(value){
     var n = Math.max(0, Math.min(255, Math.round(Number(value) || 0)));
@@ -289,11 +297,12 @@
     if(document.visibilityState === 'hidden') return;
 
     var homeLocked = safe(function(){ return window.__yosiAndroidYapearHomeStatusActive(); }, false);
+    var voucherLocked = voucherTopLocked();
 
-    /* Clave del arreglo:
-       cuando Yapear o Monto están visibles NO se usa el color de esas pantallas.
-       Se conserva/aplica directamente el color del Home. */
-    var color = homeLocked ? HOME : visibleTopColor();
+    /* El voucher conserva SU PROPIO color (#4a1972), pero queda bloqueado:
+       mientras esté visible no se vuelve a calcular ni alternar el color.
+       Yapear y Monto siguen usando el mismo color del Home. */
+    var color = voucherLocked ? BAUCHER : (homeLocked ? HOME : visibleTopColor());
 
     setTopMeta(color);
     if(color !== lastApplied){
@@ -13139,9 +13148,9 @@ body.yape-help-open .background-all > *:not(#yapeHelpPersonajeScreen){
   window.__yosiFooterSamePlaceTimer=setInterval(run,500);
 })();</script>
 
-<script id="fix-baucher-movimiento-touch-inmediato-v4">(function(){
-  if(window.__fixBaucherMovTouchInmediatoV4) return;
-  window.__fixBaucherMovTouchInmediatoV4 = true;
+<script id="fix-baucher-movimiento-touch-inmediato-v5-sin-parpadeo">(function(){
+  if(window.__fixBaucherMovTouchInmediatoV5) return;
+  window.__fixBaucherMovTouchInmediatoV5 = true;
 
   var HOME_TOP = '#780699';
   var BAUCHER_TOP = '#4a1972';
@@ -13221,17 +13230,12 @@ body.yape-help-open .background-all > *:not(#yapeHelpPersonajeScreen){
 
   function forceVoucherColor(){
     lastVoucherTouch = now();
+
+    /* V5 anti-parpadeo:
+       pinta el color del voucher UNA sola vez antes de navegar.
+       No hay ráfagas de repintado cada pocos milisegundos. */
     paintOuter(BAUCHER_TOP);
     scanDocs(function(d){ paintThemeOnlyInDoc(d, BAUCHER_TOP); }, document, 0);
-    // Repite en los primeros instantes para ganarle al click/navegación del iframe interno.
-    [0,8,16,28,45,70,110,170,260,380].forEach(function(ms){
-      setTimeout(function(){
-        if(now() - lastVoucherTouch < 900){
-          paintOuter(BAUCHER_TOP);
-          scanDocs(function(d){ paintThemeOnlyInDoc(d, BAUCHER_TOP); }, document, 0);
-        }
-      }, ms);
-    });
   }
 
   function forceHomeColor(){
