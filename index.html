@@ -33,7 +33,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
-<meta name="yosi-build" content="biometria-perfil-v38-android-voucher-stable-final-20260903"/>
+<meta name="yosi-build" content="biometria-perfil-v38-android-bancos-home-color-20260903"/>
 
 <link href="manifest.webmanifest" rel="manifest"/>
 <meta content="#780699" name="theme-color"/>
@@ -108,16 +108,17 @@
   }catch(e){ console.warn(e); }
 })();</script>
 
-<!-- V212: Android - colores superiores estables: Home/Yapear/Monto y Voucher sin parpadeo -->
-<script id="yosi-android-status-color-sync-v212">(function(){
+<!-- V213: Android - Yapear/Monto/Otros bancos usan el color del Home; Voucher conserva el suyo -->
+<script id="yosi-android-status-color-sync-v213">(function(){
   'use strict';
-  if(!/Android/i.test(navigator.userAgent || '') || window.__yosiAndroidStatusColorSyncV212) return;
-  window.__yosiAndroidStatusColorSyncV212 = true;
+  if(!/Android/i.test(navigator.userAgent || '') || window.__yosiAndroidStatusColorSyncV213) return;
+  window.__yosiAndroidStatusColorSyncV213 = true;
 
   var HOME = '#780699';
   var BAUCHER = '#4a1972';
   var FALLBACK = HOME;
   var lastApplied = '';
+  var lastMode = '';
   var queued = false;
 
   function safe(fn, fallback){
@@ -135,34 +136,45 @@
     }, false);
   }
 
-  /* En estas DOS pantallas Android NO toma ni copia el fondo blanco de la vista.
-     La barra superior queda bloqueada al mismo morado del Home (#780699):
-       - #yapearView  (lista "Yapear a")
-       - #montoView   (pantalla para ingresar monto)
-     El contenido de ambas pantallas sigue blanco; solo se evita repintar la zona superior. */
-  function hasHomeLockedView(doc, depth){
-    if(!doc || depth > 7) return false;
+  /* En estas TRES pantallas Android NO se toma el blanco ni el color propio
+     de la vista para la barra superior. Se conserva EXACTAMENTE el color del Home (#780699):
+       - #yapearView  (lista de contactos)
+       - #montoView   (ingresar monto)
+       - #banksView   (Yape / Banco de la Nación / BCP / Plin / etc.)
+     El contenido interno de las pantallas NO se modifica. */
+  function homeLockedMode(doc, depth){
+    if(!doc || depth > 7) return '';
     var win = safe(function(){ return doc.defaultView; }, null);
-    if(!win) return false;
+    if(!win) return '';
 
     var yv = safe(function(){ return doc.getElementById('yapearView'); }, null);
-    if(isVisible(yv, win)) return true;
+    if(isVisible(yv, win)) return 'yapear';
 
     var mv = safe(function(){ return doc.getElementById('montoView'); }, null);
-    if(isVisible(mv, win)) return true;
+    if(isVisible(mv, win)) return 'monto';
+
+    var bv = safe(function(){ return doc.getElementById('banksView'); }, null);
+    if(isVisible(bv, win)) return 'banks';
 
     var frames = safe(function(){ return doc.querySelectorAll('iframe'); }, []);
     for(var i=0;i<frames.length;i++){
       var frame = frames[i];
       if(!isVisible(frame, win)) continue;
       var child = safe(function(){ return frame.contentDocument || (frame.contentWindow && frame.contentWindow.document); }, null);
-      if(child && hasHomeLockedView(child, depth + 1)) return true;
+      if(child){
+        var nested = homeLockedMode(child, depth + 1);
+        if(nested) return nested;
+      }
     }
-    return false;
+    return '';
   }
 
+  window.__yosiAndroidYapearHomeStatusMode = function(){
+    return homeLockedMode(document, 0);
+  };
+
   window.__yosiAndroidYapearHomeStatusActive = function(){
-    return hasHomeLockedView(document, 0);
+    return !!homeLockedMode(document, 0);
   };
 
   function voucherTopLocked(){
@@ -296,17 +308,24 @@
     queued = false;
     if(document.visibilityState === 'hidden') return;
 
-    var homeLocked = safe(function(){ return window.__yosiAndroidYapearHomeStatusActive(); }, false);
+    var lockedMode = safe(function(){ return window.__yosiAndroidYapearHomeStatusMode(); }, '');
+    var homeLocked = !!lockedMode;
     var voucherLocked = voucherTopLocked();
+    var mode = voucherLocked ? 'voucher' : (homeLocked ? lockedMode : 'auto');
 
-    /* El voucher conserva SU PROPIO color (#4a1972), pero queda bloqueado:
-       mientras esté visible no se vuelve a calcular ni alternar el color.
-       Yapear y Monto siguen usando el mismo color del Home. */
+    /* El voucher conserva su color.
+       Yapear, Monto y Otros bancos NO pintan la barra superior:
+       todos usan el mismo #780699 del Home. */
     var color = voucherLocked ? BAUCHER : (homeLocked ? HOME : visibleTopColor());
 
     setTopMeta(color);
-    if(color !== lastApplied){
+
+    /* También reaplicamos al cambiar de pantalla aunque el color siga siendo HOME.
+       Esto evita que Android tome por un instante el fondo blanco de "Otros bancos"
+       cuando se pasa desde Monto hacia banksView. */
+    if(color !== lastApplied || mode !== lastMode){
       lastApplied = color;
+      lastMode = mode;
       applyNativeWrapper(color);
     }
   }
@@ -328,8 +347,7 @@
     });
   }
 
-  /* También escucha cambios de clase/estilo de las vistas para bloquear el color
-     en el mismo instante en que se abre Yapear o Monto, evitando el parpadeo. */
+  /* Escucha cambios de vista para mantener el color del Home también al abrir Otros bancos. */
   safe(function(){
     new MutationObserver(schedule).observe(document.documentElement, {
       subtree:true,
