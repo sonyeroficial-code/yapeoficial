@@ -1,28 +1,61 @@
 'use strict';
 
-const CACHE_VERSION = 'yape-pwa-status-color-v248-baucher-top-20260903';
+// v249: arranque OFFLINE-FIRST.
+// Importante en Android: navigator.onLine puede ser true aunque los datos
+// estén encendidos pero no haya megas/salida real a Internet.
+const CACHE_VERSION = 'yape-pwa-offline-first-v249-20260903';
 const APP_SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
+const NETWORK_TIMEOUT_MS = 2200;
+
+const SCOPE_URL = self.registration.scope;
+const SHELL_HOME_URL = new URL('./', SCOPE_URL).href;
+const SHELL_INDEX_URL = new URL('index.html', SCOPE_URL).href;
+const MANIFEST_URL = new URL('manifest.webmanifest', SCOPE_URL).href;
+
 const APP_SHELL = [
-  '/',
-  '/index.html',
-  '/manifest.webmanifest',
-  '/favicon-32.png',
-  '/icon-180.png',
-  '/icon-192.png',
-  '/icon-512.png',
-  '/icon-maskable-512.png'
-];
+  './',
+  'index.html',
+  'manifest.webmanifest',
+  'favicon-32.png',
+  'icon-180.png',
+  'icon-192.png',
+  'icon-512.png',
+  'icon-maskable-512.png'
+].map((asset) => new URL(asset, SCOPE_URL).href);
+
+function fetchWithTimeout(request, timeoutMs = NETWORK_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const req = request instanceof Request
+    ? new Request(request, { signal: controller.signal })
+    : new Request(request, { signal: controller.signal });
+
+  return fetch(req).finally(() => clearTimeout(timer));
+}
+
+async function putSafe(cacheName, key, response) {
+  if (!response || !response.ok) return;
+  try {
+    const cache = await caches.open(cacheName);
+    await cache.put(key, response.clone());
+  } catch (_) {
+    // El almacenamiento lleno nunca debe bloquear la app.
+  }
+}
 
 async function cacheAppShell() {
   const cache = await caches.open(APP_SHELL_CACHE);
-  await Promise.all(
+  await Promise.allSettled(
     APP_SHELL.map(async (asset) => {
       try {
-        const response = await fetch(asset, { cache: 'reload' });
+        const response = await fetchWithTimeout(
+          new Request(asset, { cache: 'reload' }),
+          3000
+        );
         if (response.ok) await cache.put(asset, response);
       } catch (_) {
-        // Un recurso individual no debe impedir la instalación completa.
+        // Si no hay Internet real, conservamos lo que ya exista en cachés viejas.
       }
     })
   );
@@ -33,60 +66,121 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys()
-      .then((keys) => Promise.all(
+  event.waitUntil((async () => {
+    // Solo limpiamos versiones antiguas cuando la versión nueva realmente
+    // tiene una copia local del inicio. Así una actualización sin megas no
+    // puede borrar la última versión offline funcional.
+    const current = await caches.open(APP_SHELL_CACHE);
+    const hasCurrentShell = !!(
+      (await current.match(SHELL_INDEX_URL)) ||
+      (await current.match(SHELL_HOME_URL))
+    );
+
+    if (hasCurrentShell) {
+      const keys = await caches.keys();
+      await Promise.all(
         keys
           .filter((key) => key.startsWith('yape-pwa-') &&
             key !== APP_SHELL_CACHE && key !== RUNTIME_CACHE)
           .map((key) => caches.delete(key))
-      ))
-      .then(() => self.clients.claim())
-  );
+      );
+    }
+
+    await self.clients.claim();
+  })());
 });
 
 self.addEventListener('message', (event) => {
   const type = event.data && event.data.type;
   if (type === 'SKIP_WAITING') self.skipWaiting();
   if (type === 'CACHE_APP_SHELL') event.waitUntil(cacheAppShell());
+
+  // Compatibilidad con el código de la app que pide precargar recursos.
+  if (type === 'CACHE_URLS' && Array.isArray(event.data.urls)) {
+    event.waitUntil((async () => {
+      const cache = await caches.open(RUNTIME_CACHE);
+      await Promise.allSettled(event.data.urls.map(async (url) => {
+        try {
+          const absolute = new URL(url, SCOPE_URL);
+          if (absolute.origin !== self.location.origin) return;
+          const response = await fetchWithTimeout(absolute.href, 2500);
+          if (response.ok) await cache.put(absolute.href, response);
+        } catch (_) {}
+      }));
+    })());
+  }
 });
 
-async function navigationResponse(request) {
+async function refreshNavigation(request) {
   try {
-    const response = await fetch(request);
-    if (response.ok) {
-      try {
-        const cache = await caches.open(RUNTIME_CACHE);
-        await cache.put('/index.html', response.clone());
-      } catch (_) {
-        // La navegación debe continuar aunque el almacenamiento esté lleno.
-      }
-    }
-    return response;
+    const response = await fetchWithTimeout(request);
+    if (!response || !response.ok) return;
+
+    // Guardamos el HTML actualizado bajo index.html para que cualquier
+    // lanzamiento futuro pueda abrirlo de inmediato sin red.
+    await putSafe(RUNTIME_CACHE, SHELL_INDEX_URL, response);
+    await putSafe(RUNTIME_CACHE, request, response);
   } catch (_) {
-    return (await caches.match(request)) ||
-      (await caches.match('/index.html')) ||
-      (await caches.match('/'));
+    // Sin salida real a Internet: la copia local sigue funcionando.
   }
 }
 
-async function staticResponse(request) {
-  const cached = await caches.match(request);
-  const network = fetch(request)
-    .then(async (response) => {
-      if (response.ok && response.status === 200) {
-        try {
-          const cache = await caches.open(RUNTIME_CACHE);
-          await cache.put(request, response.clone());
-        } catch (_) {
-          // Entrega la respuesta de red aunque no se pueda guardar.
-        }
-      }
-      return response;
-    })
-    .catch(() => null);
+async function navigationResponse(event) {
+  const request = event.request;
 
-  return cached || (await network) || Response.error();
+  // OFFLINE-FIRST: nunca esperamos a la red si ya existe una copia local.
+  const cached =
+    (await caches.match(request, { ignoreSearch: true })) ||
+    (await caches.match(SHELL_INDEX_URL, { ignoreSearch: true })) ||
+    (await caches.match(SHELL_HOME_URL, { ignoreSearch: true }));
+
+  if (cached) {
+    event.waitUntil(refreshNavigation(request));
+    return cached;
+  }
+
+  // Primera visita sin caché: intentar red, pero nunca quedar congelado.
+  try {
+    const response = await fetchWithTimeout(request);
+    if (response && response.ok) {
+      await putSafe(RUNTIME_CACHE, SHELL_INDEX_URL, response);
+      return response;
+    }
+  } catch (_) {}
+
+  return new Response(
+    '<!doctype html><html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><body style="margin:0;background:#780699;color:white;font-family:system-ui;display:grid;place-items:center;height:100vh;text-align:center;padding:24px;box-sizing:border-box"><div><strong>Sin conexión</strong><br><small>Abre la app una vez con Internet para guardar la versión offline.</small></div></body></html>',
+    { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+  );
+}
+
+async function refreshStatic(request) {
+  try {
+    const response = await fetchWithTimeout(request);
+    if (response && response.ok && response.status === 200) {
+      await putSafe(RUNTIME_CACHE, request, response);
+    }
+  } catch (_) {}
+}
+
+async function staticResponse(event) {
+  const request = event.request;
+  const cached = await caches.match(request, { ignoreSearch: false });
+
+  if (cached) {
+    event.waitUntil(refreshStatic(request));
+    return cached;
+  }
+
+  try {
+    const response = await fetchWithTimeout(request);
+    if (response && response.ok && response.status === 200) {
+      await putSafe(RUNTIME_CACHE, request, response);
+    }
+    return response;
+  } catch (_) {
+    return Response.error();
+  }
 }
 
 self.addEventListener('fetch', (event) => {
@@ -97,28 +191,17 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  if (url.pathname === '/manifest.webmanifest') {
-    event.respondWith((async () => {
-      try {
-        const fresh = await fetch(new Request(request, { cache: 'no-store' }));
-        if (fresh && fresh.ok) {
-          const cache = await caches.open(RUNTIME_CACHE);
-          cache.put('/manifest.webmanifest', fresh.clone()).catch(() => {});
-        }
-        return fresh;
-      } catch (_) {
-        return (await caches.match('/manifest.webmanifest')) || Response.error();
-      }
-    })());
-    return;
-  }
-
   if (request.mode === 'navigate') {
-    event.respondWith(navigationResponse(request));
+    event.respondWith(navigationResponse(event));
     return;
   }
 
-  event.respondWith(staticResponse(request));
+  if (url.href === MANIFEST_URL) {
+    event.respondWith(staticResponse(event));
+    return;
+  }
+
+  event.respondWith(staticResponse(event));
 });
 
 self.addEventListener('push', (event) => {
