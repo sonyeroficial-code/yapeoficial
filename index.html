@@ -116,6 +116,7 @@
 
   var HOME = '#780699';
   var BAUCHER = '#4a1972';
+  var ACCOUNT_SETUP = '#ffffff';
   var FALLBACK = HOME;
   var lastApplied = '';
   var lastMode = '';
@@ -169,6 +170,15 @@
 
     var da = safe(function(){ return doc.getElementById('yosiNewAccountScreen'); }, null);
     if(isVisible(da, win)) return 'datos';
+
+    /* Pantalla real de "Configura tus datos". Es una vista clara y ocupa todo
+       el viewport; en Android fijamos la barra del sistema en blanco mientras
+       esté abierta para que ningún temporizador del Home la repinte de morado. */
+    var accountEntry = safe(function(){ return doc.getElementById('bridgeAccountEntry'); }, null);
+    if(isVisible(accountEntry, win) &&
+       safe(function(){ return accountEntry.classList.contains('is-open') && accountEntry.classList.contains('mode-setup'); }, false)){
+      return 'account-setup';
+    }
 
     /* Escáner QR con cámara: usa el color del Home arriba. */
     var qs = safe(function(){ return doc.getElementById('qrScanView'); }, null);
@@ -332,14 +342,14 @@
     if(document.visibilityState === 'hidden') return;
 
     var lockedMode = safe(function(){ return window.__yosiAndroidYapearHomeStatusMode(); }, '');
-    var homeLocked = !!lockedMode;
+    var accountSetupLocked = lockedMode === 'account-setup';
+    var homeLocked = !!lockedMode && !accountSetupLocked;
     var voucherLocked = voucherTopLocked();
-    var mode = voucherLocked ? 'voucher' : (homeLocked ? lockedMode : 'auto');
+    var mode = voucherLocked ? 'voucher' : (accountSetupLocked ? 'account-setup' : (homeLocked ? lockedMode : 'auto'));
 
-    /* El voucher conserva su color propio.
-       Yapear, Monto, Otros bancos, Mi Perfil, Opciones, Datos/configuración,
-       YapeMarket y Escáner QR usan siempre el mismo #780699 del Home arriba. */
-    var color = voucherLocked ? BAUCHER : (homeLocked ? HOME : visibleTopColor());
+    /* El voucher conserva su color propio. La pantalla "Configura tus datos"
+       conserva blanco fijo arriba. El resto de vistas bloqueadas conserva HOME. */
+    var color = voucherLocked ? BAUCHER : (accountSetupLocked ? ACCOUNT_SETUP : (homeLocked ? HOME : visibleTopColor()));
 
     setTopMeta(color);
 
@@ -687,6 +697,19 @@
     }catch(e){}
     if(baucherActivo) return;
 
+    /* Android: la pantalla "Configura tus datos" es clara. Mantener blanco
+       fijo evita que este temporizador de 1200 ms pelee con el sincronizador
+       de la barra superior y produzca parpadeo morado/blanco. */
+    try{
+      if(/Android/i.test(navigator.userAgent||'')){
+        var accountEntry=document.getElementById('bridgeAccountEntry');
+        if(accountEntry && accountEntry.classList.contains('is-open') && accountEntry.classList.contains('mode-setup')){
+          metaTheme('#ffffff');
+          return;
+        }
+      }
+    }catch(e){}
+
     /* Android: Yapear contactos y Monto mantienen blanco fijo.
        No volver a imponer HOME aquí porque eso causaba el parpadeo morado/blanco. */
     try{
@@ -870,6 +893,15 @@
   window.addEventListener('pageshow', function(){ setTimeout(recover, 180); }, {passive:true});
   setTimeout(recover, 4200);
 })();</script>
+<style id="android-account-setup-top-stable-v1">
+@media (max-width:9999px){
+  #bridgeAccountEntry.is-open.mode-setup{background:#ffffff !important;}
+  #bridgeAccountEntry.is-open.mode-setup .bridgeEntrySetup{
+    transition:none !important;
+    animation:none !important;
+  }
+}
+</style>
 </head>
 <body class="mode-login">
 
@@ -1060,37 +1092,7 @@ try{const cfg={apiKey:'AIzaSyCfjKjr5rqM8qzpUpgqKfWMx3QsiPMHUeY',authDomain:'logi
  function symbolsCss(url){return "@font-face{font-family:'YapeRemoteMaterialSymbols';src:url('"+String(url).replace(/'/g,"\\'")+"') format('woff2');font-style:normal;font-weight:100 700;font-display:block;}.material-symbols-outlined,.material-symbols-rounded,.material-symbols-sharp,.material-icons,[class*=material-symbols]{font-family:'YapeRemoteMaterialSymbols','Material Symbols Outlined'!important;font-weight:normal!important;font-style:normal!important;line-height:1!important;letter-spacing:normal!important;text-transform:none!important;white-space:nowrap!important;word-wrap:normal!important;direction:ltr!important;-webkit-font-feature-settings:'liga'!important;font-feature-settings:'liga'!important;-webkit-font-smoothing:antialiased!important;text-rendering:optimizeLegibility!important;}";}
  function applyFont(doc){try{if(!doc)return;var u=window.__yapeGetResourceUrl?window.__yapeGetResourceUrl('font-main'):'';var id='__yape_remote_main_font_v1',st=doc.getElementById(id);if(!u){if(st)st.remove();return;}if(!st){st=doc.createElement('style');st.id=id;(doc.head||doc.documentElement).appendChild(st);}st.textContent=fontCss(u);}catch(e){}}
  function applySymbols(doc){try{if(!doc)return;var u=window.__yapeGetResourceUrl?window.__yapeGetResourceUrl('font-symbols'):'';var id='__yape_remote_symbols_font_v1',st=doc.getElementById(id);if(!u){if(st)st.remove();return;}if(!st){st=doc.createElement('style');st.id=id;(doc.head||doc.documentElement).appendChild(st);}st.textContent=symbolsCss(u);}catch(e){}}
- var __yapeConfettiImageState={url:'',status:'idle',waiters:[]};
- function applyConfetti(doc){try{
-   if(!doc||!doc.querySelectorAll)return;
-   var u=window.__yapeGetResourceUrl?window.__yapeGetResourceUrl('confetti'):'';
-   u=String(u||'').trim();
-   var local='assets/animacion_confetti.gif';
-   var els=Array.prototype.slice.call(doc.querySelectorAll('.animation'));
-   function setLocal(){els.forEach(function(el){try{el.dataset.yapeRemoteConfetti='0';el.style.backgroundImage='url("'+local+'")';}catch(e){}});}
-   function setRemote(){els.forEach(function(el){try{el.dataset.yapeRemoteConfetti='1';el.style.backgroundImage='url("'+u.replace(/"/g,'\\"')+'")';}catch(e){}});}
-   if(!u){setLocal();return;}
-   if(__yapeConfettiImageState.url===u && __yapeConfettiImageState.status==='ok'){setRemote();return;}
-   if(__yapeConfettiImageState.url===u && __yapeConfettiImageState.status==='fail'){setLocal();return;}
-   if(__yapeConfettiImageState.url===u && __yapeConfettiImageState.status==='loading'){
-     __yapeConfettiImageState.waiters.push(function(ok){if(ok)setRemote();else setLocal();});
-     return;
-   }
-   __yapeConfettiImageState={url:u,status:'loading',waiters:[function(ok){if(ok)setRemote();else setLocal();}]};
-   var im=new Image();
-   var done=false;
-   var timer=setTimeout(function(){finish(false);},3500);
-   function finish(ok){
-     if(done)return;done=true;clearTimeout(timer);
-     if(__yapeConfettiImageState.url!==u)return;
-     __yapeConfettiImageState.status=ok?'ok':'fail';
-     var ws=__yapeConfettiImageState.waiters.splice(0);
-     ws.forEach(function(fn){try{fn(ok);}catch(e){}});
-   }
-   im.onload=function(){finish(true);};
-   im.onerror=function(){finish(false);};
-   im.src=u;
- }catch(e){}}
+ function applyConfetti(doc){try{if(!doc||!doc.querySelectorAll)return;var u=window.__yapeGetResourceUrl?window.__yapeGetResourceUrl('confetti'):'';doc.querySelectorAll('.animation').forEach(function(el){var bg=(el.style&&el.style.backgroundImage)||'';if(u && (bg.indexOf('animacion_confetti.gif')!==-1 || el.dataset.yapeRemoteConfetti==='1')){el.dataset.yapeRemoteConfetti='1';el.style.backgroundImage='url("'+u.replace(/"/g,'\\"')+'")';}});}catch(e){}}
  function applyAll(){applyFont(document);applySymbols(document);applyConfetti(document);try{document.querySelectorAll('iframe').forEach(function(fr){try{var d=fr.contentDocument||(fr.contentWindow&&fr.contentWindow.document);applyFont(d);applySymbols(d);applyConfetti(d);}catch(e){}});}catch(e){}}
  window.__yapeApplyRemoteResources=applyAll;window.addEventListener('yape-resources-updated',function(){applyAll();});['DOMContentLoaded','load'].forEach(function(ev){window.addEventListener(ev,function(){setTimeout(applyAll,0);setTimeout(applyAll,250);setTimeout(applyAll,900);},{passive:true});});setInterval(applyAll,1800);setTimeout(applyAll,30);setTimeout(applyAll,500);
 })();</script>
@@ -16094,74 +16096,18 @@ html,body{width:100%!important;max-width:none!important;margin:0!important;paddi
   document.addEventListener('gesturestart', (e)=>e.preventDefault(), {passive:false});</script>
 <script src="assets/animacion_yape_confetti_v3.js"></script>
 <script id="yape-remote-confetti-data-loader-v1">(function(){
-  /* REMOTO PRIMERO / LOCAL REAL SI FALLA. No crea confeti alternativo. */
-  try{
-    if(!window.__YAPE_LOCAL_CONFETTI_DATA && window.__YAPE_CONFETTI_DATA){
-      window.__YAPE_LOCAL_CONFETTI_DATA = window.__YAPE_CONFETTI_DATA;
-    }
-  }catch(e){}
-
-  var loadToken = 0;
-  var lastUrl = '';
-
-  function emit(source, url){
-    try{window.dispatchEvent(new CustomEvent('yape-confetti-data-loaded',{detail:{source:source||'local',url:url||''}}));}catch(e){}
-  }
-
-  function useLocal(reason){
-    try{
-      if(window.__YAPE_LOCAL_CONFETTI_DATA){
-        window.__YAPE_CONFETTI_DATA = window.__YAPE_LOCAL_CONFETTI_DATA;
-      }
-      window.__YAPE_CONFETTI_REMOTE_STATE = {status:'local',url:lastUrl||'',reason:String(reason||'')};
-      emit('local', lastUrl);
-    }catch(e){}
-  }
-
   function loadRemote(){
     try{
       var u=window.__yapeGetResourceUrl&&window.__yapeGetResourceUrl('confetti-data');
-      u=String(u||'').trim();
-      if(!u){
-        lastUrl='';
-        useLocal('sin-url-remota');
-        return;
-      }
-
-      var st=window.__YAPE_CONFETTI_REMOTE_STATE||{};
-      if(lastUrl===u && (st.status==='loading' || st.status==='remote')) return;
-      lastUrl=u;
-      var my=++loadToken;
-      window.__YAPE_CONFETTI_REMOTE_STATE={status:'loading',url:u};
-
-      var controller = (typeof AbortController!=='undefined') ? new AbortController() : null;
-      var timer = controller ? setTimeout(function(){try{controller.abort();}catch(e){}},3500) : null;
-      fetch(u,{mode:'cors',cache:'force-cache',signal:controller?controller.signal:undefined})
-        .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.text();})
-        .then(function(code){
-          if(my!==loadToken)return;
-          if(timer)clearTimeout(timer);
-          if(!code||code.indexOf('__YAPE_CONFETTI_DATA')===-1)throw new Error('Archivo de confeti inválido');
-          var old=document.getElementById('__yape_remote_confetti_data_exec');
-          if(old&&old.parentNode)old.parentNode.removeChild(old);
-          var sc=document.createElement('script');
-          sc.id='__yape_remote_confetti_data_exec';
-          sc.textContent=code;
-          (document.head||document.documentElement).appendChild(sc);
-          if(!window.__YAPE_CONFETTI_DATA)throw new Error('El confeti remoto no cargó datos');
-          window.__YAPE_CONFETTI_REMOTE_STATE={status:'remote',url:u};
-          emit('remote',u);
-        })
-        .catch(function(e){
-          if(my!==loadToken)return;
-          if(timer)clearTimeout(timer);
-          useLocal(e&&e.message?e.message:'fallo-remoto');
-        });
-    }catch(e){useLocal(e&&e.message?e.message:'error');}
+      if(!u)return;
+      fetch(u,{mode:'cors',cache:'force-cache'}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.text();}).then(function(code){
+        if(!code||code.indexOf('__YAPE_CONFETTI_DATA')===-1)throw new Error('Archivo de confeti inválido');
+        var s=document.createElement('script');s.id='__yape_remote_confetti_data_exec';s.textContent=code;(document.head||document.documentElement).appendChild(s);
+        try{window.dispatchEvent(new CustomEvent('yape-confetti-data-loaded'));}catch(e){}
+      }).catch(function(e){console.warn('Confeti remoto no disponible, se mantiene el respaldo local.',e);});
+    }catch(e){}
   }
-
-  loadRemote();
-  window.addEventListener('yape-resources-updated',loadRemote);
+  loadRemote();window.addEventListener('yape-resources-updated',loadRemote);
 })();</script>
 <script id="lottie-nonblocking-loader">(function(){
   if(window.lottie) return;
@@ -18507,60 +18453,19 @@ try{
         return;
       }
       try{
-        var LOCAL_CHECK_LOGO = 'assets/baucher/Check_Logo_bucher.json';
-        var remoteCheckLogo = '';
-        try{remoteCheckLogo=(window.__yapeGetResourceUrl&&window.__yapeGetResourceUrl('check-logo'))||'';}catch(e){}
-        remoteCheckLogo=String(remoteCheckLogo||'').trim();
-        var fallbackUsed=false;
-        var loadSeq=0;
-
-        function loadCheckLogo(path,isRemote){
-          if(!mount || !mount.isConnected) return;
-          var seq=++loadSeq;
-          try{
-            if(logo.__baucherCheckLottie && typeof logo.__baucherCheckLottie.destroy==='function'){
-              logo.__baucherCheckLottie.destroy();
-            }
-          }catch(e){}
-          logo.__baucherCheckLottie=null;
-          mount.innerHTML='';
-
-          var anim=lottieRef.loadAnimation({
-            container: mount,
-            renderer: 'canvas',
-            loop: true,
-            autoplay: true,
-            path: path,
-            rendererSettings: {
-              clearCanvas: true,
-              progressiveLoad: true,
-              dpr: Math.max(window.devicePixelRatio || 1, 1)
-            }
-          });
-          logo.__baucherCheckLottie=anim;
-
-          if(isRemote && anim && typeof anim.addEventListener==='function'){
-            var settled=false;
-            var timeout=setTimeout(function(){
-              if(!settled && seq===loadSeq){
-                settled=true;
-                if(!fallbackUsed){fallbackUsed=true;loadCheckLogo(LOCAL_CHECK_LOGO,false);}
-              }
-            },3500);
-            var ok=function(){settled=true;clearTimeout(timeout);};
-            var fail=function(){
-              if(settled || seq!==loadSeq) return;
-              settled=true;clearTimeout(timeout);
-              if(!fallbackUsed){fallbackUsed=true;loadCheckLogo(LOCAL_CHECK_LOGO,false);}
-            };
-            try{anim.addEventListener('DOMLoaded',ok);}catch(e){}
-            try{anim.addEventListener('data_ready',ok);}catch(e){}
-            try{anim.addEventListener('data_failed',fail);}catch(e){}
+        mount.innerHTML = '';
+        logo.__baucherCheckLottie = lottieRef.loadAnimation({
+          container: mount,
+          renderer: 'canvas',
+          loop: true,
+          autoplay: true,
+          path: (window.__yapeGetResourceUrl && window.__yapeGetResourceUrl('check-logo')) || 'assets/baucher/Check_Logo_bucher.json',
+          rendererSettings: {
+            clearCanvas: true,
+            progressiveLoad: true,
+            dpr: Math.max(window.devicePixelRatio || 1, 1)
           }
-        }
-
-        /* Con internet/configuración: remoto. Si no existe o falla: JSON local real. */
-        loadCheckLogo(remoteCheckLogo || LOCAL_CHECK_LOGO, !!remoteCheckLogo);
+        });
       }catch(e){
         logo.__baucherCheckLottie = null;
       }
@@ -26155,21 +26060,9 @@ try{
   var pendingStart = false;
   var lastPlayAt = 0;
 
-  /* Si llega el confeti remoto, este reproductor cambia a esos datos.
-     Si la descarga falla, el loader restaura los datos locales reales. */
-  window.addEventListener('yape-confetti-data-loaded',function(){
-    try{
-      CONFETTI_DATA = window.__YAPE_CONFETTI_DATA || window.__YAPE_LOCAL_CONFETTI_DATA || null;
-      frames = null;
-      loaded = false;
-      loading = false;
-      callbacks = [];
-    }catch(e){}
-  });
-
   function getFrames(){
     if(frames) return frames;
-    CONFETTI_DATA = window.__YAPE_CONFETTI_DATA || window.__YAPE_LOCAL_CONFETTI_DATA || CONFETTI_DATA || null;
+    CONFETTI_DATA = CONFETTI_DATA || window.__YAPE_CONFETTI_DATA || null;
     var assets = (CONFETTI_DATA && CONFETTI_DATA.assets) || [];
     frames = assets.filter(function(a){
       return a && typeof a.p === 'string' && a.p.indexOf('data:image') === 0;
@@ -26316,7 +26209,7 @@ try{
       if(current !== runId) return;
       var usable = (list || []).filter(function(f){ return f && f.ready; });
       if(!usable.length){ clearPlayer(player); return; }
-      CONFETTI_DATA = window.__YAPE_CONFETTI_DATA || window.__YAPE_LOCAL_CONFETTI_DATA || CONFETTI_DATA || null;
+      CONFETTI_DATA = CONFETTI_DATA || window.__YAPE_CONFETTI_DATA || null;
       var fps = Math.max(1, Number(CONFETTI_DATA && CONFETTI_DATA.fr) || 40);
       var frameMs = 1000 / fps;
       var start = 0;
@@ -42343,6 +42236,15 @@ html.yosi-ios-standalone-full-v13 .stage > iframe{
     try{
       if(document.documentElement.classList.contains('__baucherTopActivo') ||
          (document.body && document.body.classList.contains('__baucherTopActivo'))) return;
+    }catch(e){}
+
+    /* Android: no repintar el theme-color del Home mientras está visible la
+       pantalla clara de configuración de cuenta. */
+    try{
+      if(/Android/i.test(navigator.userAgent||'')){
+        var accountEntry=document.getElementById('bridgeAccountEntry');
+        if(accountEntry && accountEntry.classList.contains('is-open') && accountEntry.classList.contains('mode-setup')) return;
+      }
     }catch(e){}
 
     try{
