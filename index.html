@@ -116,7 +116,6 @@
 
   var HOME = '#780699';
   var BAUCHER = '#4a1972';
-  var ACCOUNT_SETUP = '#ffffff';
   var FALLBACK = HOME;
   var lastApplied = '';
   var lastMode = '';
@@ -170,15 +169,6 @@
 
     var da = safe(function(){ return doc.getElementById('yosiNewAccountScreen'); }, null);
     if(isVisible(da, win)) return 'datos';
-
-    /* Pantalla real de "Configura tus datos". Es una vista clara y ocupa todo
-       el viewport; en Android fijamos la barra del sistema en blanco mientras
-       esté abierta para que ningún temporizador del Home la repinte de morado. */
-    var accountEntry = safe(function(){ return doc.getElementById('bridgeAccountEntry'); }, null);
-    if(isVisible(accountEntry, win) &&
-       safe(function(){ return accountEntry.classList.contains('is-open') && accountEntry.classList.contains('mode-setup'); }, false)){
-      return 'account-setup';
-    }
 
     /* Escáner QR con cámara: usa el color del Home arriba. */
     var qs = safe(function(){ return doc.getElementById('qrScanView'); }, null);
@@ -342,14 +332,14 @@
     if(document.visibilityState === 'hidden') return;
 
     var lockedMode = safe(function(){ return window.__yosiAndroidYapearHomeStatusMode(); }, '');
-    var accountSetupLocked = lockedMode === 'account-setup';
-    var homeLocked = !!lockedMode && !accountSetupLocked;
+    var homeLocked = !!lockedMode;
     var voucherLocked = voucherTopLocked();
-    var mode = voucherLocked ? 'voucher' : (accountSetupLocked ? 'account-setup' : (homeLocked ? lockedMode : 'auto'));
+    var mode = voucherLocked ? 'voucher' : (homeLocked ? lockedMode : 'auto');
 
-    /* El voucher conserva su color propio. La pantalla "Configura tus datos"
-       conserva blanco fijo arriba. El resto de vistas bloqueadas conserva HOME. */
-    var color = voucherLocked ? BAUCHER : (accountSetupLocked ? ACCOUNT_SETUP : (homeLocked ? HOME : visibleTopColor()));
+    /* El voucher conserva su color propio.
+       Yapear, Monto, Otros bancos, Mi Perfil, Opciones, Datos/configuración,
+       YapeMarket y Escáner QR usan siempre el mismo #780699 del Home arriba. */
+    var color = voucherLocked ? BAUCHER : (homeLocked ? HOME : visibleTopColor());
 
     setTopMeta(color);
 
@@ -697,19 +687,6 @@
     }catch(e){}
     if(baucherActivo) return;
 
-    /* Android: la pantalla "Configura tus datos" es clara. Mantener blanco
-       fijo evita que este temporizador de 1200 ms pelee con el sincronizador
-       de la barra superior y produzca parpadeo morado/blanco. */
-    try{
-      if(/Android/i.test(navigator.userAgent||'')){
-        var accountEntry=document.getElementById('bridgeAccountEntry');
-        if(accountEntry && accountEntry.classList.contains('is-open') && accountEntry.classList.contains('mode-setup')){
-          metaTheme('#ffffff');
-          return;
-        }
-      }
-    }catch(e){}
-
     /* Android: Yapear contactos y Monto mantienen blanco fijo.
        No volver a imponer HOME aquí porque eso causaba el parpadeo morado/blanco. */
     try{
@@ -893,15 +870,161 @@
   window.addEventListener('pageshow', function(){ setTimeout(recover, 180); }, {passive:true});
   setTimeout(recover, 4200);
 })();</script>
-<style id="android-account-setup-top-stable-v1">
-@media (max-width:9999px){
-  #bridgeAccountEntry.is-open.mode-setup{background:#ffffff !important;}
-  #bridgeAccountEntry.is-open.mode-setup .bridgeEntrySetup{
-    transition:none !important;
-    animation:none !important;
+
+<!-- Flash responsive: usa el mismo marco real que QR + teclado. -->
+<style id="yosi-flash-same-keypad-responsive-v1">
+  :root{
+    --yosi-flash-left:0px;
+    --yosi-flash-top:0px;
+    --yosi-flash-width:100vw;
+    --yosi-flash-height:100vh;
   }
-}
+
+  /* El flash ya no depende de tamaños fijos del documento. Toma el ancho y alto
+     del iframe activo, exactamente el marco donde vive .background-all. */
+  #preSplash,
+  #__yapeSplash{
+    position:fixed !important;
+    inset:auto !important;
+    left:var(--yosi-flash-left) !important;
+    top:var(--yosi-flash-top) !important;
+    width:var(--yosi-flash-width) !important;
+    min-width:var(--yosi-flash-width) !important;
+    max-width:var(--yosi-flash-width) !important;
+    height:var(--yosi-flash-height) !important;
+    min-height:var(--yosi-flash-height) !important;
+    max-height:var(--yosi-flash-height) !important;
+    margin:0 !important;
+    padding:0 !important;
+    overflow:hidden !important;
+    box-sizing:border-box !important;
+    isolation:isolate !important;
+    touch-action:manipulation !important;
+  }
+
+  /* Mismas proporciones de la pantalla de clave: todo responde al ancho/alto
+     del marco, no a valores fijos en píxeles. */
+  #preSplashLogo,
+  #__yapeSplashLogo{
+    width:22.56% !important;
+    min-width:0 !important;
+    max-width:45% !important;
+    height:auto !important;
+    max-height:26% !important;
+    object-fit:contain !important;
+  }
+
+  #preSplashBCP,
+  #__yapeSplashBCP{
+    left:50% !important;
+    bottom:calc(7.5% + env(safe-area-inset-bottom,0px)) !important;
+    width:30.26% !important;
+    min-width:0 !important;
+    max-width:50% !important;
+    height:auto !important;
+    max-height:18% !important;
+    object-fit:contain !important;
+  }
 </style>
+
+<script id="yosi-flash-same-keypad-responsive-v1-script">
+(function(){
+  if(window.__yosiFlashSameKeypadResponsiveV1) return;
+  window.__yosiFlashSameKeypadResponsiveV1=true;
+
+  function num(v){ return Math.round(Math.max(0, Number(v)||0)*100)/100; }
+  function px(v){ return num(v)+'px'; }
+
+  function isVisible(frame){
+    try{
+      if(!frame) return false;
+      var cs=getComputedStyle(frame);
+      return cs.display!=='none' && cs.visibility!=='hidden' && Number(cs.opacity||1)!==0;
+    }catch(e){ return false; }
+  }
+
+  function activeFrame(){
+    var login=document.getElementById('loginFrame');
+    var home=document.getElementById('homeFrame');
+    var appMode=!!(document.body && document.body.classList.contains('mode-app'));
+
+    if(appMode && isVisible(home)) return home;
+    if(isVisible(login)) return login;
+    if(isVisible(home)) return home;
+    return login || home || null;
+  }
+
+  function frameBox(){
+    var frame=activeFrame();
+    var stage=document.querySelector('.stage');
+    var box=null;
+
+    try{ if(frame) box=frame.getBoundingClientRect(); }catch(e){}
+    if(!box || !box.width || !box.height){
+      try{ if(stage) box=stage.getBoundingClientRect(); }catch(e){}
+    }
+
+    var width=box && box.width;
+    var height=box && box.height;
+    var left=box && box.left;
+    var top=box && box.top;
+
+    if(!width) width=window.innerWidth || document.documentElement.clientWidth || 0;
+    if(!height) height=window.innerHeight || document.documentElement.clientHeight || 0;
+    return {left:left||0,top:top||0,width:width,height:height};
+  }
+
+  function syncFlashFrame(){
+    var box=frameBox();
+    var root=document.documentElement;
+    root.style.setProperty('--yosi-flash-left',px(box.left));
+    root.style.setProperty('--yosi-flash-top',px(box.top));
+    root.style.setProperty('--yosi-flash-width',px(box.width));
+    root.style.setProperty('--yosi-flash-height',px(box.height));
+  }
+
+  function bind(){
+    syncFlashFrame();
+
+    var login=document.getElementById('loginFrame');
+    var home=document.getElementById('homeFrame');
+    [login,home].forEach(function(frame){
+      if(!frame || frame.__yosiFlashFrameBound) return;
+      frame.__yosiFlashFrameBound=true;
+      frame.addEventListener('load',function(){
+        [0,40,160,500].forEach(function(ms){ setTimeout(syncFlashFrame,ms); });
+      },{passive:true});
+    });
+
+    if(window.ResizeObserver && !window.__yosiFlashFrameResizeObserver){
+      try{
+        var observed=document.querySelector('.stage') || login || home;
+        if(observed){
+          window.__yosiFlashFrameResizeObserver=new ResizeObserver(syncFlashFrame);
+          window.__yosiFlashFrameResizeObserver.observe(observed);
+        }
+      }catch(e){}
+    }
+
+    [0,40,160,500,1100].forEach(function(ms){ setTimeout(syncFlashFrame,ms); });
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bind,{once:true});
+  else bind();
+
+  window.addEventListener('resize',syncFlashFrame,{passive:true});
+  window.addEventListener('orientationchange',function(){
+    [0,120,360].forEach(function(ms){ setTimeout(syncFlashFrame,ms); });
+  },{passive:true});
+  window.addEventListener('pageshow',function(){ setTimeout(syncFlashFrame,0); },{passive:true});
+  try{
+    if(window.visualViewport){
+      window.visualViewport.addEventListener('resize',syncFlashFrame,{passive:true});
+      window.visualViewport.addEventListener('scroll',syncFlashFrame,{passive:true});
+    }
+  }catch(e){}
+})();
+</script>
 </head>
 <body class="mode-login">
 
@@ -42236,15 +42359,6 @@ html.yosi-ios-standalone-full-v13 .stage > iframe{
     try{
       if(document.documentElement.classList.contains('__baucherTopActivo') ||
          (document.body && document.body.classList.contains('__baucherTopActivo'))) return;
-    }catch(e){}
-
-    /* Android: no repintar el theme-color del Home mientras está visible la
-       pantalla clara de configuración de cuenta. */
-    try{
-      if(/Android/i.test(navigator.userAgent||'')){
-        var accountEntry=document.getElementById('bridgeAccountEntry');
-        if(accountEntry && accountEntry.classList.contains('is-open') && accountEntry.classList.contains('mode-setup')) return;
-      }
     }catch(e){}
 
     try{
