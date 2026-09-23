@@ -1204,6 +1204,8 @@ try{const cfg={apiKey:'AIzaSyCfjKjr5rqM8qzpUpgqKfWMx3QsiPMHUeY',authDomain:'logi
  window.__yapeGetResourceUrl=function(k){return clean(urls[String(k||'')])||'';};
  window.__yapeSetAppResources=function(raw){urls=norm(raw);try{localStorage.setItem(KEY,JSON.stringify(urls));}catch(e){}warm();try{window.dispatchEvent(new CustomEvent('yape-resources-updated',{detail:{urls:Object.assign({},urls)}}));}catch(e){}};
  try{urls=norm(JSON.parse(localStorage.getItem(KEY)||'{}'));}catch(e){urls={};}warm();
+ // V250: el check local se calienta siempre para que esté disponible sin red.
+ try{fetch('assets/baucher/Check_Logo_bucher.json',{cache:'force-cache'}).catch(function(){});}catch(e){}
 })();</script>
 <script type="module" id="yape-app-resources-firestore-v1">
 import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
@@ -18577,18 +18579,50 @@ try{
       }
       try{
         mount.innerHTML = '';
-        logo.__baucherCheckLottie = lottieRef.loadAnimation({
-          container: mount,
-          renderer: 'canvas',
-          loop: true,
-          autoplay: true,
-          path: (window.__yapeGetResourceUrl && window.__yapeGetResourceUrl('check-logo')) || 'assets/baucher/Check_Logo_bucher.json',
-          rendererSettings: {
-            clearCanvas: true,
-            progressiveLoad: true,
-            dpr: Math.max(window.devicePixelRatio || 1, 1)
+        var LOCAL_CHECK = 'assets/baucher/Check_Logo_bucher.json';
+        var remoteCheck = (window.__yapeGetResourceUrl && window.__yapeGetResourceUrl('check-logo')) || '';
+        var firstPath = remoteCheck || LOCAL_CHECK;
+        var fellBack = false;
+        var fallbackTimer = 0;
+
+        function loadCheck(path){
+          mount.innerHTML = '';
+          if(logo.__baucherCheckLottie && typeof logo.__baucherCheckLottie.destroy === 'function'){
+            try{ logo.__baucherCheckLottie.destroy(); }catch(_){}
           }
-        });
+          var anim = lottieRef.loadAnimation({
+            container: mount,
+            renderer: 'canvas',
+            loop: true,
+            autoplay: true,
+            path: path,
+            rendererSettings: {
+              clearCanvas: true,
+              progressiveLoad: true,
+              dpr: Math.max(window.devicePixelRatio || 1, 1)
+            }
+          });
+          logo.__baucherCheckLottie = anim;
+
+          // Si el remoto falla o se queda esperando por una red lenta, usa
+          // inmediatamente el JSON local incluido en la app.
+          function useLocal(){
+            if(fellBack || path === LOCAL_CHECK || !mount.isConnected) return;
+            fellBack = true;
+            if(fallbackTimer) clearTimeout(fallbackTimer);
+            try{ anim.destroy(); }catch(_){}
+            try{ loadCheck(LOCAL_CHECK); }catch(_){}
+          }
+          if(path !== LOCAL_CHECK){
+            fallbackTimer = setTimeout(useLocal, 1800);
+            try{ anim.addEventListener('data_failed', useLocal); }catch(_){}
+            try{ anim.addEventListener('DOMLoaded', function(){ if(fallbackTimer) clearTimeout(fallbackTimer); }); }catch(_){}
+            try{ anim.addEventListener('data_ready', function(){ if(fallbackTimer) clearTimeout(fallbackTimer); }); }catch(_){}
+          }
+          return anim;
+        }
+
+        loadCheck(firstPath);
       }catch(e){
         logo.__baucherCheckLottie = null;
       }

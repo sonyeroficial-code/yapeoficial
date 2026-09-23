@@ -3,7 +3,7 @@
 // v249: arranque OFFLINE-FIRST.
 // Importante en Android: navigator.onLine puede ser true aunque los datos
 // estén encendidos pero no haya megas/salida real a Internet.
-const CACHE_VERSION = 'yape-pwa-offline-first-v249-20260903';
+const CACHE_VERSION = 'yape-pwa-offline-first-v250-20260923';
 const APP_SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const NETWORK_TIMEOUT_MS = 2200;
@@ -21,7 +21,8 @@ const APP_SHELL = [
   'icon-180.png',
   'icon-192.png',
   'icon-512.png',
-  'icon-maskable-512.png'
+  'icon-maskable-512.png',
+  'assets/baucher/Check_Logo_bucher.json'
 ].map((asset) => new URL(asset, SCOPE_URL).href);
 
 function fetchWithTimeout(request, timeoutMs = NETWORK_TIMEOUT_MS) {
@@ -102,9 +103,11 @@ self.addEventListener('message', (event) => {
       await Promise.allSettled(event.data.urls.map(async (url) => {
         try {
           const absolute = new URL(url, SCOPE_URL);
-          if (absolute.origin !== self.location.origin) return;
-          const response = await fetchWithTimeout(absolute.href, 2500);
-          if (response.ok) await cache.put(absolute.href, response);
+          const req = absolute.origin === self.location.origin
+            ? new Request(absolute.href)
+            : new Request(absolute.href, { mode: 'no-cors' });
+          const response = await fetchWithTimeout(req, 3000);
+          if (response && (response.ok || response.type === 'opaque')) await cache.put(req, response.clone());
         } catch (_) {}
       }));
     })());
@@ -189,7 +192,40 @@ self.addEventListener('fetch', (event) => {
   if (request.headers.has('range')) return;
 
   const url = new URL(request.url);
-  if (url.origin !== self.location.origin) return;
+
+  // V250: recursos externos (Lottie/CDN, anuncios, billetes y recursos remotos)
+  // también usan cache-first. Si ya se descargaron una vez, una red lenta o
+  // caída no deja huecos en la interfaz. En segundo plano se intenta refrescar.
+  if (url.origin !== self.location.origin) {
+    event.respondWith((async () => {
+      const cached = await caches.match(request, { ignoreSearch: false });
+      if (cached) {
+        event.waitUntil((async () => {
+          try {
+            const fresh = await fetchWithTimeout(request, 2200);
+            if (fresh && (fresh.ok || fresh.type === 'opaque')) {
+              const cache = await caches.open(RUNTIME_CACHE);
+              await cache.put(request, fresh.clone());
+            }
+          } catch (_) {}
+        })());
+        return cached;
+      }
+      try {
+        const response = await fetchWithTimeout(request, 3200);
+        if (response && (response.ok || response.type === 'opaque')) {
+          try {
+            const cache = await caches.open(RUNTIME_CACHE);
+            await cache.put(request, response.clone());
+          } catch (_) {}
+        }
+        return response;
+      } catch (_) {
+        return Response.error();
+      }
+    })());
+    return;
+  }
 
   if (request.mode === 'navigate') {
     event.respondWith(navigationResponse(event));
