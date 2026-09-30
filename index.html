@@ -11614,6 +11614,9 @@ var authBusy = false;
 var toastTimer = 0;
 var setupLottie = null;
 var setupLottieRetry = 0;
+var setupLottieToken = 0;
+var setupLottieTimer = 0;
+var setupDataPromise = null;
 
 function parentFn(name){
 try{
@@ -11658,41 +11661,101 @@ if(code === 'CANCELLED' || name === 'NotAllowedError') return 'Verificación can
 return (err && err.message) ? String(err.message) : 'No se pudo completar la verificación.';
 }
 
+function loadSetupAnimationData(){
+if(setupDataPromise) return setupDataPromise;
+var url = new URL('assets/animacion/huella_face.json', document.baseURI).href;
+function read(response){
+if(!response || !response.ok) return Promise.reject(new Error('No se pudo cargar huella_face.json'));
+return response.json().then(function(data){
+if(!data || !Array.isArray(data.layers) || !(Number(data.w)>0) || !(Number(data.h)>0)){
+throw new Error('JSON de huella no válido');
+}
+return data;
+});
+}
+function download(attempt){
+var controller = new AbortController();
+var timer = setTimeout(function(){ controller.abort(); }, 60000);
+return fetch(url, {cache:'no-cache', signal:controller.signal}).then(function(response){
+var copy = response.clone();
+return read(response).then(function(data){
+if(window.caches) caches.open('app-offline-resources-v1').then(function(cache){
+return cache.put(url, copy);
+}).catch(function(){});
+return data;
+});
+}).finally(function(){ clearTimeout(timer); }).catch(function(error){
+if(attempt >= 2) throw error;
+return new Promise(function(resolve){ setTimeout(resolve, 400*(attempt+1)); }).then(function(){
+return download(attempt+1);
+});
+});
+}
+var cached = window.caches ? caches.match(url).catch(function(){ return null; }) : Promise.resolve(null);
+setupDataPromise = cached.then(function(response){
+return response ? read(response).catch(function(){ return download(0); }) : download(0);
+}).catch(function(error){ setupDataPromise = null; throw error; });
+return setupDataPromise;
+}
+
 function mountSetupLottie(){
 var mount = document.getElementById('yapeBiometricSetupLottieV2');
 if(!mount) return;
-mount.innerHTML = '';
-
-try{
+var token = ++setupLottieToken;
+clearTimeout(setupLottieTimer);
 if(setupLottie && typeof setupLottie.destroy === 'function'){
 try{ setupLottie.destroy(); }catch(e){}
 }
 setupLottie = null;
-
-var boot = function(){
-if(!window.lottie || !window.lottie.loadAnimation){
-setupLottieRetry += 1;
-if(setupLottieRetry < 80){
-setTimeout(boot, 125);
+mount.innerHTML = '';
+var libraryChecks = 0;
+function current(){
+return token === setupLottieToken && document.getElementById('yapeBiometricSetupLottieV2') === mount;
 }
+function failed(error){
+if(!current()) return;
+if(setupLottie){ try{ setupLottie.destroy(); }catch(e){} }
+setupLottie = null;
+mount.innerHTML = '';
+console.warn('No se pudo montar la animación de huella.', error);
+var root = document.getElementById('yapeBiometricSetupV2');
+if(root && root.classList.contains('open') && ++setupLottieRetry <= 3){
+setupLottieTimer = setTimeout(mountSetupLottie, 1200);
+}
+}
+function boot(){
+if(!current()) return;
+var ensure = parentFn('__ensureYapeLottie');
+var ref = window.lottie;
+try{ ref = ref || (window.parent && window.parent.lottie); }catch(e){}
+if(!ensure && (!ref || !ref.loadAnimation)){
+if(++libraryChecks < 80) setupLottieTimer = setTimeout(boot, 125);
+else failed(new Error('Lottie no disponible'));
 return;
 }
-setupLottieRetry = 0;
-setupLottie = window.lottie.loadAnimation({
+// The shared library lives in the parent; the JSON stays in its own file.
+Promise.all([ensure ? ensure() : Promise.resolve(ref), loadSetupAnimationData()]).then(function(result){
+if(!current()) return;
+var anim = result[0].loadAnimation({
 container: mount,
 renderer: 'svg',
 loop: true,
 autoplay: true,
-path: 'assets/animacion/huella_face.json',
-rendererSettings: {
-preserveAspectRatio: 'xMidYMid meet'
-}
+animationData: JSON.parse(JSON.stringify(result[1])),
+rendererSettings: {preserveAspectRatio:'xMidYMid meet'}
 });
-};
-boot();
-}catch(e){
-console.warn('No se pudo montar la animación de huella.', e);
+setupLottie = anim;
+anim.addEventListener('data_failed', function(){ failed(new Error('No se pudo reproducir la huella')); });
+anim.addEventListener('DOMLoaded', function(){
+if(!current() || setupLottie !== anim) return;
+setupLottieRetry = 0;
+var root = document.getElementById('yapeBiometricSetupV2');
+if(root && root.classList.contains('open')) anim.play();
+else anim.stop();
+});
+}).catch(failed);
 }
+boot();
 }
 
 function ensureUI(){
@@ -11766,6 +11829,8 @@ root.setAttribute('aria-hidden','false');
 }
 
 function closeSetup(){
+setupLottieToken += 1;
+clearTimeout(setupLottieTimer);
 var root = document.getElementById('yapeBiometricSetupV2');
 var original = document.querySelector('app-login > .background-all:not(#yapeBiometricSetupV2)');
 var returnToProfile = false;
