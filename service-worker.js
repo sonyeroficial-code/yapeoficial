@@ -1,7 +1,7 @@
 'use strict';
 
 // The file list and revisions are generated from the delivered ZIP.
-const BUILD = '08a66e2e84d1b79b';
+const BUILD = 'b6d25f38558ea394';
 const LOCAL_FILES = [
   {
     "url": "assets/Abraham-vadelomar.png",

@@ -13437,15 +13437,88 @@ try{window.dispatchEvent(new CustomEvent('yape-confetti-data-loaded'));}catch(e)
 }
 loadRemote();window.addEventListener('yape-resources-updated',loadRemote);
 })();</script>
-<script id="lottie-nonblocking-loader">(function(){
-if(window.lottie) return;
-var s=document.createElement('script');
-s.src='assets/lottie-5.12.2.min.js';
-s.async=true;
-s.crossOrigin='anonymous';
-s.onerror=function(){ console.warn('Lottie no disponible; la app continuará sin bloquearse.'); };
-document.head.appendChild(s);
-})();</script>
+<script id="lottie-nonblocking-loader">(function () {
+  'use strict';
+  var pending = null;
+  function ready() { return window.lottie && typeof window.lottie.loadAnimation === 'function'; }
+  window.__ensureYapeLottie = function () {
+    if (ready()) return Promise.resolve(window.lottie);
+    if (pending) return pending;
+    pending = new Promise(function (resolve, reject) {
+      var attempts = 0;
+      function attempt() {
+        if (ready()) { resolve(window.lottie); return; }
+        attempts++;
+        var script = document.createElement('script');
+        script.src = new URL('assets/lottie-5.12.2.min.js', document.baseURI).href;
+        script.async = true;
+        var done = false;
+        var timer = setTimeout(function () { finish(new Error('Tiempo de carga de Lottie agotado')); }, 65000);
+        function finish(error) {
+          if (done) return;
+          done = true; clearTimeout(timer);
+          script.onload = script.onerror = null;
+          if (!error && ready()) {
+            resolve(window.lottie);
+            window.dispatchEvent(new CustomEvent('yape-lottie-ready'));
+          } else {
+            script.remove();
+            if (attempts < 3) setTimeout(attempt, attempts * 700);
+            else reject(error || new Error('Lottie no pudo iniciarse'));
+          }
+        }
+        script.onload = function () { finish(); };
+        script.onerror = function () { finish(new Error('No se pudo cargar Lottie')); };
+        (document.head || document.documentElement).appendChild(script);
+      }
+      attempt();
+    });
+    pending = pending.then(function (ref) { pending = null; return ref; }, function (error) {
+      pending = null; throw error;
+    });
+    return pending;
+  };
+  function ensure() { window.__ensureYapeLottie().catch(function (error) { console.warn(error.message); }); }
+  ensure();
+  window.addEventListener('online', ensure);
+  window.addEventListener('app-offline-status', function () { if (!ready()) ensure(); });
+})();
+</script>
+<script id="check-logo-file-loader-v1">(function () {
+  'use strict';
+  var localPending = null;
+  function valid(data) { return data && Array.isArray(data.layers) && Number(data.w) > 0 && Number(data.h) > 0; }
+  function read(response) {
+    if (!response || !response.ok) throw new Error('No se pudo cargar el JSON de la animación');
+    return response.json().then(function (data) {
+      if (!valid(data)) throw new Error('JSON de animación no válido');
+      return data;
+    });
+  }
+  function download(url, timeout) {
+    var controller = new AbortController();
+    var timer = setTimeout(function () { controller.abort(); }, timeout);
+    // CacheStorage was checked separately. Revalidate the HTTP request so a
+    // previously cached error response cannot poison every retry.
+    return fetch(url, {cache: 'no-cache', signal: controller.signal}).then(read)
+      .finally(function () { clearTimeout(timer); });
+  }
+  window.__loadYapeCheckLogoFile = function (path, isLocal) {
+    var url = new URL(path, document.baseURI).href;
+    if (!isLocal) return download(url, 1800);
+    if (localPending) return localPending;
+    var cached = window.caches ? caches.match(url).catch(function () { return null; }) : Promise.resolve(null);
+    localPending = cached.then(function (response) {
+      if (response) return read(response).catch(function () { return download(url, 60000); });
+      return download(url, 60000);
+    }).catch(function (error) {
+      localPending = null; throw error;
+    });
+    // This promise holds downloaded data only in memory; no JSON is in the HTML.
+    return localPending;
+  };
+})();
+</script>
 <style id="pnGlobalStyle">#pnGlobalOverlay{position:fixed;inset:0;display:none;background:linear-gradient(180deg,#5b1180 0%,#3e0b5c 42%,#28083f 100%);z-index:999999;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;overflow:hidden} #pnGlobalOverlay.active{display:block} #pnGlobalSheet{position:absolute;inset:0;width:100%;height:100%;max-height:none;overflow:auto;background:linear-gradient(180deg,#5b1180 0%,#3e0b5c 42%,#28083f 100%);color:#fff;border-radius:0;box-shadow:none;border:none;padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-inset-bottom,0px) + 22px);box-sizing:border-box;-webkit-overflow-scrolling:touch} #pnGlobalSheet .pnTop,#pnGlobalSheet .pnCard{width:min(100%,520px);margin-left:auto;margin-right:auto;box-sizing:border-box} #pnGlobalSheet .pnTop{display:flex;align-items:center;gap:12px;margin-bottom:14px} #pnGlobalSheet .pnBack,#pnGlobalSheet .pnClose{width:44px;height:43px;border:none;border-radius:16px;background:rgba(255,255,255,.12);color:#fff;font-size:18px;display:grid;place-items:center;appearance:none;-webkit-appearance:none;transition:transform .18s ease,background .18s ease,box-shadow .18s ease;box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 8px 18px rgba(0,0,0,.18);flex:0 0 44px} #pnGlobalSheet .pnBack:active,#pnGlobalSheet .pnClose:active{transform:scale(.96);background:rgba(255,255,255,.18)} #pnGlobalSheet .pnClose{margin-left:auto} #pnGlobalSheet .pnHeadTitle{font-size:25px;font-weight:500;line-height:1.05;white-space:normal} #pnGlobalSheet .pnHeadSub{opacity:.78;font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin-top:4px} #pnGlobalSheet .pnCard{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:22px;padding:15px;margin-top:12px} #pnGlobalSheet .pnGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px} #pnGlobalSheet .pnField label{display:block;font-size:11px;opacity:.84;margin-bottom:7px;font-weight:500;letter-spacing:.04em;text-transform:uppercase} #pnGlobalSheet .pnField input{width:100%;height:46px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(28,7,43,.42);color:#fff;padding:0 14px;font-size:16px;outline:none;box-sizing:border-box} #pnGlobalSheet .pnTiny{opacity:.75;font-size:11px;line-height:1.35;margin-top:7px} #pnGlobalSheet .pnStepper{display:grid;grid-template-columns:42px 1fr 42px;gap:10px;align-items:center} #pnGlobalSheet .pnStepBtn{appearance:none;-webkit-appearance:none;border:none;width:42px;height:42px;border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.08));color:#fff;font-size:18px;font-weight:500;display:grid;place-items:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 10px 18px rgba(12,4,24,.18);transition:transform .16s ease,box-shadow .16s ease,background .16s ease} #pnGlobalSheet .pnStepBtn:hover{background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,.1))} #pnGlobalSheet .pnStepBtn:active{transform:scale(.95);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 4px 10px rgba(12,4,24,.18)} #pnGlobalSheet .pnStepVal{height:42px;border-radius:14px;border:1px solid rgba(255,255,255,.1);background:rgba(17,4,28,.24);display:flex;align-items:center;justify-content:center;padding:0 12px;font-size:18px;font-weight:500;text-align:center;white-space:nowrap} #pnGlobalSheet .pnStepInput{width:100% !important;height:42px !important;border-radius:14px !important;border:1px solid rgba(255,255,255,.1) !important;background:rgba(17,4,28,.24) !important;color:#fff !important;padding:0 12px !important;font-size:18px !important;font-weight:500 !important;text-align:center !important;outline:none !important;box-shadow:none !important;-moz-appearance:textfield !important} #pnGlobalSheet .pnStepInput::-webkit-outer-spin-button,#pnGlobalSheet .pnStepInput::-webkit-inner-spin-button{-webkit-appearance:none !important;margin:0 !important} #pnGlobalSheet .pnPreview{margin-top:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:14px} #pnGlobalSheet .pnPreviewTitle{font-size:11px;opacity:.8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px} #pnGlobalSheet .pnPreviewMsg{font-size:13px;line-height:1.45;color:#fff} #pnGlobalSheet .pnRow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;flex-wrap:wrap} #pnGlobalSheet .pnSwitch{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600} #pnGlobalSheet .pnSwitch input{width:18px;height:18px} #pnGlobalSheet .pnActions{display:flex;gap:10px;margin-top:14px} #pnGlobalSheet .pnBtn{flex:1;height:50px;border:none;border-radius:16px;font-weight:500;font-size:16px;appearance:none;-webkit-appearance:none;transition:transform .18s ease,filter .18s ease,box-shadow .18s ease;box-shadow:0 10px 22px rgba(13,3,27,.2)} #pnGlobalSheet .pnBtn:active{transform:scale(.98)} #pnGlobalSheet .pnBtn.sec{background:rgba(255,255,255,.12);color:#fff} #pnGlobalSheet .pnBtn.pri{background:linear-gradient(90deg,#7c3aed,#9b5cff);color:#fff} #pnGlobalSheet .pnBtn.ghost{padding:0 14px;height:38px;flex:0 auto;border-radius:12px;background:rgba(255,255,255,.08);color:#fff;font-size:14px;box-shadow:none} #pnGlobalSheet .pnHistoryWrap{display:none} #pnGlobalSheet .pnHistoryWrap.show{display:block} #pnGlobalSheet .pnHistoryHead{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap} #pnGlobalSheet .pnHistory{margin-top:12px;display:grid;gap:10px} #pnGlobalSheet .pnEmpty{opacity:.7;font-size:14px;padding:8px 2px} #pnGlobalSheet .pnItem{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:12px} #pnGlobalSheet .pnItemTop{display:flex;justify-content:space-between;gap:12px;font-size:11px;opacity:.8;margin-bottom:6px} #pnGlobalSheet .pnItemTitle{font-weight:500;color:#fff;opacity:1} #pnGlobalToast{position:fixed;left:50%;top:18px;transform:translateX(-50%) translateY(-18px);width:min(92vw,420px);background:linear-gradient(180deg,rgba(76,17,104,.98),rgba(49,8,70,.98));color:#fff;border:1px solid rgba(255,255,255,.14);border-radius:22px;padding:14px 16px;box-shadow:0 18px 40px rgba(0,0,0,.34);z-index:1000000;display:none;opacity:0;transition:opacity .26s ease,transform .26s ease;pointer-events:auto;touch-action:pan-y;user-select:none;-webkit-user-select:none} #pnGlobalToast.show{display:block;opacity:1;transform:translateX(-50%) translateY(0)} #pnGlobalToast .t1{font-size:13px;opacity:.82;margin-bottom:4px} #pnGlobalToast .t2{font-size:13px;line-height:1.4;font-weight:500} @media (max-width:560px){#pnGlobalSheet{padding:calc(env(safe-area-inset-top,0px) + 14px) 14px calc(env(safe-area-inset-bottom,0px) + 20px)}#pnGlobalSheet .pnHeadTitle{font-size:24px}#pnGlobalSheet .pnGrid{grid-template-columns:1fr}} @media (max-width:380px){#pnGlobalSheet .pnHeadTitle{font-size:22px}#pnGlobalSheet .pnBack,#pnGlobalSheet .pnClose{width:42px;height:42px;flex-basis:42px}#pnGlobalSheet .pnStepper{grid-template-columns:40px 1fr 40px;gap:9px}#pnGlobalSheet .pnStepBtn{width:40px;height:40px}#pnGlobalSheet .pnStepVal{height:40px;font-size:17px}#pnGlobalSheet .pnBtn{height:48px;font-size:15px}}</style>
 <div aria-hidden="true" id="pnGlobalOverlay"> <div id="pnGlobalSheet"> <div class="pnTop"> <button class="pnBack" id="pnGoBack" type="button">‹</button> <div> <div class="pnHeadTitle">Programar notificación</div> <div class="pnHeadSub">Simulación de pagos</div> </div> <button class="pnClose" id="pnCloseX" type="button">×</button> </div> <div class="pnCard"> <div class="pnGrid"> <div class="pnField"> <label>Cantidad</label> <div class="pnStepper"><button class="pnStepBtn" id="pnCantDown" type="button">−</button><input aria-label="Cantidad de notificaciones" class="pnStepInput" id="pnCantidadInput" inputmode="numeric" min="1" step="1" type="number" value="4"/><button class="pnStepBtn" id="pnCantUp" type="button">+</button></div> <div class="pnTiny">Puedes escribir directamente la cantidad que necesites.</div> </div> <div class="pnField"> <label>Intervalo</label> <div class="pnStepper"><button class="pnStepBtn" id="pnInterDown" type="button">−</button><div class="pnStepVal" id="pnIntervaloVal">4 segundos</div><button class="pnStepBtn" id="pnInterUp" type="button">+</button></div> <div class="pnTiny">Tiempo entre cada notificación.</div> </div> <div class="pnField"><label>Monto aprox.</label><input id="pnMontoHint" readonly="" value="S/ 5 a S/ 500"/></div> </div> <div class="pnRow"> <label class="pnSwitch"><input checked="" id="pnSonido" type="checkbox"/> Con sonido</label> </div> <div class="pnPreview"> <div class="pnPreviewTitle">Vista previa</div> <div class="pnPreviewMsg" id="pnPreviewMsg"></div> </div> <div class="pnActions"><button class="pnBtn sec" id="pnTestNow" type="button">Probar ahora</button><button class="pnBtn pri" id="pnScheduleNow" type="button">Programar</button></div> </div> <div class="pnCard"> <div class="pnHistoryHead"><div class="pnPreviewTitle" style="margin:0">Historial reciente</div><div style="display:flex;gap:8px"><button class="pnBtn ghost" id="pnToggleHistory" type="button">Ver</button><button class="pnBtn ghost" id="pnClearHistory" type="button">Eliminar</button></div></div> <div class="pnHistoryWrap" id="pnHistoryWrap"><div class="pnHistory" id="pnHistory"></div></div> </div> </div> </div> <div id="pnGlobalToast"><div class="t1">Yape · Confirmación de Pago</div><div class="t2" id="pnToastText"></div></div>
 <script>(function(){
@@ -15765,74 +15838,82 @@ logo.dataset.logoMode = wantedMode;
 var mount = logo.querySelector('.baucher-check-logo-lottie');
 if(!mount) return;
 
-var tries = 0;
+var token = {};
+logo.__baucherCheckLottieToken = token;
 logo.__baucherCheckLottiePending = true;
-
-function mountCheckLogo(){
-if(!mount || !mount.isConnected){
+function currentMount() {
+return mount && mount.isConnected && mount.parentNode === logo &&
+logo.__baucherCheckLottieToken === token && logo.dataset.logoMode === wantedMode;
+}
+function placeholder() {
+if(currentMount()) mount.innerHTML = '<img src="assets/embedded/logo-yape-principal.svg" alt="Yape" style="width:100%;height:100%;object-fit:contain">';
+}
+function failed(anim) {
+if(!currentMount()) return;
+if(anim && typeof anim.destroy === 'function'){ try{ anim.destroy(); }catch(_){} }
+logo.__baucherCheckLottie = null;
 logo.__baucherCheckLottiePending = false;
-return;
+placeholder();
 }
-var lottieRef = window.lottie || null;
-if(!lottieRef || typeof lottieRef.loadAnimation !== 'function'){
-tries++;
-if(tries < 40){
-setTimeout(mountCheckLogo, 100);
-}else{
-logo.__baucherCheckLottiePending = false;
-}
-return;
-}
-try{
-mount.innerHTML = '';
-var LOCAL_CHECK = 'assets/baucher/Check_Logo_bucher.json';
+function mountCheckLogo(lottieRef) {
+if(!currentMount()) return;
+var LOCAL_CHECK = new URL('assets/baucher/Check_Logo_bucher.json', document.baseURI).href;
 var remoteCheck = (window.__yapeGetResourceUrl && window.__yapeGetResourceUrl('check-logo')) || '';
-var firstPath = remoteCheck || LOCAL_CHECK;
-var fellBack = false;
-var fallbackTimer = 0;
-
-function loadCheck(path){
+var attempts = 0;
+function render(animationData) {
+if(!currentMount()) return;
 mount.innerHTML = '';
 if(logo.__baucherCheckLottie && typeof logo.__baucherCheckLottie.destroy === 'function'){
 try{ logo.__baucherCheckLottie.destroy(); }catch(_){}
 }
-var anim = lottieRef.loadAnimation({
+var anim;
+try{
+anim = lottieRef.loadAnimation({
 container: mount,
 renderer: 'canvas',
 loop: true,
 autoplay: true,
-path: path,
+animationData: JSON.parse(JSON.stringify(animationData)),
 rendererSettings: {
 clearCanvas: true,
 progressiveLoad: true,
 dpr: Math.max(window.devicePixelRatio || 1, 1)
 }
 });
+}catch(error){ failed(null); return; }
 logo.__baucherCheckLottie = anim;
-
-function useLocal(){
-if(fellBack || path === LOCAL_CHECK || !mount.isConnected) return;
-fellBack = true;
-if(fallbackTimer) clearTimeout(fallbackTimer);
-try{ anim.destroy(); }catch(_){}
-try{ loadCheck(LOCAL_CHECK); }catch(_){}
-}
-if(path !== LOCAL_CHECK){
-fallbackTimer = setTimeout(useLocal, 1800);
-try{ anim.addEventListener('data_failed', useLocal); }catch(_){}
-try{ anim.addEventListener('DOMLoaded', function(){ if(fallbackTimer) clearTimeout(fallbackTimer); }); }catch(_){}
-try{ anim.addEventListener('data_ready', function(){ if(fallbackTimer) clearTimeout(fallbackTimer); }); }catch(_){}
-}
-return anim;
-}
-
-loadCheck(firstPath);
-}catch(e){
-logo.__baucherCheckLottie = null;
-}
+function loaded() {
+if(currentMount() && logo.__baucherCheckLottie === anim){
 logo.__baucherCheckLottiePending = false;
+try{ anim.play(); }catch(_){}
 }
-mountCheckLogo();
+}
+function broken() {
+if(currentMount() && logo.__baucherCheckLottie === anim) failed(anim);
+}
+anim.addEventListener('DOMLoaded', loaded);
+anim.addEventListener('data_failed', broken);
+anim.addEventListener('error', broken);
+if(anim.isLoaded) loaded();
+}
+function loadLocal() {
+if(!currentMount()) return;
+attempts++;
+window.__loadYapeCheckLogoFile(LOCAL_CHECK, true).then(render).catch(function () {
+if(!currentMount()) return;
+if(attempts < 3) setTimeout(loadLocal, attempts * 700);
+else failed(null);
+});
+}
+if(remoteCheck){
+window.__loadYapeCheckLogoFile(remoteCheck, false).then(render).catch(loadLocal);
+}else{ loadLocal(); }
+}
+placeholder();
+var library = window.__ensureYapeLottie
+? window.__ensureYapeLottie()
+: (window.lottie ? Promise.resolve(window.lottie) : Promise.reject(new Error('Lottie no disponible')));
+library.then(mountCheckLogo).catch(function(){ failed(null); });
 }
 
 function isBBVAVoucherForActions(doc, idoc){
