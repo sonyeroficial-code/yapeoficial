@@ -261,7 +261,6 @@ function scan(win,depth){
 if(depth>8)return;
 try{
 attach(win);
-mobileBack.patch(win);
 var doc=win.document;
 var nodes=doc.querySelectorAll(surfaces);
 for(var i=0;i<nodes.length;i++)if(nodes[i].getAttribute('data-app-swipe-surface')!=='v3')nodes[i].setAttribute('data-app-swipe-surface','v3');
@@ -275,127 +274,7 @@ scan(frame.contentWindow,depth+1);
 }catch(error){}
 }
 function queueScan(){if(scanQueued)return;scanQueued=true;hostWindow.setTimeout(function(){scanQueued=false;scan(hostWindow,0);},0);}
-/* Botón Atrás de Android: reutiliza las acciones existentes de cada pantalla. */
-var mobileBack = (function(){
-var KEY='__appMobileBackV1', guarded=false, suppressUntil=0;
-var pendingProgrammatic=null, lastInteraction=null;
-var originalHistory=hostWindow.history;
-var rawPush=originalHistory.pushState.bind(originalHistory);
-var rawReplace=originalHistory.replaceState.bind(originalHistory);
-var rawBack=originalHistory.back.bind(originalHistory);
-var baseUrl=hostWindow.location.href.replace(/#(?:tienda|eliminar-movimientos)$/,'');
-var patched=new WeakSet();
-function same(a,b){return !!(a&&b&&a.root===b.root&&a.name===b.name);}
-function currentIn(win,depth){
-if(depth>8)return null;
-try{
-var doc=win.document,w=win.innerWidth,h=win.innerHeight;
-var points=[[w*.5,h*.5],[w*.5,h*.25],[w*.5,h*.75],[w*.08,h*.08]];
-for(var i=0;i<points.length;i++){
-var target=doc.elementFromPoint(points[i][0],points[i][1]);
-if(!target)continue;
-if(target.tagName==='IFRAME'){
-var nested=currentIn(target.contentWindow,depth+1);
-if(nested)return nested;
-}
-var action=resolve(win,target);
-if(action)return action;
-}
-}catch(e){}
-return null;
-}
-function current(){return currentIn(hostWindow,0);}
-function state(data,kind){
-var next={};
-if(data&&typeof data==='object')Object.keys(data).forEach(function(k){next[k]=data[k];});
-next[KEY]=kind;return next;
-}
-function arm(){
-try{
-if(guarded)return;
-rawPush(state(null,'guard'),'',baseUrl);guarded=true;
-}catch(e){}
-}
-function initialize(){
-try{
-if(originalHistory.state&&originalHistory.state[KEY]==='guard'){guarded=true;return;}
-rawReplace(state(originalHistory.state,'base'),'',baseUrl);
-arm();
-}catch(e){}
-}
-function legacyScreen(data){return data&&typeof data==='object'&&(
-data.yosiScreen==='tienda'||data.yapeHelpScreen||data.yosiMovDeleteManager||data.yosiServiciosV40||data.yosiPagarServiciosV48);}
-function perform(action){
-if(!action)return false;
-suppressUntil=Date.now()+850;
-/* Estos cierres ya aceptan un regreso del historial. Evita otro history.back(). */
-var method;
-if(action.name==='Yapear servicios'){
-method=callable(action.win,'__closeYapearServiciosV40');
-if(method){method.fn.call(method.win,true);
-var home=callable(action.win,'__forceYapearServiciosHomeV42');if(home)home.fn.call(home.win);
-var release=callable(action.win,'__yosiReleaseProfileAfterServicesV47');
-if(release)hostWindow.setTimeout(function(){release.fn.call(release.win);},620);
-return true;}
-}
-if(action.name==='Pagar servicios'){
-method=callable(action.win,'__yosiPagarServiciosV48HandlePop');
-if(method&&method.fn.call(method.win))return true;
-}
-if(action.name==='Eliminar movimientos'){
-method=callable(action.win,'__closeMovementDeleteManager');
-if(method){method.fn.call(method.win,{fromPop:true});return true;}
-}
-action.run();return true;
-}
-function patch(win){
-try{
-var history=win.history;
-if(patched.has(history))return;
-patched.add(history);
-var push=history.pushState.bind(history),back=history.back.bind(history),go=history.go.bind(history);
-history.pushState=function(data,title,url){
-if(legacyScreen(data)){
-initialize();
-// La pantalla conserva su estado, sin agregar un segundo regreso.
-rawReplace(state(data,'guard'),title,url==null?baseUrl:url);
-return;
-}
-return push(data,title,url);
-};
-history.back=function(){
-if(Date.now()<suppressUntil)return;
-pendingProgrammatic={action:lastInteraction&&Date.now()-lastInteraction.time<1600?lastInteraction.action:null};
-return back();
-};
-history.go=function(delta){if(Number(delta)===-1)return history.back();return go(delta);};
-win.addEventListener('click',function(){lastInteraction={action:current(),time:Date.now()};},true);
-win.addEventListener('pointerup',function(){lastInteraction={action:current(),time:Date.now()};},true);
-}catch(e){}
-}
-hostWindow.addEventListener('popstate',function(ev){
-/* Captura temprana: una sola pantalla por pulsación, también dentro de iframes. */
-var action=current(),fromCode=pendingProgrammatic;pendingProgrammatic=null;
-var managed=ev.state&&ev.state[KEY];
-if(!managed)return;
-ev.stopImmediatePropagation();guarded=false;
-if(fromCode&&fromCode.action&&!same(fromCode.action,action)){
-arm();return;
-}
-if(action){
-try{perform(action);}finally{arm();}
-return;
-}
-if(fromCode){arm();return;}
-/* En Inicio/Login ya no hay pantalla anterior interna: se permite salir. */
-rawBack();
-},true);
-initialize();
-hostWindow.addEventListener('pageshow',function(){guarded=!!(originalHistory.state&&originalHistory.state[KEY]==='guard');initialize();});
-return {patch:patch,current:current,back:function(){var a=current();if(!a)return false;return perform(a);}};
-})();
-
-window.__swipeNavigationV3={version:VERSION,screens:routes.map(function(r){return r[0];}),current:mobileBack.current,back:mobileBack.back};
+window.__swipeNavigationV3={version:VERSION,screens:routes.map(function(r){return r[0];})};
 scan(window,0);
 window.addEventListener('DOMContentLoaded',queueScan);
 window.addEventListener('pageshow',queueScan);
