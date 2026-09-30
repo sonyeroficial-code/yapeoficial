@@ -15846,7 +15846,7 @@ return mount && mount.isConnected && mount.parentNode === logo &&
 logo.__baucherCheckLottieToken === token && logo.dataset.logoMode === wantedMode;
 }
 function placeholder() {
-if(currentMount()) mount.innerHTML = '<img src="assets/embedded/logo-yape-principal.svg" alt="Yape" style="width:100%;height:100%;object-fit:contain">';
+if(currentMount()) mount.innerHTML = '';
 }
 function failed(anim) {
 if(!currentMount()) return;
@@ -42138,4 +42138,3 @@ setInterval(scan, 2500);
   setInterval(scan,1500);
 })();
 </script>
-
