@@ -125,13 +125,11 @@ if (!win || (depth || 0) > 8) return null;
 try {
 var doc = win.document;
 for (var i=0;i<routes.length;i++) {
-var roots = doc.querySelectorAll(routes[i][1]);
-for (var j=0;j<roots.length;j++) {
-var root = roots[j];
-if ((root === target || root.contains(target)) && shown(root,win)) {
+/* Buscar solo entre los padres del punto tocado, no en todo el documento. */
+var root = target && target.closest ? target.closest(routes[i][1]) : null;
+if (root && shown(root,win)) {
 var action = makeAction(win,root,routes[i]);
 if (action) return action;
-}
 }
 }
 var frame = win.frameElement;
@@ -211,6 +209,7 @@ if(dx<Math.max(48,Math.min(80,win.innerWidth*.12)) || dx<dy*1.5 || Date.now()-g.
 var current=resolve(win,g.target);
 if(!current || current.root!==g.action.root || current.name!==g.action.name)return;
 stop(ev);busyUntil=Date.now()+350;suppressUntil=Date.now()+450;
+mobileBack.note(g.action);
 g.action.run();
 }
 function touchPoint(list){
@@ -249,7 +248,17 @@ var p=touchPoint(ev.changedTouches);if(p)finish(ev,p);else cancel();
 on('touchcancel',cancel,{capture:true,passive:true});
 on('click',function(ev){if(ev.isTrusted && Date.now()<Math.max(suppressUntil,busyUntil))stop(ev);},true);
 on('pagehide',cancel,true);
-var observer=new win.MutationObserver(queueScan);
+var observer=new win.MutationObserver(function(records){
+/* SVG, texto y estilos de animación no crean nuevas pantallas ni iframes. */
+for(var m=0;m<records.length;m++){
+var added=records[m].addedNodes;
+for(var n=0;n<added.length;n++){
+var el=added[n];
+if(el.nodeType!==1 || el.namespaceURI==='http://www.w3.org/2000/svg' || /^(STYLE|SCRIPT|LINK)$/.test(el.tagName))continue;
+if(el.matches(structuralSurfaces) || el.querySelector(structuralSurfaces)){queueScan(win);return;}
+}
+}
+});
 observer.observe(root,{childList:true,subtree:true});
 states.set(doc,{root:root,style:style,cleanup:function(){
 bindings.forEach(function(b){win.removeEventListener(b[0],b[1],b[2]);});observer.disconnect();cancel();
@@ -257,10 +266,13 @@ bindings.forEach(function(b){win.removeEventListener(b[0],b[1],b[2]);});observer
 root.setAttribute('data-app-swipe-version',VERSION);
 }
 var surfaces=routes.map(function(r){return r[1];}).join(',');
+var structuralSurfaces='iframe,app-nuevo-numero,.qrCleanCam,'+routes.map(function(r){var match=r[1].match(/#[\w-]+/);return match?match[0]:r[1];}).join(',');
+var pendingScans=new Set();
 function scan(win,depth){
 if(depth>8)return;
 try{
 attach(win);
+mobileBack.patch(win);
 var doc=win.document;
 var nodes=doc.querySelectorAll(surfaces);
 for(var i=0;i<nodes.length;i++)if(nodes[i].getAttribute('data-app-swipe-surface')!=='v3')nodes[i].setAttribute('data-app-swipe-surface','v3');
@@ -268,17 +280,158 @@ if(win.frameElement && frameRoutes[win.frameElement.id] && doc.body)doc.body.set
 var frames=doc.querySelectorAll('iframe');
 for(var j=0;j<frames.length;j++){
 var frame=frames[j];
-if(!frame.__swipeV3Load){frame.__swipeV3Load=true;frame.addEventListener('load',queueScan);}
+if(!frame.__swipeV3Load){frame.__swipeV3Load=true;frame.addEventListener('load',function(){queueScan(win);});}
 scan(frame.contentWindow,depth+1);
 }
 }catch(error){}
 }
-function queueScan(){if(scanQueued)return;scanQueued=true;hostWindow.setTimeout(function(){scanQueued=false;scan(hostWindow,0);},0);}
-window.__swipeNavigationV3={version:VERSION,screens:routes.map(function(r){return r[0];})};
+function queueScan(win){
+pendingScans.add(win && win.document ? win : hostWindow);
+if(scanQueued)return;scanQueued=true;
+/* Agrupar montajes y esperar el primer cuadro de la transición. */
+hostWindow.setTimeout(function(){
+scanQueued=false;
+var batch=Array.from(pendingScans);pendingScans.clear();
+if(batch.indexOf(hostWindow)>=0)scan(hostWindow,0);
+else batch.forEach(function(w){scan(w,0);});
+},120);
+}
+/* Botón Atrás de Android: reutiliza las acciones existentes de cada pantalla. */
+var mobileBack = (function(){
+var KEY='__appMobileBackV1', guarded=false, suppressUntil=0;
+var pendingProgrammatic=null, lastInteraction=null;
+var originalHistory=hostWindow.history;
+var rawPush=originalHistory.pushState.bind(originalHistory);
+var rawReplace=originalHistory.replaceState.bind(originalHistory);
+var rawBack=originalHistory.back.bind(originalHistory);
+var baseUrl=hostWindow.location.href.replace(/#(?:tienda|eliminar-movimientos)$/,'');
+var patched=new WeakSet();
+var backControls=genericBack+',#yosiMovDeleteManager .ymdBack,'+routes.filter(function(r){return !!r[2];}).map(function(r){return r[2].split(',').map(function(b){return r[1]+' '+b;}).join(',');}).join(',')+','+Object.keys(frameRoutes).map(function(k){return frameRoutes[k][1];}).filter(Boolean).join(',');
+function same(a,b){return !!(a&&b&&a.root===b.root&&a.name===b.name);}
+function currentIn(win,depth){
+if(depth>8)return null;
+try{
+var doc=win.document,w=win.innerWidth,h=win.innerHeight;
+var points=[[w*.5,h*.5],[w*.5,h*.25],[w*.5,h*.75],[w*.08,h*.08]];
+for(var i=0;i<points.length;i++){
+var target=doc.elementFromPoint(points[i][0],points[i][1]);
+if(!target)continue;
+if(target.tagName==='IFRAME'){
+var nested=currentIn(target.contentWindow,depth+1);
+if(nested)return nested;
+}
+var action=resolve(win,target);
+if(action)return action;
+}
+}catch(e){}
+return null;
+}
+function current(){return currentIn(hostWindow,0);}
+function state(data,kind){
+var next={};
+if(data&&typeof data==='object')Object.keys(data).forEach(function(k){next[k]=data[k];});
+next[KEY]=kind;return next;
+}
+function arm(){
+try{
+if(guarded)return;
+rawPush(state(null,'guard'),'',baseUrl);guarded=true;
+}catch(e){}
+}
+function initialize(){
+try{
+if(originalHistory.state&&originalHistory.state[KEY]==='guard'){guarded=true;return;}
+rawReplace(state(originalHistory.state,'base'),'',baseUrl);
+arm();
+}catch(e){}
+}
+function legacyScreen(data){return data&&typeof data==='object'&&(
+data.yosiScreen==='tienda'||data.yapeHelpScreen||data.yosiMovDeleteManager||data.yosiServiciosV40||data.yosiPagarServiciosV48);}
+function perform(action){
+if(!action)return false;
+suppressUntil=Date.now()+850;
+/* Estos cierres ya aceptan un regreso del historial. Evita otro history.back(). */
+var method;
+if(action.name==='Yapear servicios'){
+method=callable(action.win,'__closeYapearServiciosV40');
+if(method){method.fn.call(method.win,true);
+var home=callable(action.win,'__forceYapearServiciosHomeV42');if(home)home.fn.call(home.win);
+var release=callable(action.win,'__yosiReleaseProfileAfterServicesV47');
+if(release)hostWindow.setTimeout(function(){release.fn.call(release.win);},620);
+return true;}
+}
+if(action.name==='Pagar servicios'){
+method=callable(action.win,'__yosiPagarServiciosV48HandlePop');
+if(method&&method.fn.call(method.win))return true;
+}
+if(action.name==='Eliminar movimientos'){
+method=callable(action.win,'__closeMovementDeleteManager');
+if(method){method.fn.call(method.win,{fromPop:true});return true;}
+}
+action.run();return true;
+}
+function patch(win){
+try{
+var history=win.history;
+if(patched.has(history))return;
+patched.add(history);
+var push=history.pushState.bind(history),back=history.back.bind(history),go=history.go.bind(history);
+history.pushState=function(data,title,url){
+if(legacyScreen(data)){
+initialize();
+// La pantalla conserva su estado, sin agregar un segundo regreso.
+rawReplace(state(data,'guard'),title,url==null?baseUrl:url);
+return;
+}
+return push(data,title,url);
+};
+history.back=function(){
+if(Date.now()<suppressUntil)return;
+pendingProgrammatic={action:lastInteraction&&Date.now()-lastInteraction.time<1600?lastInteraction.action:null};
+return back();
+};
+history.go=function(delta){if(Number(delta)===-1)return history.back();return go(delta);};
+function recordBack(ev){
+var target=ev.target;
+if(!target || !target.closest)return;
+var button=target.closest(backControls);
+if(!button)return;
+/* Las pulsaciones para abrir una pantalla no necesitan medir ni recorrer la app. */
+if(!shown(button,win))return;
+var action=resolve(win,target);
+if(action)lastInteraction={action:action,time:Date.now()};
+}
+win.addEventListener('pointerdown',recordBack,true);
+win.addEventListener('click',recordBack,true);
+}catch(e){}
+}
+hostWindow.addEventListener('popstate',function(ev){
+/* Captura temprana: una sola pantalla por pulsación, también dentro de iframes. */
+var action=current(),fromCode=pendingProgrammatic;pendingProgrammatic=null;
+var managed=ev.state&&ev.state[KEY];
+if(!managed)return;
+ev.stopImmediatePropagation();guarded=false;
+if(fromCode&&fromCode.action&&!same(fromCode.action,action)){
+arm();return;
+}
+if(action){
+try{perform(action);}finally{arm();}
+return;
+}
+if(fromCode){arm();return;}
+/* En Inicio/Login ya no hay pantalla anterior interna: se permite salir. */
+rawBack();
+},true);
+initialize();
+hostWindow.addEventListener('pageshow',function(){guarded=!!(originalHistory.state&&originalHistory.state[KEY]==='guard');initialize();});
+return {patch:patch,current:current,note:function(action){lastInteraction={action:action,time:Date.now()};},back:function(){var a=current();if(!a)return false;return perform(a);}};
+})();
+
+window.__swipeNavigationV3={version:VERSION,screens:routes.map(function(r){return r[0];}),current:mobileBack.current,back:mobileBack.back};
 scan(window,0);
 window.addEventListener('DOMContentLoaded',queueScan);
 window.addEventListener('pageshow',queueScan);
-window.setInterval(function(){scan(hostWindow,0);},1500);
+/* Los montajes y load de iframes activan el escaneo; no hay sondeo permanente. */
 })();</script>
 <script id="app-offline-resources-v1">(function () {
   'use strict';
