@@ -13424,18 +13424,67 @@ window.addEventListener("online", ()=>{ setTimeout(()=>validateSessionAndEnter(t
 
 document.addEventListener('gesturestart', (e)=>e.preventDefault(), {passive:false});</script>
 <script id="yape-remote-confetti-data-loader-v1">(function(){
-function loadRemote(){
-try{
-var u=window.__yapeGetResourceUrl&&window.__yapeGetResourceUrl('confetti-data');
-if(!u)return;
-fetch(u,{mode:'cors',cache:'force-cache'}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.text();}).then(function(code){
-if(!code||code.indexOf('__YAPE_CONFETTI_DATA')===-1)throw new Error('Archivo de confeti inválido');
-var s=document.createElement('script');s.id='__yape_remote_confetti_data_exec';s.textContent=code;(document.head||document.documentElement).appendChild(s);
-try{window.dispatchEvent(new CustomEvent('yape-confetti-data-loaded'));}catch(e){}
-}).catch(function(e){console.warn('Confeti remoto no disponible, se mantiene el respaldo local.',e);});
-}catch(e){}
+var pending=null;
+var localUrl=new URL('assets/animacion_yape_confetti_v3.js',document.baseURI).href;
+function valid(data){
+return data && Array.isArray(data.assets) && data.assets.some(function(a){
+return a && typeof a.p==='string' && a.p.indexOf('data:image')===0;
+});
 }
-loadRemote();window.addEventListener('yape-resources-updated',loadRemote);
+function read(response){
+if(!response || !response.ok) return Promise.reject(new Error('No se pudo cargar el confeti'));
+return response.text().then(function(code){
+var match=code.trim().match(/^window\.__YAPE_CONFETTI_DATA\s*=\s*([\s\S]+?)\s*;?$/);
+var data=JSON.parse(match ? match[1] : code);
+if(!valid(data)) throw new Error('Datos de confeti no válidos');
+return data;
+});
+}
+function download(url,attempt){
+var controller=new AbortController();
+var timer=setTimeout(function(){controller.abort();},60000);
+return fetch(url,{mode:'cors',cache:'no-cache',signal:controller.signal}).then(function(response){
+var copy=response.clone();
+return read(response).then(function(data){
+if(window.caches) caches.open('app-offline-resources-v1').then(function(cache){
+return cache.put(url,copy);
+}).catch(function(){});
+return data;
+});
+}).finally(function(){clearTimeout(timer);}).catch(function(error){
+if(attempt>=2) throw error;
+return new Promise(function(resolve){setTimeout(resolve,400*(attempt+1));}).then(function(){
+return download(url,attempt+1);
+});
+});
+}
+function publish(data){
+window.__YAPE_CONFETTI_DATA=data;
+window.dispatchEvent(new CustomEvent('yape-confetti-data-loaded'));
+return data;
+}
+window.__ensureYapeConfettiData=function(){
+if(valid(window.__YAPE_CONFETTI_DATA)) return Promise.resolve(window.__YAPE_CONFETTI_DATA);
+if(pending) return pending;
+var cached=window.caches ? caches.match(localUrl).catch(function(){return null;}) : Promise.resolve(null);
+pending=cached.then(function(response){
+return response ? read(response).catch(function(){return download(localUrl,0);}) : download(localUrl,0);
+}).then(publish).catch(function(error){pending=null;throw error;});
+return pending;
+};
+function loadLocal(){
+window.__ensureYapeConfettiData().catch(function(error){console.warn(error.message);});
+}
+function loadRemote(){
+var url=window.__yapeGetResourceUrl&&window.__yapeGetResourceUrl('confetti-data');
+if(!url) return;
+// The bundled animation remains available while an optional remote version loads.
+window.__ensureYapeConfettiData().then(function(){return download(url,0);}).then(publish).catch(function(){});
+}
+loadLocal();loadRemote();
+window.addEventListener('online',loadLocal);
+window.addEventListener('app-offline-status',loadLocal);
+window.addEventListener('yape-resources-updated',loadRemote);
 })();</script>
 <script id="lottie-nonblocking-loader">(function () {
   'use strict';
@@ -16716,6 +16765,11 @@ function installOverride(){
 var doc = getHomeDoc();
 var win = getHomeWin();
 if(!doc || !win) return false;
+if(typeof window.playYapeConfettiExternal === 'function'){
+win.lanzarSerpentinasYape = window.playYapeConfettiExternal;
+win.waitAndLaunchYapeConfetti = window.playYapeConfettiExternal;
+return true;
+}
 try{
 var oldLayer = doc.getElementById('yape-confetti');
 if(oldLayer){
@@ -22844,10 +22898,6 @@ var m = txt.match(/const\s+EMBEDDED_MP3\s*=\s*'([^']+)'/);
   var audioUnlocked = false;
   var lastPlayAt = 0;
 
-  window.addEventListener('yape-confetti-data-loaded',function(){
-    try{CONFETTI_DATA=window.__YAPE_CONFETTI_DATA||null;frames=null;loaded=false;loading=false;callbacks=[];}catch(e){}
-  });
-
   function candidates(){
     var arr=[];
     if(embeddedSrc) arr.push(embeddedSrc);
@@ -23093,13 +23143,13 @@ var m = txt.match(/const\s+EMBEDDED_MP3\s*=\s*'([^']+)'/);
 <script id="yosi-confetti-hard-fix-final">(function(){
 var CONFETTI_DATA = window.__YAPE_CONFETTI_DATA || null;
 var frames = null;
-var loaded = false;
-var loading = false;
-var callbacks = [];
+var frameData = null;
+var framesPromise = null;
 var runId = 0;
 var isPlaying = false;
 var pendingStart = false;
-var lastPlayAt = 0;
+var activeDoc = null;
+var activePlayer = null;
 
 function getFrames(){
 if(frames) return frames;
@@ -23114,27 +23164,34 @@ return frames;
 }
 
 function preload(done){
+var dataPromise = window.__ensureYapeConfettiData ? window.__ensureYapeConfettiData() : Promise.resolve(window.__YAPE_CONFETTI_DATA);
+dataPromise.then(function(data){
+if(!data) throw new Error('Confeti pendiente de cargar');
+if(frameData !== data){
+frameData = data;
+CONFETTI_DATA = data;
+frames = null;
+framesPromise = null;
+}
+if(!framesPromise){
 var list = getFrames();
-if(loaded){ done(list); return; }
-callbacks.push(done);
-if(loading) return;
-loading = true;
-if(!list.length){ loaded = true; flush(list); return; }
-var left = list.length;
-var timeout = setTimeout(function(){ loaded = true; flush(list); }, 2500);
-list.forEach(function(f){
+if(!list.length) throw new Error('No hay cuadros de confeti');
+framesPromise = Promise.all(list.map(function(f){
+return new Promise(function(resolve,reject){
 var img = new Image();
 f.img = img;
-img.onload = function(){ f.ready = true; left--; if(left <= 0){ clearTimeout(timeout); loaded = true; flush(list); } };
-img.onerror = function(){ left--; if(left <= 0){ clearTimeout(timeout); loaded = true; flush(list); } };
+img.onload = function(){ f.ready = true; resolve(f); };
+img.onerror = function(){ reject(new Error('No se pudo decodificar el confeti')); };
 img.src = f.src;
 });
+}));
 }
-
-function flush(list){
-while(callbacks.length){
-try{ callbacks.shift()(list); }catch(e){}
-}
+return framesPromise;
+}).then(done).catch(function(error){
+framesPromise = null;
+console.warn(error.message);
+done([]);
+});
 }
 
 function getHomeFrame(){ return document.getElementById('homeFrame'); }
@@ -23217,10 +23274,16 @@ ctx.drawImage(frame.img, (size.w-dw)/2, (size.h-dh)/2, dw, dh);
 
 function playNow(attempt){
 var tries = Number(attempt || 0);
-var now = Date.now();
-if(isPlaying && (now - lastPlayAt) < 3200) return true;
-if(tries === 0 && pendingStart) return true;
 var vdoc = getVoucherDoc();
+if(activeDoc && activeDoc !== vdoc){
+++runId;
+if(activePlayer) clearPlayer(activePlayer);
+activeDoc = null;
+activePlayer = null;
+}
+if(isPlaying || (tries === 0 && pendingStart)) return true;
+var homeWin = getHomeWin();
+if(homeWin && homeWin.__voucherFromMov){ pendingStart = false; return false; }
 if(!vdoc || !vdoc.body){
 if(tries < 30){
 pendingStart = true;
@@ -23240,21 +23303,28 @@ pendingStart = false;
 }
 return false;
 }
-pendingStart = false;
-isPlaying = true;
-lastPlayAt = now;
+pendingStart = true;
+activeDoc = vdoc;
+activePlayer = player;
 var current = ++runId;
-player.layer.style.display = 'block';
 preload(function(list){
 if(current !== runId) return;
+if(getVoucherDoc() !== vdoc){ clearPlayer(player); return; }
 var usable = (list || []).filter(function(f){ return f && f.ready; });
 if(!usable.length){ clearPlayer(player); return; }
+pendingStart = false;
+isPlaying = true;
 CONFETTI_DATA = CONFETTI_DATA || window.__YAPE_CONFETTI_DATA || null;
 var fps = Math.max(1, Number(CONFETTI_DATA && CONFETTI_DATA.fr) || 40);
 var frameMs = 1000 / fps;
 var start = 0;
 function tick(ts){
 if(current !== runId) return;
+var home = getHomeDoc();
+var view = home && home.getElementById('voucherView');
+if(getVoucherDoc() !== vdoc || (view && home.defaultView.getComputedStyle(view).display === 'none')){
+clearPlayer(player); return;
+}
 if(!start) start = ts;
 var i = Math.floor((ts - start) / frameMs);
 if(i >= usable.length){ clearPlayer(player); return; }
@@ -23267,13 +23337,15 @@ draw(player, vdoc, usable[i]);
 return true;
 }
 
+window.playYapeConfettiExternal = function(){ return playNow(0); };
+
 function installIntoHome(){
 var win = getHomeWin();
 if(!win || win.__yosiConfettiHardFinalInstalled) return false;
 win.__yosiConfettiHardFinalInstalled = true;
 try{
-win.lanzarSerpentinasYape = function(){ return playNow(0); };
-win.waitAndLaunchYapeConfetti = function(){ return playNow(0); };
+win.lanzarSerpentinasYape = window.playYapeConfettiExternal;
+win.waitAndLaunchYapeConfetti = window.playYapeConfettiExternal;
 win.__usarSerpentinaRealUsuario = true;
 }catch(e){}
 var oldGo = win.goVoucher;
@@ -23313,67 +23385,6 @@ setTimeout(installIntoHome, 900);
 }
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, {once:true}); else boot();
 [150,500,1200,2200].forEach(function(ms){ setTimeout(boot, ms); });
-})();</script>
-<script id="yosi-confetti-external-runner">(function(){
-var runId=0, playing=false, framesPromise=null;
-function getData(){ return window.__YAPE_CONFETTI_DATA || null; }
-function waitData(cb, tries){
-var data=getData();
-if(data) return cb(data);
-if((tries||0)>60) return;
-setTimeout(function(){ waitData(cb,(tries||0)+1); }, 50);
-}
-function getFrameAssets(data){
-return ((data&&data.assets)||[]).filter(function(a){return a && a.p && String(a.p).indexOf('data:image')===0;});
-}
-function loadFrames(data){
-if(framesPromise) return framesPromise;
-framesPromise = new Promise(function(resolve){
-var assets=getFrameAssets(data), out=[], left=assets.length;
-if(!left) return resolve(out);
-assets.forEach(function(a,i){
-var im=new Image(); out[i]=im;
-im.onload=im.onerror=function(){ if(--left===0) resolve(out); };
-im.src=a.p;
-});
-});
-return framesPromise;
-}
-function frameDoc(){
-try{ var fr=document.getElementById('baucher-embed-frame'); return fr && (fr.contentDocument || fr.contentWindow.document); }catch(e){return null;}
-}
-function ensureCanvas(doc){
-var layer=doc.getElementById('yosi-confetti-layer');
-if(!layer){
-layer=doc.createElement('div'); layer.id='yosi-confetti-layer';
-layer.style.cssText='position:fixed;inset:0;z-index:2147483000;pointer-events:none;display:none;background:transparent;overflow:hidden';
-var cv=doc.createElement('canvas'); cv.id='yosi-confetti-canvas'; cv.style.cssText='width:100%;height:100%;display:block'; layer.appendChild(cv);
-doc.body.appendChild(layer);
-}
-return layer.querySelector('canvas');
-}
-window.playYapeConfettiExternal = function(){
-if(playing) return;
-waitData(function(data){
-loadFrames(data).then(function(frames){
-var doc=frameDoc(); if(!doc || !frames.length) return;
-var canvas=ensureCanvas(doc), layer=doc.getElementById('yosi-confetti-layer'), ctx=canvas.getContext('2d');
-var rect=canvas.getBoundingClientRect(), dpr=Math.max(1, window.devicePixelRatio||1);
-canvas.width=Math.max(1, Math.round(rect.width*dpr)); canvas.height=Math.max(1, Math.round(rect.height*dpr));
-playing=true; var my=++runId, fps=Math.max(1, Number(data.fr)||40), i=0;
-layer.style.display='block';
-(function tick(){
-if(my!==runId) return;
-ctx.clearRect(0,0,canvas.width,canvas.height);
-var im=frames[Math.min(i,frames.length-1)];
-if(im && im.complete){ ctx.drawImage(im,0,0,canvas.width,canvas.height); }
-i++;
-if(i<frames.length){ setTimeout(function(){ requestAnimationFrame(tick); }, 1000/fps); }
-else { setTimeout(function(){ ctx.clearRect(0,0,canvas.width,canvas.height); layer.style.display='none'; playing=false; }, 80); }
-})();
-});
-});
-};
 })();</script>
 <script id="yosi-confetti-call-bridge">(function(){
 function bridge(){
