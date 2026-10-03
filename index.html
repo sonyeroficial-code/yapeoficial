@@ -743,33 +743,48 @@ window.__yosiAndroidYapearHomeStatusActive = function(){
 return !!homeLockedMode(document, 0);
 };
 
-/* Movimientos Android usa blanco desde que se abre, también si el Home
-sigue visible debajo. Los pintores antiguos consultan esta misma decisión. */
-function androidMovementTop(doc, depth){
+/* Una decisión común para todas las rutinas que pintan la barra Android.
+Pagar servicios: morado del Home. Recarga: color real de su paso visible.
+Movimientos Android: blanco. Los iframes ocultos no cambian la barra. */
+function isOpenScreen(el, openClass, win){
+if(!el || !el.classList.contains(openClass) || el.classList.contains('hidden') ||
+  el.getAttribute('aria-hidden') === 'true') return false;
+return safe(function(){ return win.getComputedStyle(el).display !== 'none'; }, false);
+}
+function androidScreenTop(doc, depth){
 if(!doc || depth > 8) return '';
 var win = safe(function(){ return doc.defaultView; }, null);
 if(!win) return '';
+var services = safe(function(){ return doc.getElementById('yosiPagarServiciosV48'); }, null);
+if(isOpenScreen(services, 'yps48-open', win)) return HOME;
+var recharge = safe(function(){ return doc.getElementById('yosiRecargaHomeV211'); }, null);
+if(isOpenScreen(recharge, 'open', win)){
+  var step = recharge.getAttribute('data-step') || 'home';
+  var selector = step === 'operadoras' ? '.yr-screen-operadoras' :
+    (step === 'monto' ? '.yr-screen-monto' : '.yr-top');
+  var panel = recharge.querySelector(selector);
+  var color = safe(function(){ return colorFromStyle(win.getComputedStyle(panel)); }, null);
+  return color || (step === 'operadoras' ? '#f7f6f8' : (step === 'monto' ? '#ffffff' : '#742284'));
+}
 var style = safe(function(){ return doc.documentElement.getAttribute('data-yosi-mov-style'); }, '') ||
   document.documentElement.getAttribute('data-yosi-mov-style');
 var ov = safe(function(){ return doc.getElementById('yMovOverlay'); }, null);
-if(style === 'android' && ov && ov.classList.contains('show') &&
-  !ov.classList.contains('to-voucher') && !ov.classList.contains('yosi-hide-now') &&
-  !ov.classList.contains('hidden') && ov.getAttribute('aria-hidden') !== 'true'){
-  var display = safe(function(){ return win.getComputedStyle(ov).display; }, '');
-  if(display !== 'none') return '#ffffff';
-}
+if(style === 'android' && isOpenScreen(ov, 'show', win) &&
+  !ov.classList.contains('to-voucher') && !ov.classList.contains('yosi-hide-now')) return '#ffffff';
 var frames = safe(function(){ return doc.querySelectorAll('iframe'); }, []);
 for(var i=0;i<frames.length;i++){
   if(!isVisible(frames[i], win)) continue;
   var child = safe(function(){ return frames[i].contentDocument || (frames[i].contentWindow && frames[i].contentWindow.document); }, null);
-  var color = androidMovementTop(child, depth + 1);
+  var color = androidScreenTop(child, depth + 1);
   if(color) return color;
 }
 return '';
 }
-window.__yosiAndroidMovementTopColor = function(){
-return voucherTopLocked() ? '' : androidMovementTop(document, 0);
+window.__yosiAndroidScreenTopColor = function(){
+return voucherTopLocked() ? '' : androidScreenTop(document, 0);
 };
+/* Compatibilidad con la primera corrección de Movimientos. */
+window.__yosiAndroidMovementTopColor = window.__yosiAndroidScreenTopColor;
 
 function voucherTopLocked(){
 return safe(function(){
@@ -905,13 +920,13 @@ if(document.visibilityState === 'hidden') return;
 var lockedMode = safe(function(){ return window.__yosiAndroidYapearHomeStatusMode(); }, '');
 var homeLocked = !!lockedMode;
 var voucherLocked = voucherTopLocked();
-var movementColor = window.__yosiAndroidMovementTopColor();
-var mode = voucherLocked ? 'voucher' : (movementColor ? 'movimientos-android' : (homeLocked ? lockedMode : 'auto'));
+var screenColor = window.__yosiAndroidScreenTopColor();
+var mode = voucherLocked ? 'voucher' : (screenColor ? 'screen-locked' : (homeLocked ? lockedMode : 'auto'));
 
 /* El voucher conserva su color propio.
 Yapear, Monto, Otros bancos, Mi Perfil, Opciones, Datos/configuración,
 YapeMarket y Escáner QR usan siempre el mismo #780699 del Home arriba. */
-var color = voucherLocked ? BAUCHER : (movementColor || (homeLocked ? HOME : visibleTopColor()));
+var color = voucherLocked ? BAUCHER : (screenColor || (homeLocked ? HOME : visibleTopColor()));
 
 setTopMeta(color);
 
@@ -950,7 +965,7 @@ new MutationObserver(function(){ schedule(); watchDocTree(doc, depth); }).observ
 subtree:true,
 childList:true,
 attributes:true,
-attributeFilter:['class','style','aria-hidden','data-yosi-mov-style']
+attributeFilter:['class','style','aria-hidden','data-yosi-mov-style','data-step']
 });
 });
 }
@@ -990,7 +1005,7 @@ new MutationObserver(function(){ schedule(); watchDocTree(document, 0); }).obser
 subtree:true,
 childList:true,
 attributes:true,
-attributeFilter:['class','style','aria-hidden','data-yosi-mov-style']
+attributeFilter:['class','style','aria-hidden','data-yosi-mov-style','data-step']
 });
 });
 
@@ -1253,10 +1268,10 @@ baucherActivo=document.documentElement.classList.contains('__baucherTopActivo')|
 }catch(e){}
 if(baucherActivo) return;
 
-/* Respeta el blanco de Movimientos Android; el Home conserva su morado. */
+/* Respeta el color estable de la pantalla abierta; el Home conserva su morado. */
 try{
-var movementColor = typeof window.__yosiAndroidMovementTopColor === 'function' ? window.__yosiAndroidMovementTopColor() : '';
-if(movementColor){metaTheme(movementColor);return;}
+var screenColor = typeof window.__yosiAndroidScreenTopColor === 'function' ? window.__yosiAndroidScreenTopColor() : '';
+if(screenColor){metaTheme(screenColor);return;}
 }catch(e){}
 
 metaTheme(HOME);
@@ -1403,9 +1418,9 @@ if(stage) stage.style.background=iosApp?APP:SPLASH;
 var pre=document.getElementById('preSplash');if(pre) pre.style.background=SPLASH;
 var splash=document.getElementById('__yapeSplash');if(splash) splash.style.background=SPLASH;
 var metas=document.querySelectorAll('meta[name="theme-color"]');
-var movementColor = typeof window.__yosiAndroidMovementTopColor === 'function' ? window.__yosiAndroidMovementTopColor() : '';
+var screenColor = typeof window.__yosiAndroidScreenTopColor === 'function' ? window.__yosiAndroidScreenTopColor() : '';
 for(var i=0;i<metas.length;i++){
-var topColor = movementColor || SPLASH;
+var topColor = screenColor || SPLASH;
 if(metas[i].getAttribute('content') !== topColor) metas[i].setAttribute('content',topColor);
 }
 }catch(e){}
@@ -11853,8 +11868,8 @@ catch(e){ return null; }
 function setMeta(doc, color){
 try{
 if(!doc || !doc.head) return;
-if(doc === document && color === HOME_TOP && typeof window.__yosiAndroidMovementTopColor === 'function'){
-  color = window.__yosiAndroidMovementTopColor() || color;
+if(doc === document && color === HOME_TOP && typeof window.__yosiAndroidScreenTopColor === 'function'){
+  color = window.__yosiAndroidScreenTopColor() || color;
 }
 var metas = doc.querySelectorAll('meta[name="theme-color"]');
 if(!metas.length){
@@ -25428,8 +25443,8 @@ return true;
 function metaTheme(doc, color){
 try{
 if(!doc || !doc.head) return;
-if(doc === document && color === HOME_TOP && typeof window.__yosiAndroidMovementTopColor === 'function'){
-  color = window.__yosiAndroidMovementTopColor() || color;
+if(doc === document && color === HOME_TOP && typeof window.__yosiAndroidScreenTopColor === 'function'){
+  color = window.__yosiAndroidScreenTopColor() || color;
 }
 var metas = doc.querySelectorAll('meta[name="theme-color"]');
 if(!metas.length){
@@ -34034,8 +34049,8 @@ function removeClass(el, c){ try{ if(el && el.classList) el.classList.remove(c);
 function setMeta(doc, color){
 try{
 if(!doc || !doc.head) return;
-if(doc === document && color === HOME_TOP && typeof window.__yosiAndroidMovementTopColor === 'function'){
-  color = window.__yosiAndroidMovementTopColor() || color;
+if(doc === document && color === HOME_TOP && typeof window.__yosiAndroidScreenTopColor === 'function'){
+  color = window.__yosiAndroidScreenTopColor() || color;
 }
 var metas = doc.querySelectorAll('meta[name="theme-color"]');
 if(!metas.length){ var m = doc.createElement('meta'); m.name = 'theme-color'; doc.head.appendChild(m); metas = [m]; }
@@ -39313,8 +39328,8 @@ if(hf) setBg(hf, SOLID);
 if(document.body && document.body.classList.contains('mode-app')){
 var meta=document.querySelector('meta[name="theme-color"]');
 if(meta){
-var movementColor = typeof window.__yosiAndroidMovementTopColor === 'function' ? window.__yosiAndroidMovementTopColor() : '';
-var topColor = movementColor || HOME;
+var screenColor = typeof window.__yosiAndroidScreenTopColor === 'function' ? window.__yosiAndroidScreenTopColor() : '';
+var topColor = screenColor || HOME;
 if(meta.getAttribute('content') !== topColor) meta.setAttribute('content',topColor);
 }
 }
