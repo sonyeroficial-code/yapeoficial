@@ -743,6 +743,34 @@ window.__yosiAndroidYapearHomeStatusActive = function(){
 return !!homeLockedMode(document, 0);
 };
 
+/* Movimientos Android usa blanco desde que se abre, también si el Home
+sigue visible debajo. Los pintores antiguos consultan esta misma decisión. */
+function androidMovementTop(doc, depth){
+if(!doc || depth > 8) return '';
+var win = safe(function(){ return doc.defaultView; }, null);
+if(!win) return '';
+var style = safe(function(){ return doc.documentElement.getAttribute('data-yosi-mov-style'); }, '') ||
+  document.documentElement.getAttribute('data-yosi-mov-style');
+var ov = safe(function(){ return doc.getElementById('yMovOverlay'); }, null);
+if(style === 'android' && ov && ov.classList.contains('show') &&
+  !ov.classList.contains('to-voucher') && !ov.classList.contains('yosi-hide-now') &&
+  !ov.classList.contains('hidden') && ov.getAttribute('aria-hidden') !== 'true'){
+  var display = safe(function(){ return win.getComputedStyle(ov).display; }, '');
+  if(display !== 'none') return '#ffffff';
+}
+var frames = safe(function(){ return doc.querySelectorAll('iframe'); }, []);
+for(var i=0;i<frames.length;i++){
+  if(!isVisible(frames[i], win)) continue;
+  var child = safe(function(){ return frames[i].contentDocument || (frames[i].contentWindow && frames[i].contentWindow.document); }, null);
+  var color = androidMovementTop(child, depth + 1);
+  if(color) return color;
+}
+return '';
+}
+window.__yosiAndroidMovementTopColor = function(){
+return voucherTopLocked() ? '' : androidMovementTop(document, 0);
+};
+
 function voucherTopLocked(){
 return safe(function(){
 return document.documentElement.classList.contains('__baucherTopActivo') ||
@@ -877,12 +905,13 @@ if(document.visibilityState === 'hidden') return;
 var lockedMode = safe(function(){ return window.__yosiAndroidYapearHomeStatusMode(); }, '');
 var homeLocked = !!lockedMode;
 var voucherLocked = voucherTopLocked();
-var mode = voucherLocked ? 'voucher' : (homeLocked ? lockedMode : 'auto');
+var movementColor = window.__yosiAndroidMovementTopColor();
+var mode = voucherLocked ? 'voucher' : (movementColor ? 'movimientos-android' : (homeLocked ? lockedMode : 'auto'));
 
 /* El voucher conserva su color propio.
 Yapear, Monto, Otros bancos, Mi Perfil, Opciones, Datos/configuración,
 YapeMarket y Escáner QR usan siempre el mismo #780699 del Home arriba. */
-var color = voucherLocked ? BAUCHER : (homeLocked ? HOME : visibleTopColor());
+var color = voucherLocked ? BAUCHER : (movementColor || (homeLocked ? HOME : visibleTopColor()));
 
 setTopMeta(color);
 
@@ -921,7 +950,7 @@ new MutationObserver(function(){ schedule(); watchDocTree(doc, depth); }).observ
 subtree:true,
 childList:true,
 attributes:true,
-attributeFilter:['class','style','aria-hidden']
+attributeFilter:['class','style','aria-hidden','data-yosi-mov-style']
 });
 });
 }
@@ -961,7 +990,7 @@ new MutationObserver(function(){ schedule(); watchDocTree(document, 0); }).obser
 subtree:true,
 childList:true,
 attributes:true,
-attributeFilter:['class','style','aria-hidden']
+attributeFilter:['class','style','aria-hidden','data-yosi-mov-style']
 });
 });
 
@@ -969,6 +998,7 @@ watchDocTree(document, 0);
 document.addEventListener('DOMContentLoaded', function(){ watchDocTree(document,0); schedule(); }, {once:true});
 document.addEventListener('visibilitychange', schedule, {passive:true});
 window.addEventListener('pageshow', schedule, {passive:true});
+window.addEventListener('yosi:movement-style-change', schedule);
 window.addEventListener('resize', schedule, {passive:true});
 window.addEventListener('orientationchange', schedule, {passive:true});
 [0, 40, 100, 220, 500, 1000, 1800, 3000].forEach(function(ms){ setTimeout(schedule, ms); });
@@ -1223,15 +1253,10 @@ baucherActivo=document.documentElement.classList.contains('__baucherTopActivo')|
 }catch(e){}
 if(baucherActivo) return;
 
-/* Android: Yapear contactos y Monto mantienen blanco fijo.
-No volver a imponer HOME aquí porque eso causaba el parpadeo morado/blanco. */
+/* Respeta el blanco de Movimientos Android; el Home conserva su morado. */
 try{
-if(/Android/i.test(navigator.userAgent||'') &&
-typeof window.__yosiAndroidYapearWhiteScreenActive === 'function' &&
-window.__yosiAndroidYapearWhiteScreenActive()){
-metaTheme('#ffffff');
-return;
-}
+var movementColor = typeof window.__yosiAndroidMovementTopColor === 'function' ? window.__yosiAndroidMovementTopColor() : '';
+if(movementColor){metaTheme(movementColor);return;}
 }catch(e){}
 
 metaTheme(HOME);
@@ -1378,7 +1403,11 @@ if(stage) stage.style.background=iosApp?APP:SPLASH;
 var pre=document.getElementById('preSplash');if(pre) pre.style.background=SPLASH;
 var splash=document.getElementById('__yapeSplash');if(splash) splash.style.background=SPLASH;
 var metas=document.querySelectorAll('meta[name="theme-color"]');
-for(var i=0;i<metas.length;i++) metas[i].setAttribute('content',SPLASH);
+var movementColor = typeof window.__yosiAndroidMovementTopColor === 'function' ? window.__yosiAndroidMovementTopColor() : '';
+for(var i=0;i<metas.length;i++){
+var topColor = movementColor || SPLASH;
+if(metas[i].getAttribute('content') !== topColor) metas[i].setAttribute('content',topColor);
+}
 }catch(e){}
 }
 apply();
@@ -11824,6 +11853,9 @@ catch(e){ return null; }
 function setMeta(doc, color){
 try{
 if(!doc || !doc.head) return;
+if(doc === document && color === HOME_TOP && typeof window.__yosiAndroidMovementTopColor === 'function'){
+  color = window.__yosiAndroidMovementTopColor() || color;
+}
 var metas = doc.querySelectorAll('meta[name="theme-color"]');
 if(!metas.length){
 var m = doc.createElement('meta');
@@ -25396,6 +25428,9 @@ return true;
 function metaTheme(doc, color){
 try{
 if(!doc || !doc.head) return;
+if(doc === document && color === HOME_TOP && typeof window.__yosiAndroidMovementTopColor === 'function'){
+  color = window.__yosiAndroidMovementTopColor() || color;
+}
 var metas = doc.querySelectorAll('meta[name="theme-color"]');
 if(!metas.length){
 var m = doc.createElement('meta');
@@ -33999,6 +34034,9 @@ function removeClass(el, c){ try{ if(el && el.classList) el.classList.remove(c);
 function setMeta(doc, color){
 try{
 if(!doc || !doc.head) return;
+if(doc === document && color === HOME_TOP && typeof window.__yosiAndroidMovementTopColor === 'function'){
+  color = window.__yosiAndroidMovementTopColor() || color;
+}
 var metas = doc.querySelectorAll('meta[name="theme-color"]');
 if(!metas.length){ var m = doc.createElement('meta'); m.name = 'theme-color'; doc.head.appendChild(m); metas = [m]; }
 for(var i=0;i<metas.length;i++) metas[i].setAttribute('content', color);
@@ -39274,7 +39312,11 @@ var hf=document.getElementById('homeFrame');
 if(hf) setBg(hf, SOLID);
 if(document.body && document.body.classList.contains('mode-app')){
 var meta=document.querySelector('meta[name="theme-color"]');
-if(meta) meta.setAttribute('content',HOME);
+if(meta){
+var movementColor = typeof window.__yosiAndroidMovementTopColor === 'function' ? window.__yosiAndroidMovementTopColor() : '';
+var topColor = movementColor || HOME;
+if(meta.getAttribute('content') !== topColor) meta.setAttribute('content',topColor);
+}
 }
 }catch(e){}
 patchDoc(document,0);
