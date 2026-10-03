@@ -745,6 +745,7 @@ return !!homeLockedMode(document, 0);
 
 /* Una decisión común para todas las rutinas que pintan la barra Android.
 Pagar servicios: morado del Home. Recarga: color real de su paso visible.
+Recuperar clave y configurar cuenta: color propio del paso activo.
 Movimientos Android: blanco. Los iframes ocultos no cambian la barra. */
 function isOpenScreen(el, openClass, win){
 if(!el || !el.classList.contains(openClass) || el.classList.contains('hidden') ||
@@ -755,6 +756,24 @@ function androidScreenTop(doc, depth){
 if(!doc || depth > 8) return '';
 var win = safe(function(){ return doc.defaultView; }, null);
 if(!win) return '';
+/* Recuperar clave: el encabezado del paso activo determina el color,
+   incluso durante su animación de entrada o dentro del loginFrame. */
+var recovery = safe(function(){ return doc.getElementById('yapeForgotFlowV144'); }, null);
+if(isOpenScreen(recovery, 'open', win)){
+  var active = recovery.querySelector('.yfr-screen.active');
+  var header = active && active.querySelector('.yfr-purple');
+  var recoveryColor = safe(function(){ return colorFromStyle(win.getComputedStyle(header || active)); }, null);
+  return recoveryColor || (header ? '#782487' : '#ffffff');
+}
+/* Configuración inicial: blanco en el formulario y el morado propio
+   en la carga previa; las vistas montadas pero cerradas no influyen. */
+var entry = safe(function(){ return doc.getElementById('bridgeAccountEntry'); }, null);
+if(isOpenScreen(entry, 'is-open', win)){
+  var setup = entry.classList.contains('mode-setup');
+  var entryPanel = entry.querySelector(setup ? '.bridgeEntrySetup' : '.bridgeEntryLoading');
+  var entryColor = safe(function(){ return colorFromStyle(win.getComputedStyle(entryPanel)); }, null);
+  return entryColor || (setup ? '#ffffff' : '#521477');
+}
 var services = safe(function(){ return doc.getElementById('yosiPagarServiciosV48'); }, null);
 if(isOpenScreen(services, 'yps48-open', win)) return HOME;
 var recharge = safe(function(){ return doc.getElementById('yosiRecargaHomeV211'); }, null);
