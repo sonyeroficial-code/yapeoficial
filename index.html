@@ -1,4 +1,44 @@
-<!DOCTYPE html> <html lang="es"> <head><meta charset="utf-8"/> <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" name="viewport"/>
+<!DOCTYPE html> <html lang="es"> <head><meta charset="utf-8"/> <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" name="viewport"/><script id="yosi-performance-poller-v1">(function(){
+'use strict';
+if(window.__yosiPerfInterval) return;
+var nativeSetInterval = window.setInterval.bind(window);
+var startupQuietUntil = (window.performance && performance.now ? performance.now() : Date.now()) + 4800;
+function tunedDelay(ms){
+  ms = Number(ms) || 1000;
+  var base = ms;
+  if(ms < 500) base = 1200;
+  else if(ms < 1000) base = 1800;
+  else if(ms < 1500) base = 2600;
+  else if(ms < 2500) base = 3600;
+  else if(ms < 4000) base = 5000;
+  var lowEnd = false;
+  try{
+    var cores = Number(navigator.hardwareConcurrency || 0);
+    var mem = Number(navigator.deviceMemory || 0);
+    lowEnd = (cores > 0 && cores <= 4) || (mem > 0 && mem <= 4);
+  }catch(e){}
+  if(lowEnd && base < 6500) base = Math.min(6500, Math.round(base * 1.35));
+  return base + Math.floor(Math.random() * 180);
+}
+window.__yosiPerfInterval = function(fn, ms){
+  if(typeof fn !== 'function') return nativeSetInterval(function(){}, tunedDelay(ms));
+  var busy = false;
+  var delay = tunedDelay(ms);
+  return nativeSetInterval(function(){
+    var nowPerf = (window.performance && performance.now ? performance.now() : Date.now());
+    if(nowPerf < startupQuietUntil || document.hidden || busy) return;
+    busy = true;
+    var exec = function(){
+      try{ fn.call(window); }catch(e){}
+      finally{ busy = false; }
+    };
+    if('requestIdleCallback' in window){
+      try{ requestIdleCallback(exec, {timeout:650}); return; }catch(e){}
+    }
+    setTimeout(exec, 0);
+  }, delay);
+};
+})();</script>
 <script id="yosi-device-style-auto-v255">(function(){
 'use strict';
 if(window.__yosiDeviceStyleV255) return;
@@ -46,7 +86,7 @@ window.__yosiDeviceStyleV255={
 reload();resolve();
 })();</script>
 <style id="ios-startup-paint-v14">@supports (-webkit-touch-callout:none){@media (display-mode:standalone){html:root{background:#fff !important;background-image:none !important} html:root body.mode-app,html:root body.mode-app .stage{background:#fff !important;background-image:none !important} html:root body.mode-app .stage>iframe,html:root body.mode-app #homeFrame,html:root body.mode-app #newHomeFrame{background:#fff !important;background-image:none !important} html:root body.mode-login,html:root #preSplash,html:root #__yapeSplash{background:#742284 !important}}}</style>
-<title>Yape</title> <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/> <meta http-equiv="Pragma" content="no-cache"/> <meta http-equiv="Expires" content="0"/> <meta name="yosi-build" content="biometria-perfil-v38-android-ultimas-2-pantallas-home-color-20260903"/> <link href="manifest.webmanifest" rel="manifest"/> <meta content="#780699" name="theme-color"/> <meta content="yes" name="apple-mobile-web-app-capable"/> <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/> <meta content="Yape" name="apple-mobile-web-app-title"/> <link href="icon-192.png" rel="apple-touch-icon"/> <link href="icon-192.png" rel="icon" sizes="192x192" type="image/png"/> <link href="icon-512.png" rel="icon" sizes="512x512" type="image/png"/> <link as="image" fetchpriority="high" href="assets/embedded/logo-yape-principal.svg" rel="preload"/> <link as="image" href="bcp.png" rel="preload"/> <link as="image" fetchpriority="high" href="assets/watermark-jose-quinones.png" rel="preload"/> <link as="image" fetchpriority="high" href="assets/Miguel-grau.png" rel="preload"/> <link as="image" fetchpriority="high" href="assets/Miguel-grau.png" rel="preload"/> <link as="image" fetchpriority="high" href="assets/Abraham-vadelomar.png" rel="preload"/> <link as="image" fetchpriority="high" href="assets/Pedro-paulet.png" rel="preload"/> <link as="image" fetchpriority="high" href="assets/santa-rosa-de-lima.png" rel="preload"/>
+<title>Yape</title> <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/> <meta http-equiv="Pragma" content="no-cache"/> <meta http-equiv="Expires" content="0"/> <meta name="yosi-build" content="startup-performance-v4-20261004"/> <link href="manifest.webmanifest" rel="manifest"/> <meta content="#780699" name="theme-color"/> <meta content="yes" name="apple-mobile-web-app-capable"/> <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/> <meta content="Yape" name="apple-mobile-web-app-title"/> <link href="icon-192.png" rel="apple-touch-icon"/> <link href="icon-192.png" rel="icon" sizes="192x192" type="image/png"/> <link href="icon-512.png" rel="icon" sizes="512x512" type="image/png"/> <link as="image" fetchpriority="high" href="assets/embedded/logo-yape-principal.svg" rel="preload"/> <link as="image" href="bcp.png" rel="preload"/> <link as="image" href="assets/watermark-jose-quinones.png" rel="prefetch"/>  <link as="image" href="assets/Miguel-grau.png" rel="prefetch"/> <link as="image" href="assets/Abraham-vadelomar.png" rel="prefetch"/> <link as="image" href="assets/Pedro-paulet.png" rel="prefetch"/> <link as="image" href="assets/santa-rosa-de-lima.png" rel="prefetch"/>
 <style>html,body,*{-webkit-user-select:none !important;user-select:none !important;-webkit-touch-callout:none !important;-webkit-tap-highlight-color:transparent} input,textarea,select,option,[contenteditable="true"]{-webkit-user-select:text !important;user-select:text !important;-webkit-touch-callout:default !important} html,body{margin:0;height:100%;background:#742284 !important} .stage{position:fixed;inset:0;overflow:hidden;background:#742284 !important} iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent} #homeFrame{display:none} #opcionesScreen .option-btn{background:linear-gradient(135deg,rgba(94,23,235,0.20),rgba(123,31,162,0.18)) !important;border:1px solid rgba(161,120,255,0.22) !important;transition:transform .12s ease,filter .12s ease,background .18s ease,border-color .18s ease} #opcionesScreen .option-icon{border-radius:16px !important;background:rgba(255,255,255,0.10) !important;border:1px solid rgba(255,255,255,0.10) !important;overflow:hidden} #opcionesScreen .option-btn[data-accent="purple"] .option-icon{background:linear-gradient(135deg,#7B1FA2,#5e17eb) !important} #opcionesScreen .option-btn[data-accent="blue"] .option-icon{background:linear-gradient(135deg,#00BCD4,#2196F3) !important} #opcionesScreen .option-btn[data-accent="green"] .option-icon{background:linear-gradient(135deg,#00C853,#00E5FF) !important} #opcionesScreen .option-btn[data-accent="orange"] .option-icon{background:linear-gradient(135deg,#FF9800,#FF5252) !important} #opcionesScreen .option-icon .material-symbols-outlined{color:#fff !important;opacity:1 !important} #opcionesScreen .option-btn::after{content:"";position:absolute;inset:0;border-radius:18px;background:radial-gradient(circle at 20% 50%,rgba(255,255,255,0.22),rgba(255,255,255,0) 55%);opacity:0;transform:scale(0.98);transition:opacity .18s ease,transform .18s ease;pointer-events:none} #opcionesScreen .option-btn:active{transform:scale(0.985);filter:brightness(1.06);border-color:rgba(190,160,255,0.35) !important} #opcionesScreen .option-btn:active::after{opacity:1;transform:scale(1)} #opcionesScreen .new-badge{background:rgba(151,71,255,0.28) !important;border:1px solid rgba(180,140,255,0.22) !important} #opcionesScreen .option-btn{background:linear-gradient(135deg,rgba(94,23,235,0.22),rgba(123,31,162,0.20)) !important;border-color:rgba(190,160,255,0.30) !important} #opcionesScreen .new-badge{background:rgba(151,71,255,0.28) !important;border-color:rgba(180,140,255,0.22) !important;color:#fff !important} #opcionesScreen .option-text{color:#fff !important} #opcionesScreen .option-icon .material-symbols-outlined{color:#fff !important} #opcionesScreen .option-btn[data-accent="purple"] .option-icon{background:linear-gradient(135deg,#7B1FA2,#5e17eb) !important} #opcionesScreen .option-btn[data-accent="blue"] .option-icon{background:linear-gradient(135deg,#00BCD4,#2196F3) !important} #opcionesScreen .option-btn[data-accent="green"] .option-icon{background:linear-gradient(135deg,#00C853,#00E5FF) !important} #opcionesScreen .option-btn[data-accent="orange"] .option-icon{background:linear-gradient(135deg,#FF9800,#FF5252) !important} #opcionesScreen .option-btn:active{transform:scale(0.985);filter:brightness(1.06)} #opcionesScreen .option-btn:active::after{opacity:1;transform:scale(1)} #opcionesScreen .sheet .option-btn:nth-of-type(1) .option-icon{background:linear-gradient(135deg,#00BCD4,#2196F3) !important} #opcionesScreen .sheet .option-btn:nth-of-type(2) .option-icon{background:linear-gradient(135deg,#00C853,#00E5FF) !important} #opcionesScreen .sheet .option-btn:nth-of-type(3) .option-icon{background:linear-gradient(135deg,#FF9800,#FF5252) !important} #opcionesScreen .sheet .option-btn:nth-of-type(4) .option-icon{background:linear-gradient(135deg,#FF9800,#FF5252) !important} #opcionesScreen .sheet .option-btn:nth-of-type(5) .option-icon{background:linear-gradient(135deg,#7B1FA2,#5e17eb) !important} #opcionesScreen .sheet .option-btn:nth-of-type(6) .option-icon{background:linear-gradient(135deg,#00BCD4,#2196F3) !important} #preSplash{position:fixed;inset:0;background:#742284 !important;display:flex;align-items:center;justify-content:center;flex-direction:column;z-index:2147483647;opacity:1} #preSplashLogo{width:88px !important;max-width:45vw !important;height:auto;animation:preFadeSoft .8s ease-out both} #preSplashBCP{position:absolute;bottom:60px;left:50%;transform:translateX(-50%);width:118px !important;max-width:60vw;height:auto;opacity:.95;animation:preFadeUpSoft 1s ease-out both} @keyframes preFadeSoft{0%{opacity:0} 100%{opacity:1}} @keyframes preFadeUpSoft{0%{opacity:0;transform:translate(-50%,8px)} 100%{opacity:.95;transform:translate(-50%,0)}} .preSplashHide{opacity:0;transition:opacity .4s ease;pointer-events:none} #yape-confetti{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;display:none} #yape-confetti svg{width:100% !important;height:100% !important} #movLabel{font-size:3.6vw !important;color:#742284 !important;font-weight:500 !important} #homeView .hello{font-size:4.5vw !important;color:#ffffff !important;font-weight:400 !important} #fingerBtn .finger-video,#fingerBtn img.finger-video{width:clamp(44px,9vw,56px) !important;height:clamp(44px,9vw,56px) !important;display:block !important;object-fit:contain !important;object-position:center center !important;border-radius:999px !important;overflow:hidden !important;background:transparent !important}</style>
 <style>#__yapeSplash{position:fixed;inset:0;background:#742284 !important;display:flex;align-items:center;justify-content:center;flex-direction:column;z-index:2147483647;opacity:1} #__yapeSplashLogo{width:88px !important;max-width:45vw !important;height:auto;display:block;animation:__yapeFadeIn .8s ease-out both} #__yapeSplashBCP{position:absolute;bottom:60px;left:50%;transform:translateX(-50%);width:118px !important;max-width:60vw;height:auto;display:block;opacity:.95;animation:__yapeFadeUp 1s ease-out both} @keyframes __yapeFadeIn{0%{opacity:0} 100%{opacity:1}} @keyframes __yapeFadeUp{0%{opacity:0;transform:translate(-50%,8px)} 100%{opacity:.95;transform:translate(-50%,0)}} #__yapeSplash.__hide{opacity:0;pointer-events:none;transition:opacity .35s ease}</style>
 <style>:root{--p1:#6A1B9A;--p2:#7B1FA2;--p3:#8E24AA;--p4:#9C27B0;--p5:#AB47BC;--panel:#fff;--field:#d7dced;--label:#7f7f7f;--text:#121212;--shadow:0 20px 48px rgba(0,0,0,.20);--r1:30px;--link:#2d86c9} *{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body{height:100%} body,.panel,.topbar,.infoPill,.title,.subtitle,.link,.primary,.showBtn,.footer{-webkit-user-select:none;user-select:none} input,textarea{-webkit-user-select:text;user-select:text} body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:radial-gradient(1200px 600px at 50% -10%,rgba(255,255,255,.14),rgba(255,255,255,0) 60%),linear-gradient(180deg,var(--p1) 0%,var(--p2) 18%,var(--p3) 45%,var(--p4) 72%,var(--p5) 100%);display:flex;justify-content:center;padding:16px 12px 22px;color:#fff;overscroll-behavior:none;touch-action:manipulation} .wrap{width:min(420px,100%)} .topbar{display:flex;align-items:center;gap:10px;margin-bottom:10px} .back{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(8px);cursor:pointer} .back svg{width:18px;height:18px;opacity:.95} .infoPill{flex:1;height:43px;border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.10));border:1px solid rgba(255,255,255,.18);display:flex;align-items:center;gap:10px;padding:0 14px;color:#fff;backdrop-filter:blur(10px);box-shadow:0 10px 26px rgba(0,0,0,.16);overflow:hidden} .dot{width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#11c6ff 0%,#0aa0ff 45%,#0378ff 100%);box-shadow:0 0 0 6px rgba(17,198,255,.12);flex:0 0 auto} .pillText{display:flex;gap:10px;align-items:center;white-space:nowrap;font-weight:500;font-size:13px;letter-spacing:.12em;animation:floatText 3.2s ease-in-out infinite} .pillText .sep{opacity:.75;letter-spacing:0;font-weight:500} @keyframes floatText{0%,100%{transform:translateY(0);opacity:1}50%{transform:translateY(-1px);opacity:.95}} .panel{background:var(--panel);border-radius:var(--r1);box-shadow:var(--shadow);overflow:hidden;color:var(--text)} .panelInner{padding:16px 16px 14px;max-height:calc(100vh - 16px - 22px - 44px - 10px - 10px);overflow:auto;-webkit-overflow-scrolling:touch} .title{text-align:center;font-weight:500;letter-spacing:.06em;font-size:26px;line-height:1.05;margin:12px 0 8px} .subtitle{text-align:center;margin:0 0 10px;color:#5c5c5c;font-size:13px;font-weight:500} label{display:block;color:var(--label);font-size:14px;margin:12px 0 7px} .fieldRow{position:relative} input{width:100%;border:0;outline:none;background:var(--field);color:#1b1b1b;padding:14px 14px;border-radius:16px;font-size:13px;box-shadow:inset 0 0 0 2px rgba(0,0,0,.06);transition:box-shadow .22s ease,transform .22s ease,background .22s ease} input::placeholder{color:rgba(0,0,0,.35);font-weight:500} input:focus{background:#eef1fb;box-shadow:inset 0 0 0 2px rgba(183,123,215,.55),0 10px 18px rgba(106,27,154,.14);transform:translateY(-1px)} .showBtn{position:absolute;right:12px;top:50%;transform:translateY(-50%);border:0;padding:9px 12px;border-radius:14px;background:#fff;color:#6a2bbb;font-weight:500;cursor:pointer;box-shadow:0 10px 18px rgba(0,0,0,.10);font-size:13px;transition:transform .18s ease,box-shadow .18s ease} .showBtn:active{transform:translateY(-50%) scale(.97);box-shadow:0 6px 12px rgba(0,0,0,.10)} .actions{position:sticky;bottom:0;padding-top:10px;padding-bottom:6px;background:linear-gradient(180deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.9) 30%,rgba(255,255,255,1) 100%);backdrop-filter:blur(6px)} .primary{width:100%;border:0;border-radius:24px;padding:14px 14px;font-size:16px;font-weight:500;letter-spacing:.10em;color:#fff;cursor:pointer;background:linear-gradient(180deg,#8E24AA 0%,#6A1B9A 100%);box-shadow:0 16px 26px rgba(106,27,154,.32),0 5px 0 rgba(60,10,92,.24);transition:transform .14s ease,box-shadow .14s ease,filter .18s ease} .primary:active{transform:translateY(3px);box-shadow:0 10px 18px rgba(106,27,154,.24),0 2px 0 rgba(60,10,92,.24);filter:brightness(.98)} .link{text-align:center;margin-top:12px;font-size:13px;color:var(--link);font-weight:500;cursor:pointer;text-decoration:none;display:block} .screens{position:relative;min-height:520px} .screen{position:absolute;inset:0;opacity:0;transform:translateX(10px);pointer-events:none;transition:opacity .30s ease,transform .30s ease} .screen.active{opacity:1;transform:translateX(0);pointer-events:auto} .footer{margin-top:10px;padding:10px 6px 0;text-align:center;color:#6b6b6b} .footerTitle{font-weight:500;font-size:12.5px;letter-spacing:.06em;color:#3b3b3b} .footerSub{margin-top:5px;font-size:11px;color:#6b6b6b;font-weight:500;letter-spacing:.05em} .osRow{margin-top:8px;display:flex;justify-content:center;align-items:center;gap:14px} .osChip{display:flex;align-items:center;gap:7px;padding:8px 12px;border-radius:999px;background:#f3f4fb;border:1px solid #e2e5f3;box-shadow:0 10px 18px rgba(0,0,0,.06);transform:translateY(0)} .osChip.android{animation:floatAndroid 2.4s ease-in-out infinite} .osChip.ios{animation:floatIos 2.4s ease-in-out infinite} @keyframes floatIos{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}} @keyframes floatAndroid{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}} .osIcon{width:18px;height:18px;display:block} .osName{font-weight:500;font-size:12.5px;color:#2c2c2c;letter-spacing:.02em} .toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);width:min(420px,92vw);padding:11px 12px;border-radius:16px;background:#111;color:#fff;box-shadow:0 16px 30px rgba(0,0,0,.35);display:none;z-index:9999;font-size:13px;line-height:1.25} .toast.show{display:block} #screenRegister .primary{background:linear-gradient(180deg,#ff3b3b 0%,#c40000 100%) !important;box-shadow:0 16px 26px rgba(196,0,0,.35),0 5px 0 rgba(120,0,0,.25) !important}</style>
@@ -587,16 +627,27 @@ window.addEventListener('pageshow',queueScan);
   // No blocking sleeps. A suspended/closed app resumes pending downloads next time.
   setInterval(function () {
     if (!document.hidden) {
-      scanAll();
-      if ((!status || !status.complete) && (!status || !status.running)) warmAll();
+      var work = function(){
+        scanAll();
+        if ((!status || !status.complete) && (!status || !status.running)) warmAll();
+      };
+      if ('requestIdleCallback' in window) {
+        try { requestIdleCallback(work, {timeout:1200}); } catch (_) { setTimeout(work,0); }
+      } else setTimeout(work,0);
     }
   }, 60000);
   navigator.serviceWorker.ready.then(function (reg) {
     registration = reg;
     // Persistence is best effort and the browser can decline it.
     try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function () {}); } catch (_) {}
-    warmAll();
-    [15000, 45000].forEach(function (delay) { setTimeout(function () {
+    setTimeout(function(){
+      var startWarm = function(){ if (!document.hidden) warmAll(); };
+      if ('requestIdleCallback' in window) {
+        try { requestIdleCallback(startWarm, {timeout:1800}); return; } catch (_) {}
+      }
+      startWarm();
+    }, 3200);
+    [18000, 48000].forEach(function (delay) { setTimeout(function () {
       if (!status || !status.complete) warmAll();
     }, delay); });
   }).catch(function () {});
@@ -642,14 +693,15 @@ console.warn('SW register failed', e);
 }
 
 function scheduleRegister(){
-if('requestIdleCallback' in window){
-requestIdleCallback(registerSW, { timeout: 1800 });
-}else{
-setTimeout(registerSW, 700);
-}
+setTimeout(function(){
+  if('requestIdleCallback' in window){
+    try{ requestIdleCallback(registerSW, { timeout: 1800 }); return; }catch(e){}
+  }
+  setTimeout(registerSW, 0);
+}, 2200);
 }
 
-registerSW();
+scheduleRegister();
 }catch(e){ console.warn(e); }
 })();</script>
 <script id="yosi-android-status-color-sync-v215">(function(){
@@ -1035,7 +1087,7 @@ window.addEventListener('pageshow', schedule, {passive:true});
 window.addEventListener('yosi:movement-style-change', schedule);
 window.addEventListener('resize', schedule, {passive:true});
 window.addEventListener('orientationchange', schedule, {passive:true});
-[0, 40, 100, 220, 500, 1000, 1800, 3000].forEach(function(ms){ setTimeout(schedule, ms); });
+[180, 900, 2000, 4200].forEach(function(ms){ setTimeout(schedule, ms); });
 setInterval(schedule, 3000);
 })();</script>
 <style id="global-responsive-fix">:root{--app-vh:100dvh;--app-vw:100vw;--app-scale:1;--app-pad-x:clamp(10px,3.6vw,18px);--app-gap:clamp(8px,2.8vw,14px);--app-radius:clamp(16px,4vw,28px)} html{-webkit-text-size-adjust:100%;text-size-adjust:100%;overflow-x:hidden !important;background:#742284} body{width:100%;min-height:var(--app-vh);overflow-x:hidden !important} body,.stage,.device,.views,.screen,iframe{max-width:100vw !important} .stage,.device,.views,.screen{min-height:var(--app-vh)} img,video,canvas,svg{max-width:100%} input,textarea,select,button{font:inherit} *{min-width:0;word-wrap:break-word;overflow-wrap:anywhere} .screen{width:100%;padding-left:max(var(--app-pad-x),env(safe-area-inset-left)) !important;padding-right:max(var(--app-pad-x),env(safe-area-inset-right)) !important;padding-bottom:calc(env(safe-area-inset-bottom) + 6px) !important;gap:var(--app-gap) !important} .card,.sheet,.modal,.validate-modal,.netModalCard,.yNotifCard,.rcCard,.qrReg-card,.opCard{width:min(100%,100vw - 24px) !important;max-width:min(100%,520px) !important} .actions,.top,.bottom,.row,.chips,.tabs,.stories,.filters{max-width:100%} .actions,.chips,.tabs,.stories,.filters{overflow-x:auto;scrollbar-width:none} .actions::-webkit-scrollbar,.chips::-webkit-scrollbar,.tabs::-webkit-scrollbar,.stories::-webkit-scrollbar,.filters::-webkit-scrollbar{display:none} .keypad{gap:clamp(8px,2.2vw,12px) !important} .key{max-width:none !important} @media (max-width:430px){:root{--screenX:clamp(12px,3.8vw,16px);--screenY:clamp(10px,3vw,14px);--radiusCard:clamp(18px,5vw,24px);--radiusQr:clamp(12px,4vw,18px);--radiusKey:clamp(10px,3.2vw,12px)} .device{width:100vw !important;height:var(--app-vh) !important;border-radius:0 !important;box-shadow:none !important} .help-pill{padding:9px 13px !important;font-size:14px !important;gap:8px !important} .actions{justify-content:flex-start !important;padding-bottom:2px} .action{width:clamp(72px,23vw,88px) !important;flex:0 0 auto} .action .label{font-size:11.5px !important} .qr-box{width:clamp(138px,42vw,182px) !important;margin-top:30px !important} .title{font-size:clamp(19px,5vw,24px) !important} .forgot{font-size:14px !important}} @media (max-width:360px){:root{--app-pad-x:12px;--app-gap:8px} .screen{padding-top:calc(env(safe-area-inset-top) + 8px) !important} .qr-box{width:clamp(128px,40vw,160px) !important;margin-top:24px !important} .actions{margin-top:18px !important;gap:8px !important} .action{width:70px !important} .action .icon-wrap{width:44px !important;height:43px !important} .action .label{font-size:12px !important} .card{padding:12px 12px 8px !important} .key{height:clamp(38px,7vh,48px) !important;font-size:clamp(18px,5.5vw,24px) !important}} @media (max-height:740px){.screen{padding-top:calc(env(safe-area-inset-top) + 8px) !important;gap:8px !important} .qr-box{margin-top:24px !important} .actions{margin-top:14px !important} .card{padding-top:12px !important}} @media (max-height:680px){.qr-box{width:clamp(124px,38vw,152px) !important;margin-top:18px !important} .action .icon-wrap{width:42px !important;height:42px !important} .action .label{font-size:12px !important} .key{height:40px !important}}</style>
@@ -1332,7 +1384,7 @@ nd.querySelectorAll('.homehead').forEach(function(el){el.style.cssText+=';'+css;
 }
 }catch(e){}
 }
-paintOuter(); setInterval(paintOuter,1500); setTimeout(paintOuter,50); setTimeout(paintOuter,250); setTimeout(paintOuter,1000);
+paintOuter(); window.__yosiPerfInterval(paintOuter, 1500); setTimeout(paintOuter,50); setTimeout(paintOuter,250); setTimeout(paintOuter,1000);
 })();</script>
 <style id="yape-roboto-assets-global">@font-face{font-family:'Roboto';src:url('assets/roboto_latin.woff2') format('woff2');font-style:normal;font-weight:100 900;font-display:swap} @font-face{font-family:'Material Symbols Outlined';src:url('assets/roboto_simbolos.woff2') format('woff2');font-style:normal;font-weight:100 700;font-display:block} :root,html,body{font-family:'Roboto',Arial,sans-serif !important} *:not(.material-symbols-outlined):not(.material-symbols-rounded):not(.material-symbols-sharp):not(.material-icons):not([class*="material-symbols"]){font-family:'Roboto',Arial,sans-serif !important} input,textarea,select,button,option{font-family:'Roboto',Arial,sans-serif !important} .material-symbols-outlined,.material-symbols-rounded,.material-symbols-sharp,.material-icons,[class*="material-symbols"]{font-family:'Material Symbols Outlined' !important;font-weight:normal !important;font-style:normal !important;font-size:24px;line-height:1 !important;letter-spacing:normal !important;text-transform:none !important;display:inline-block;white-space:nowrap !important;word-wrap:normal !important;direction:ltr;-webkit-font-feature-settings:'liga' !important;font-feature-settings:'liga' !important;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}</style>
 <script id="yape-roboto-assets-global-js">(function(){
@@ -1401,12 +1453,7 @@ document.addEventListener('DOMContentLoaded', run, {once:true});
 setTimeout(run, 0);
 }
 window.addEventListener('load', run, {once:true});
-var count = 0;
-var timer = setInterval(function(){
-run();
-count++;
-if(count >= 12) clearInterval(timer);
-}, 450);
+var count = 0; var timer = setInterval(function(){ if(document.hidden) return; run(); count++; if(count >= 6) clearInterval(timer); }, 1000);
 try{
 new MutationObserver(run).observe(document.documentElement, {childList:true, subtree:true});
 }catch(e){}
@@ -1731,7 +1778,7 @@ function fontCss(url){return "@font-face{font-family:'YapeRemoteRoboto';src:url(
  function applySymbols(doc){try{if(!doc)return;var u=window.__yapeGetResourceUrl?window.__yapeGetResourceUrl('font-symbols'):'';var id='__yape_remote_symbols_font_v1',st=doc.getElementById(id);if(!u){if(st)st.remove();return;}if(!st){st=doc.createElement('style');st.id=id;(doc.head||doc.documentElement).appendChild(st);}st.textContent=symbolsCss(u);}catch(e){}}
  function applyConfetti(doc){try{if(!doc||!doc.querySelectorAll)return;var u=window.__yapeGetResourceUrl?window.__yapeGetResourceUrl('confetti'):'';doc.querySelectorAll('.animation').forEach(function(el){var bg=(el.style&&el.style.backgroundImage)||'';if(u && (bg.indexOf('animacion_confetti.gif')!==-1 || el.dataset.yapeRemoteConfetti==='1')){el.dataset.yapeRemoteConfetti='1';el.style.backgroundImage='url("'+u.replace(/"/g,'\\"')+'")';}});}catch(e){}}
  function applyAll(){applyFont(document);applySymbols(document);applyConfetti(document);try{document.querySelectorAll('iframe').forEach(function(fr){try{var d=fr.contentDocument||(fr.contentWindow&&fr.contentWindow.document);applyFont(d);applySymbols(d);applyConfetti(d);}catch(e){}});}catch(e){}}
- window.__yapeApplyRemoteResources=applyAll;window.addEventListener('yape-resources-updated',function(){applyAll();});['DOMContentLoaded','load'].forEach(function(ev){window.addEventListener(ev,function(){setTimeout(applyAll,0);setTimeout(applyAll,250);setTimeout(applyAll,900);},{passive:true});});setInterval(applyAll,5000);setTimeout(applyAll,30);setTimeout(applyAll,500);
+ window.__yapeApplyRemoteResources=applyAll;window.addEventListener('yape-resources-updated',function(){applyAll();});['DOMContentLoaded','load'].forEach(function(ev){window.addEventListener(ev,function(){setTimeout(applyAll,0);setTimeout(applyAll,250);setTimeout(applyAll,900);},{passive:true});});window.__yosiPerfInterval(applyAll, 5000);setTimeout(applyAll,30);setTimeout(applyAll,500);
 })();</script>
 <div class="stage"> <iframe allow="camera; microphone; clipboard-read; clipboard-write; publickey-credentials-get; publickey-credentials-create" id="loginFrame"></iframe> <iframe allow="camera; microphone; clipboard-read; clipboard-write" id="homeFrame" srcdoc='&lt;!DOCTYPE html&gt; &lt;html lang="es"&gt; &lt;head&gt; &lt;meta charset="utf-8"/&gt; &lt;meta content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=overlays-content,maximum-scale=1.0,user-scalable=no" name="viewport"/&gt; &lt;title&gt;Yape UI&lt;/title&gt; &lt;link href="manifest.json" rel="manifest"/&gt; &lt;meta content="#ffffff" name="theme-color"/&gt; &lt;link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;amp;display=swap" rel="stylesheet"/&gt;
 &lt;style&gt;html,body,*{-webkit-user-select:none !important;user-select:none !important;-webkit-touch-callout:none !important;-webkit-tap-highlight-color:transparent} input,textarea,select,option,[contenteditable="true"]{-webkit-user-select:text !important;user-select:text !important;-webkit-touch-callout:default !important} html,body{height:100%} @supports (height:100dvh){.device{height:100dvh}} .views,.view{overscroll-behavior:none} :root{--bg1:#752285;--bg2:#5A1F79;--white:#ffffff;--panel:#ffffff;--shadowSoft:0 8px 18px rgba(0,0,0,.08);--textSoft:#3b3b3b;--purple:#6b1aa8;--teal:#23BFAE;--tealDark:#169891;--side:18px;--safeB:env(safe-area-inset-bottom,0px);--safeT:env(safe-area-inset-top,0px);--tileSize:48px;--tileRadius:16px;--tileGapRow:12px;--tileGapCol:10px;--bannerH:150px;--curve:18px;--btnRadius:14px;--dotDur:4200ms;--peek:26px;--slideGap:12px;--cardRadius:18px;--cardShadow:0 10px 18px rgba(0,0,0,.18);--bannerW:92%;--leftMaskW:88px;--appMax:430px;--mPurple:#6a1b9a;--mGreen:#18a383;--mGrey:#cfcfcf;--mKb:0px;--mBg:#ffffff;--pillBg:#f3f3f3;--pillBorder:#e8e8e8;--pillText:#7a7a7a;--mError:#e53935} *{box-sizing:border-box} html,body{width:100%;height:100%;margin:0;overflow-x:hidden;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:#111;color:#fff;-webkit-tap-highlight-color:transparent} body{display:flex;justify-content:center;align-items:center;padding:12px} .device{width:min(100vw,var(--appMax));height:min(100vh,900px);border-radius:28px;overflow:hidden;background:#333333;box-shadow:0 20px 60px rgba(0,0,0,.55);position:relative} @media (max-width:520px){body{padding:0 !important;align-items:stretch !important;justify-content:flex-start !important} .device{width:100vw !important;height:100dvh !important;max-width:100vw !important;max-height:100dvh !important;border-radius:0 !important;box-shadow:none !important}} @media (pointer:coarse){body{padding:0 !important;align-items:stretch !important;justify-content:flex-start !important} .device{width:100vw !important;height:100dvh !important;max-width:100vw !important;max-height:100dvh !important;border-radius:0 !important;box-shadow:none !important}} @media (pointer:fine) and (min-width:521px){.device{width:100vw !important;height:100dvh !important;max-width:100vw !important;max-height:100dvh !important;border-radius:0 !important;box-shadow:none !important} .netModal,.vmWrap,.rcvOverlay,#qrScanView,#qrScanView .qrScan-wrap,#qrRegView,#qrRegView .qrReg-close{position:absolute !important} .netModal,.vmWrap,.rcvOverlay,#qrScanView,#qrScanView .qrScan-wrap,#qrRegView{inset:0 !important}} .views{width:100%;height:100%;position:relative;overflow:hidden;background:#333333} #homeView{overflow-y:auto !important;overflow-x:hidden !important;-webkit-overflow-scrolling:touch !important;touch-action:pan-y !important;overscroll-behavior-y:auto !important;background:#333333} .view{position:absolute;inset:0;width:100%;height:100%;overflow:hidden;background:#333333} .hidden{display:none !important} #perfilEditarView{position:absolute;inset:0;width:100%;height:100%;z-index:999999;background:#fff !important;visibility:hidden;opacity:1;pointer-events:none;transform:translate3d(-104%,0,0);transition:transform .30s cubic-bezier(.22,.78,.24,1),visibility 0s linear .30s;will-change:transform;overflow:hidden;box-shadow:6px 0 18px rgba(0,0,0,.10);contain:strict;isolation:isolate;backface-visibility:hidden;-webkit-backface-visibility:hidden;transform-origin:left center} #perfilEditarView.slide-in{visibility:visible;pointer-events:auto;transform:translate3d(0,0,0);transition-delay:0s,0s} #perfilEditarView.slide-out{visibility:visible;pointer-events:none;transform:translate3d(-104%,0,0);transition-delay:0s,0s} #perfilEditarFrame{width:100%;height:100%;border:0;display:block;background:#fff;transform:translateZ(0);backface-visibility:hidden;-webkit-backface-visibility:hidden} .clickable{cursor:pointer} .yApp{width:100%;height:100%;background:#fff;color:#111;overflow:hidden;display:flex;flex-direction:column} .yHeader{display:flex;align-items:center;padding:18px;font-size:18px;font-weight:500;border-bottom:1px solid #eee;background:#ffffff} .yClose{font-size:19px;margin-right:15px;cursor:pointer;user-select:none} .yTitle{font-weight:500} .ySearch{margin:15px;background:#f1f1f1;border-radius:25px;padding:10px 15px;display:flex;align-items:center;gap:10px} .ySearchIcon{font-size:18px;opacity:0.6} .ySearchIcon{display:flex;align-items:center;justify-content:center} .ySearchIconImg{width:18px;height:18px;object-fit:contain;opacity:.65;display:block} .yNewNumber{margin:0 15px;background:#fff;border-radius:14px;padding:14px 14px;display:flex;align-items:flex-start;justify-content:space-between;border-bottom:1px solid #ececf2} .yNewNumber .ttl{font-size:18px;font-weight:500;color:#222;margin-bottom:6px} .yNewNumber .nb{font-size:20px;font-weight:500;color:#4a4a4a} .yNewNumber .sub{margin-top:10px;font-size:14px;color:#9a9aa3} .ySIcon{width:28px;height:28px;object-fit:contain;flex:0 0 auto;margin-top:2px} .ySearch input{border:none;outline:none;background:transparent;width:100%;font-size:14px} .ySectionTitle{padding:15px;font-size:18px;font-weight:600;color:#111} .yContact,.yNewNumber{padding:15px;border-bottom:1px solid #eee;cursor:pointer;background:#fff} .yContact .nm,.yNewNumber .nm{font-size:15px;font-weight:500;color:#111} .yContact .nb{font-size:13px;color:#777;margin-top:3px} .yNewNumber .nb{font-size:14px;color:#111;margin-top:4px;font-weight:500} .yNewNumber .sub{font-size:13px;color:#999;margin-top:4px} .yModal{position:fixed;top:0;left:0;width:100%;height:100%;display:none;background:rgba(0,0,0,.60);justify-content:center;align-items:center;z-index:9999} .yModalContent{width:min(220px,62vw);min-height:104px;background:#fff;padding:20px 16px 18px;border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;box-shadow:0 12px 30px rgba(0,0,0,.22)} .ySpinner{width:34px;height:34px;border-radius:50%;border:4px solid #c9efec;border-top-color:#18b8ae;border-right-color:#18b8ae;border-bottom-color:#c9efec;border-left-color:#c9efec;animation:ySpin .9s linear infinite;box-sizing:border-box} .yLoadingText{font-size:18px;line-height:1.2;color:#171717;font-weight:600;text-align:center;margin:0} @keyframes ySpin{100%{transform:rotate(360deg)}} #voucherView{background:linear-gradient(180deg,#4f1768,#6a238a);overflow:auto} #voucherView .voucherBody{overflow:hidden;min-height:100%;display:flex;justify-content:center;padding:10px 12px;color:#2b2b2b;font-family:"Inter",sans-serif} #voucherView .container{width:100%;max-width:360px;position:relative} #voucherView .close-btn{position:absolute;top:calc(env(safe-area-inset-top) + 18px);right:16px;width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;color:transparent;font-size:0;line-height:0;user-select:none;z-index:30;transform:none;backface-visibility:hidden;-webkit-font-smoothing:antialiased;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none} #voucherView .close-btn::before,#voucherView .close-btn::after{content:"";position:absolute;left:50%;top:50%;width:22px;height:2.4px;border-radius:999px;background:#fff;transform-origin:center;margin-left:0;margin-top:0} #voucherView .close-btn::before{transform:translate(-50%,-50%) rotate(45deg)} #voucherView .close-btn::after{transform:translate(-50%,-50%) rotate(-45deg)} #voucherView .yape-logo{position:absolute;top:30px;left:10px;width:82px;height:82px;border-radius:50%;overflow:visible} #voucherView .yape-logo img,#voucherView .yape-gif{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;transform:scale(1)} #voucherView .card{margin-top:128px !important;width:98%;margin-left:auto;margin-right:auto;background:#f4f4f6;border-radius:24px;padding:23px 19px 19px;box-shadow:none;color:#2b2b2b;display:block} #voucherView .yape-logo img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;transform:scale(1)} #voucherView .yape-logo img:not(.yape-gif){transform:scale(0.92) !important} #voucherView .yape-logo img.yape-gif,#voucherView .yape-gif{transform:scale(1) !important} #voucherView .voucher-actions{margin-top:14px;display:none;flex-direction:column;gap:10px} #voucherView .voucher-btn{width:100%;border:0;border-radius:7px;padding:0 16px;font-weight:600;letter-spacing:0;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;user-select:none} #voucherView .voucher-btn:active{transform:scale(.99);opacity:.95} #voucherView .voucher-btn-primary{background:#06c7b2;background-image:none;color:#ffffff;box-shadow:none !important;border:0 !important;outline:none;height:44px;min-height:44px;border-radius:7px;font-weight:700;font-size:17px;letter-spacing:0;line-height:1} #voucherView .voucher-btn-primary .btn-ico{width:18px;height:18px;flex:0 0 18px} #voucherView .voucher-btn-ghost{background:transparent;color:rgba(255,255,255,.96);font-weight:600;padding:8px 14px;font-size:16px} #voucherView .voucher-btn-ghost svg{opacity:.92} #voucherView .header{display:flex;justify-content:space-between;align-items:center;padding:0;gap:0} #voucherView .title{font-size:20px;font-weight:700;letter-spacing:0.2px;color:#9B2FBE} #voucherView .share{display:flex;align-items:center;gap:6px;color:#18b394;font-weight:500;font-size:16px} .share .icon{width:24px !important;height:24px !important} .share-icon{width:24px !important;height:24px !important;display:inline-block;object-fit:contain} #voucherView .icon{width:18px;height:18px;display:inline-block;max-width:none;background:transparent;box-shadow:none;border:0;stroke:currentColor;stroke-width:2;fill:none;flex:0 0 auto} #voucherView .amount{margin:18px 0 14px;display:flex;align-items:flex-start;gap:0} #voucherView .currency{font-size:38px !important;line-height:1;font-weight:900 !important;margin-top:1px;margin-right:3px;color:#2b2b2b;letter-spacing:-0.01em;text-shadow:0 0 0.01px currentColor} #voucherView .number{font-size:44px;font-weight:700 !important;color:#333;line-height:1;letter-spacing:-0.01em;text-shadow:0 0 0.01px currentColor} #voucherView .name{font-size:20px;font-weight:700;margin-bottom:10px;color:#1f1f1f} #voucherView .datetime{display:flex;align-items:center;gap:8px;color:#5f5575;font-size:13px;font-weight:500;padding-bottom:14px;border-bottom:1px solid #e3e3e8;flex-wrap:wrap} #voucherView .vMsg{margin-top:6px;display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:11px;background:linear-gradient(90deg,rgba(246,236,255,.55),rgba(236,245,255,.55));border:1px solid rgba(17,24,39,.02)} #voucherView .vMsgIcon{width:26px;height:26px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:transparent;flex:0 0 auto} .msg-icon-img{width:26px;height:26px;display:block;object-fit:contain} .msg-icon-svg{width:18px;height:18px;display:block} #voucherView .vMsgIcon img{width:26px;height:26px;display:block;object-fit:contain} #voucherView .vMsgText{font-size:9.5px;color:#111;line-height:1.1;font-weight:400;word-break:break-word} #voucherView .security-row{margin-top:14px;padding-bottom:14px;border-bottom:1px solid #e3e3e8;display:flex;justify-content:space-between;align-items:center} #voucherView .security-label{font-size:11px;font-weight:600;letter-spacing:.3px;color:#5a4f70;margin-right:4px} #voucherView .info-circle{width:16px;height:16px;border-radius:50%;background:#18b394;color:#fff;font-size:10px;font-weight:500;display:flex;align-items:center;justify-content:center;margin-left:-3px} #voucherView .security-boxes{display:flex;gap:4px} #voucherView .code{width:26px;height:26px;border-radius:6px;background:#ececf1;border:none;box-shadow:none;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#111} #voucherView .section-title{margin-top:14px;font-size:11px;font-weight:500;letter-spacing:.6px;color:#6a5f80} #voucherView .data{margin-top:10px;font-size:18px;color:#2b2b2b} #voucherView .row{display:flex;justify-content:space-between;margin-bottom:10px;gap:14px} #voucherView .promo-wrap{margin-top:16px;background:rgba(0,0,0,0.07);border:0;box-shadow:none;border-radius:18px;padding:18px} #voucherView .promo-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding:0 2px;color:#fff} #voucherView .promo-head .promo-title{font-weight:500;font-size:16px;letter-spacing:0;display:flex;align-items:center;gap:5.06px;color:#ffffff} #voucherView .promo-badge{background:#F6C31C;color:#1a1a1a;font-weight:500;font-size:10px;padding:2.53px 5.566px;border-radius:999px;margin-left:5.06px;line-height:1;display:inline-flex;align-items:center;justify-content:center;min-height:14.03px} #voucherView .promo-card{margin-top:10px;background:#ffffff;border-radius:18px;overflow:hidden;box-shadow:none} #voucherView .promo-grid{display:flex;gap:12px;align-items:stretch} #voucherView .promo-left{flex:1.45;border-radius:16px;overflow:hidden;background:#eee;min-height:92px} #voucherView .promo-left img{width:100%;height:100%;object-fit:cover;display:block} #voucherView .promo-right{flex:1;display:flex;flex-direction:column;justify-content:space-between;padding:4px 2px 2px;color:#222} #voucherView .promo-right-top{display:flex;justify-content:flex-end} #voucherView .promo-icon{width:28px;height:28px;border-radius:10px;background:#F7A800;display:flex;align-items:center;justify-content:center;font-weight:500;color:#fff;line-height:1;box-shadow:0 10px 18px rgba(0,0,0,0.18);user-select:none} #voucherView .promo-text{font-size:11px;font-weight:500;line-height:1.25;opacity:0.92;margin-top:4px} #voucherView .promo-from{margin-top:8px;font-size:10px;font-weight:500;letter-spacing:0.5px;opacity:0.65} #voucherView .promo-price{font-size:30px;font-weight:500;letter-spacing:-0.5px;margin-top:2px;line-height:1} #voucherView .promo-cta{margin-top:10px;align-self:flex-start;background:#18B4A1;color:#fff;border:0;padding:9px 12px;border-radius:12px;font-weight:500;font-size:11px;cursor:pointer;box-shadow:0 12px 22px rgba(0,0,0,0.18)} #voucherView .promo-cta:active{transform:scale(0.99)} .movCard{flex-direction:column;align-items:stretch;padding:0;overflow:visible} .movHeader{width:100%;border:0;box-shadow:none;0 0 0 1px rgba(0,0,0,0.02);background:transparent;display:flex;align-items:center;gap:12px;padding:14px 14px;color:inherit;text-align:left;cursor:pointer} .movHeader:active{opacity:.92} .movList{padding:0 14px 10px !important;width:100% !important;max-height:none !important;height:auto !important;overflow-y:visible !important;overflow-x:hidden !important;-webkit-overflow-scrolling:auto !important;overscroll-behavior:auto !important;touch-action:pan-y !important} .movItem{display:flex;justify-content:space-between;gap:12px;padding:14px 0;border-top:1px solid rgba(0,0,0,.06)} body.delete-mode .movItem{border-top-color:rgba(255,0,0,.18);background:rgba(255,0,0,.04)} body.delete-mode .movItem::after{content:"Eliminar";margin-left:10px;font-size:11px;font-weight:500;color:rgba(180,0,0,.75)} .movName{font-weight:500;font-size:18px;color:#1f1f1f} .movDate{margin-top:3px;color:#8c8c8c;font-size:13px} .movAmt{font-weight:500;font-size:18px;color:#333333} .movEmpty{padding:7px 0;color:#8c8c8c;font-size:14px} .movList{padding:0 14px 10px !important;width:100% !important;max-height:none !important;height:auto !important;overflow-y:visible !important;overflow-x:hidden !important;-webkit-overflow-scrolling:auto !important;overscroll-behavior:auto !important;touch-action:pan-y !important} .movAmt{font-weight:500;font-size:18px;color:#333333} .movList.movSkeletonLoading{padding:6px 14px 10px !important} .movSkWrap{padding:2px 0 4px} .movSkRow{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid rgba(0,0,0,.04)} .movSkAvatar{width:42px;height:42px;border-radius:999px;flex:0 0 42px;background:#edf0f2} .movSkMid{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px} .movSkBar,.movSkAmt{height:12px;border-radius:8px;background:#edf0f2} .movSkShort{width:52px;max-width:31%} .movSkLong{width:168px;max-width:68%} .movSkAmt{width:82px;max-width:24vw;flex:0 0 auto} .movSkPulse{background:linear-gradient(90deg,#eef1f3 0%,#f7f8f9 45%,#eef1f3 100%);background-size:220px 100%;animation:movSkPulse 1.15s ease-in-out infinite} @keyframes movSkPulse{0%{background-position:220px 0}100%{background-position:-220px 0}} .movList{padding:0 14px 10px !important;width:100% !important;max-height:none !important;height:auto !important;overflow-y:visible !important;overflow-x:hidden !important;-webkit-overflow-scrolling:auto !important;overscroll-behavior:auto !important;touch-action:pan-y !important} .movCard{overflow:visible !important} .movItem{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:12px 0} .movName{font-size:15px !important} .movDate{font-size:12px !important} .movAmt{font-size:15px !important;color:#333333 !important} .movItem{border-top:1px solid rgba(0,0,0,.08) !important} .movName{font-size:15px !important;font-weight:500 !important} .movDate{font-size:12px !important} .movAmt{font-size:15px !important;font-weight:500 !important} .movAmt.pos{color:#111 !important} .movAmt.neg{color:#b0003a !important} .limitPill{display:inline-block;background:#F8F8F8;color:#707070;font-size:13px;line-height:1.3;padding:8px 14px;border-radius:17px;border:0;white-space:normal;text-align:center} .montoLimitWrap{display:flex;justify-content:center;margin:14px 0 0 0} #voucherView .circle,#voucherView .bg-circle,#voucherView .header-circle{transform:translateY(-10px) scale(1.08) !important} #homeToast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%);background:rgba(18,18,20,.92);color:#fff;padding:10px 14px;border-radius:14px;box-shadow:none;0 10px 26px rgba(0,0,0,.22);font-size:13px;font-weight:500;letter-spacing:.1px;opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease;z-index:99999;max-width:min(92vw,420px);text-align:center} #homeToast.show{opacity:1;transform:translateX(-50%) translateY(-2px)} .btn-ico{width:26px;height:26px;margin-right:14px;display:inline-block;vertical-align:middle} .yHeader{display:flex;align-items:center;padding:10px 16px;gap:10px} .yBack,.yClose{font-size:26px;line-height:1;color:#6b6b6b;user-select:none} .yTitle{flex:1;text-align:left;font-size:19px;font-weight:500;color:#222} .mHeaderLikePhoto{position:relative;display:flex;align-items:center;justify-content:flex-start;padding:14px 16px} .mHeaderLikePhoto .mTitle{margin-left:18px;font-size:20px;font-weight:500;color:#4a4a4a} .mHeaderLikePhoto #mBack{font-size:22px !important;color:#7b7b7b !important} .mHeaderLikePhoto #mClose{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:22px !important;color:#7b7b7b !important} #montoView .mButtons.onlyYapear #mOtherBanks{display:none !important} #montoView .mButtons.onlyYapear #mYapearBtn{flex:1 1 100% !important;width:100% !important} #bSheetWrap{position:fixed !important;inset:0 !important;width:100% !important;height:100% !important;background:rgba(0,0,0,.56) !important;display:flex !important;align-items:flex-end !important;justify-content:center !important;opacity:0 !important;pointer-events:none !important;transition:opacity .16s ease !important;z-index:99999 !important;overflow:hidden !important;touch-action:none !important} #bSheetWrap.hidden{display:none !important} #bSheetWrap.show{opacity:1 !important;pointer-events:auto !important} #bSheetWrap .bSheet{width:100% !important;max-width:none !important;max-height:none !important;overflow:visible !important;background:#fff !important;border-top-left-radius:26px !important;border-top-right-radius:26px !important;padding:26px 22px calc(24px + env(safe-area-inset-bottom)) !important;box-shadow:0 -18px 44px rgba(0,0,0,.22) !important;transform:translateY(105%) !important;transition:transform .20s cubic-bezier(.2,.8,.2,1) !important;box-sizing:border-box !important} #bSheetWrap.show .bSheet{transform:translateY(0) !important} #bSheetWrap .bSheet *{box-sizing:border-box !important} .bSheetIcon{width:46px !important;height:54px !important;border-radius:50% !important;background:#f3ddff !important;color:#8a199b !important;display:grid !important;place-items:center !important;margin:0 auto 18px !important;font-size:27px !important;font-weight:900 !important} .bSheetIntro{color:#8a199b !important;text-align:center !important;font-size:17px !important;font-weight:900 !important;margin:0 !important} #bBankTitle{color:#8a199b!important;text-align:center!important;font-size:24px!important;line-height:1.08!important;font-weight:900!important;margin:10px 0 22px!important} .bSheetSummary{margin:0 auto 20px !important;width:100% !important;background:#f4f1f7 !important;border-radius:0 !important;padding:18px 16px !important;display:grid !important;grid-template-columns:1fr auto !important;gap:12px !important;align-items:center !important} .bSheetLabels{color:#2f2940 !important;font-weight:900 !important;font-size:17px !important;line-height:1.9 !important} .bSheetValues{text-align:right !important;color:#21172f !important;font-weight:900 !important;font-size:17px !important;line-height:1.9 !important;max-width:58vw !important} #bMonto{font-weight:900!important;font-size:22px!important;color:#21172f!important;white-space:nowrap!important} #bDestinoMini{font-size:17px!important;font-weight:900!important;color:#21172f!important;white-space:normal!important;overflow-wrap:anywhere!important} #bConfirm{width:100% !important;height:56px !important;display:flex !important;align-items:center !important;justify-content:center !important;border:0 !important;outline:0 !important;border-radius:8px !important;background:#12c7b6 !important;color:#fff !important;font-size:18px !important;font-weight:900 !important;box-shadow:none !important;margin:8px 0 0 !important;padding:0 !important;-webkit-appearance:none !important;appearance:none !important} #bCancel{width:100% !important;height:48px !important;display:flex !important;align-items:center !important;justify-content:center !important;border:0 !important;outline:0 !important;background:transparent !important;color:#14b9ac !important;font-size:18px !important;font-weight:900 !important;margin:10px 0 0 !important;padding:0 !important;-webkit-appearance:none !important;appearance:none !important} #bConfirm:focus,#bCancel:focus{outline:0 !important;box-shadow:none !important} #bSheetWrap{background:rgba(0,0,0,.58) !important} #bSheetWrap .bSheet{padding:22px 24px calc(18px + env(safe-area-inset-bottom)) !important;border-top-left-radius:24px !important;border-top-right-radius:24px !important;box-shadow:0 -14px 34px rgba(0,0,0,.20) !important} .bSheetIcon{width:48px !important;height:48px !important;margin:0 auto 13px !important;font-size:24px !important} .bSheetIntro{font-size:16px !important;line-height:1.15 !important} #bBankTitle{font-size:22px !important;line-height:1.08 !important;margin:7px 0 17px !important} .bSheetSummary{margin:0 auto 15px !important;padding:15px 18px !important;gap:10px !important;min-height:96px !important} .bSheetLabels{font-size:16px !important;line-height:1.8 !important} .bSheetValues{font-size:16px !important;line-height:1.8 !important;max-width:56vw !important} #bMonto{font-size:20px !important} #bDestinoMini{font-size:16px !important} #bConfirm{height:50px !important;border-radius:8px !important;font-size:17px !important;margin:4px 0 0 !important} #bCancel{height:40px !important;font-size:17px !important;margin:7px 0 0 !important} @media (max-height:650px){#bSheetWrap .bSheet{padding-top:18px !important;padding-bottom:14px !important} .bSheetIcon{width:42px !important;height:42px !important;margin-bottom:9px !important;font-size:18px !important} #bBankTitle{font-size:20px !important;margin:5px 0 12px !important} .bSheetSummary{min-height:82px !important;padding:12px 16px !important;margin-bottom:12px !important} #bConfirm{height:46px !important} #bCancel{height:36px !important}} #bSheetWrap .bSheet{position:relative !important;overflow:hidden !important} #bSheetSkeleton{position:absolute !important;inset:0 !important;z-index:5 !important;background:#fff !important;padding:22px 24px calc(18px + env(safe-area-inset-bottom)) !important;opacity:0 !important;pointer-events:none !important;transition:opacity .12s ease !important} #bSheetWrap.bSheetLoading #bSheetSkeleton{opacity:1 !important} #bSheetWrap.bSheetLoading .bSheet&gt;:not(#bSheetSkeleton){opacity:0 !important} #bSheetSkeleton .bShSkIcon{width:48px !important;height:48px !important;border-radius:999px !important;margin:0 auto 14px !important} #bSheetSkeleton .bShSkBar{height:16px !important;border-radius:10px !important;margin:0 auto 10px !important} #bSheetSkeleton .bShSkSm{width:136px !important;max-width:54% !important} #bSheetSkeleton .bShSkLg{width:190px !important;max-width:72% !important;height:24px !important;margin-bottom:18px !important} #bSheetSkeleton .bShSkCard{display:grid !important;grid-template-columns:1fr auto !important;gap:12px !important;align-items:center !important;background:#f4f1f7 !important;border-radius:0 !important;padding:15px 18px !important;min-height:96px !important;margin:0 auto 15px !important} #bSheetSkeleton .bShSkCol{display:flex !important;flex-direction:column !important;gap:14px !important} #bSheetSkeleton .bShSkLeft{width:88px !important;height:18px !important;border-radius:8px !important} #bSheetSkeleton .bShSkRight{width:104px !important;height:18px !important;border-radius:8px !important;justify-self:end !important} #bSheetSkeleton .bShSkBtn{width:100% !important;height:50px !important;border-radius:8px !important;margin:4px 0 8px !important} #bSheetSkeleton .bShSkCancel{width:118px !important;height:18px !important;border-radius:8px !important;margin:0 auto !important} #bSheetSkeleton .bShSkPulse{background:linear-gradient(90deg,#eef1f3 0%,#f7f8f9 45%,#eef1f3 100%) !important;background-size:220px 100% !important;animation:bSheetSkPulse 1.05s ease-in-out infinite !important} @keyframes bSheetSkPulse{0%{background-position:220px 0}100%{background-position:-220px 0}} @media (max-height:650px){#bSheetSkeleton{padding-top:18px !important;padding-bottom:14px !important} #bSheetSkeleton .bShSkIcon{width:42px !important;height:42px !important;margin-bottom:10px !important} #bSheetSkeleton .bShSkLg{height:22px !important;margin-bottom:14px !important} #bSheetSkeleton .bShSkCard{min-height:82px !important;padding:12px 16px !important;margin-bottom:12px !important} #bSheetSkeleton .bShSkBtn{height:46px !important}} .netModal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:99999} .netModal.hidden{display:none} .netBox{width:min(270px,70vw);background:#fff;border-radius:13px;padding:13px 14px 12px;box-shadow:0 14px 30px rgba(0,0,0,.20);display:flex;flex-direction:column;align-items:center;gap:8px} .netSpinner{width:34px;height:34px;border-radius:50%;border:4px solid rgba(45,212,191,.25);border-top-color:rgba(45,212,191,1);animation:netSpin 1s linear infinite} @keyframes netSpin{to{transform:rotate(360deg)}} .netText{text-align:center;font-weight:500;font-size:15px;color:#111827;line-height:1.1} .header,.headerRight{position:relative;z-index:9999} #notifBtn{cursor:pointer;-webkit-tap-highlight-color:transparent;pointer-events:auto} #notifBtn svg{pointer-events:none} .notifHotspot{position:fixed;top:calc(var(--safeT) + 14px);right:calc(var(--side) + 12px);width:44px;height:43px;border-radius:999px;background:transparent;border:0;padding:0;z-index:9999999;pointer-events:auto} #notifBtn{cursor:pointer;pointer-events:auto} .vmWrap{position:fixed;inset:0;z-index:99998;display:flex;align-items:flex-end;justify-content:center;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .24s ease,visibility 0s linear .24s} .vmWrap.hidden{display:none} .vmWrap.show{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .24s ease} .vmBackdrop{position:absolute;inset:0;background:rgba(0,0,0,.55);opacity:0;transition:opacity .24s ease} .vmSheet{position:relative;width:min(420px,100vw);height:72vh;max-height:72vh;background:#f3f4f6;border-radius:22px 22px 0 0;box-shadow:0 -18px 40px rgba(0,0,0,.22);padding:10px 14px 16px;overflow:hidden;transform:translateY(34px);opacity:.98;transition:transform .32s cubic-bezier(.22,.78,.24,1),opacity .24s ease;will-change:transform,opacity} .vmWrap.show .vmBackdrop{opacity:1} .vmWrap.show .vmSheet{transform:translateY(0);opacity:1} .vmHandle{width:46px;height:5px;border-radius:999px;background:rgba(0,0,0,.18);margin:4px auto 10px} .vmTabs{display:flex;gap:10px;padding:4px 2px 12px;overflow:auto} .vmTab{flex:0 0 auto;border:0;padding:10px 14px;border-radius:999px;background:rgba(104,0,179,.18);color:rgba(104,0,179,.9);font-weight:500;font-size:14px} .vmTab.active{background:rgba(104,0,179,.92);color:#fff} .vmGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px 10px;padding:6px 2px 0;align-content:flex-start;grid-auto-rows:max-content;max-height:calc(72vh - 84px);height:auto;overflow:auto} .vmItem{display:flex;flex-direction:column;align-items:flex-start;gap:7px;text-align:left} .vmItem *{text-align:left} .vmIcon{width:50px;height:50px;border-radius:16px;background:rgba(255,255,255,.75);display:flex;align-items:center;justify-content:center;box-shadow:0 10px 20px rgba(0,0,0,.06)} .vmIcon img{width:28px;height:28px;object-fit:contain;opacity:.92} .vmText{font-size:12.5px;font-weight:600;text-align:center;color:#2b2b2b;line-height:1.05} #banksView .bApp{background:#fff!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior:contain!important} #banksView{overflow:hidden!important} #banksView .bPurpleStrip{height:28px;background:#742284;width:100%;flex:0 0 auto} #banksView .bHeader{height:62px!important;padding:0 22px!important;border-bottom:none!important;background:#fff!important;box-shadow:none!important} #banksView #bBack,#banksView #bClose{width:36px!important;height:36px!important;background:transparent!important;border-radius:12px!important} #banksView #bBack span{font-size:26px!important;font-weight:700!important;color:#21162f!important} #banksView #bClose span{font-size:38px!important;font-weight:300!important;color:#21162f!important} #banksView .bHeader div div{font-size:20px!important;font-weight:800!important;color:#241831!important;letter-spacing:-.2px!important} #banksView .bBody{padding:12px 14px 92px!important;background:#fff!important;min-height:calc(100% - 90px)!important} #banksView .bCard{height:58px!important;padding:0 18px!important;border-radius:10px!important;border:1px solid rgba(36,24,49,.07)!important;background:#fff!important;box-shadow:0 6px 13px rgba(37,26,50,.14)!important;gap:14px!important} #banksView .bCard .bLogo{width:38px!important;height:38px!important;border-radius:999px!important;background:#80218f!important;box-shadow:none!important} #banksView .bCard .bLogo img{width:27px!important;height:27px!important;object-fit:contain!important} #banksView .bCard&gt;div:last-child{font-size:15px!important;font-weight:800!important;color:#111!important} #banksView .bSectionTitle{margin:20px 4px 12px!important;color:#7b168f!important;font-weight:800!important;font-size:16px!important;line-height:1.12!important} #banksView .bList{display:flex!important;flex-direction:column!important;gap:9px!important;padding-bottom:30px!important} #banksView .bRow{min-height:54px!important;display:flex!important;align-items:center!important;gap:14px!important;padding:0 18px!important;border:1px solid rgba(36,24,49,.07)!important;box-shadow:0 5px 11px rgba(37,26,50,.12)!important;border-radius:10px!important;background:#fff!important} #banksView .bBankIcon{width:38px!important;height:38px!important;border-radius:999px!important;background:#f5e7ff!important;display:grid!important;place-items:center!important;flex:0 0 auto!important} #banksView .bBankIcon svg{width:20px!important;height:20px!important;stroke:#7b168f!important} #banksView .bBankName{font-size:16px!important;font-weight:800!important;color:#0f0f13!important;line-height:1.15!important} #banksView .bRow:active,#banksView .bCard:active{transform:scale(.985);transition:transform .08s ease} #banksView .bList.bSkeletonBankList{gap:9px!important} #banksView .bBankSkRow{min-height:54px!important;display:flex!important;align-items:center!important;gap:14px!important;padding:0 18px!important;border:1px solid rgba(36,24,49,.045)!important;box-shadow:0 4px 9px rgba(37,26,50,.06)!important;border-radius:10px!important;background:#fff!important} #banksView .bBankSkIcon{width:38px!important;height:38px!important;border-radius:999px!important;flex:0 0 38px!important;background:#eef1f3!important} #banksView .bBankSkText{height:15px!important;width:160px!important;max-width:58%!important;border-radius:8px!important;background:#eef1f3!important} #banksView .bBankSkPulse{animation:bBankSkFade .85s ease-in-out infinite alternate!important} @keyframes bBankSkFade{from{opacity:.62}to{opacity:1}} .rcvOverlay{position:fixed;inset:0;z-index:10050;display:none;background:#5B2C83} .rcvTopBar{display:flex;justify-content:space-between;align-items:center;padding:16px 16px 8px;color:#fff} .rcvLogo{display:flex;align-items:center;gap:10px} .rcvLogo video,.rcvLogo img{width:54px;height:54px;border-radius:14px;object-fit:cover;background:rgba(255,255,255,.12);display:none} .rcvVideoBtn{border:none;background:rgba(255,255,255,.15);color:#fff;padding:8px 10px;border-radius:12px;font-weight:500;font-size:11px;cursor:pointer} .rcvClose{width:34px;height:34px;border-radius:14px;border:none;background:rgba(255,255,255,.15);color:#fff;font-size:18px;cursor:pointer} .rcvCardWrap{padding:18px 16px 24px} .rcvCard{background:#fff;border-radius:22px;padding:18px 18px 16px;box-shadow:0 16px 30px rgba(0,0,0,.18)} .rcvTitle{color:#5b2c83;font-weight:500;font-size:18px;margin:2px 0 10px} .rcvAmount{font-size:64px;font-weight:500;color:#222;line-height:1;margin:0 0 10px} .rcvAmount small{font-size:0.58em;color:#333333 !important;font-weight:500;position:relative;top:-8px} .rcvSub{font-size:18px;font-weight:500;color:#2b2b2b;margin:0 0 10px} .rcvMeta{display:flex;gap:14px;align-items:center;color:rgba(0,0,0,.55);font-weight:500;margin:8px 0 14px;flex-wrap:wrap;font-size:18px} .rcvHr{height:1px;background:rgba(0,0,0,.10);margin:10px 0 14px} .rcvSec{color:rgba(0,0,0,.45);font-weight:500;letter-spacing:.08em;font-size:11px;margin-bottom:10px} .rcvGrid{display:grid;grid-template-columns:1fr auto;gap:8px 12px;align-items:baseline} .rcvKey{font-size:16px;color:rgba(0,0,0,.55);font-weight:500;line-height:1.2} .rcvVal{font-size:18px;font-weight:500;color:#2d2140;line-height:1.2;text-align:right;justify-self:end} .opIconImg{width:34px;height:34px;border-radius:999px;object-fit:cover;display:block} .logoText{display:none} :root{--qrSafeTop:env(safe-area-inset-top,0px);--qrSafeBottom:env(safe-area-inset-bottom,0px)}
@@ -1860,7 +1907,7 @@ initDatosSmooth();
   setTimeout(apply, 60);
   setTimeout(apply, 250);
   setTimeout(apply, 900);
-  setInterval(apply, 500);
+  window.__yosiPerfInterval(apply, 500);
 })();&amp;lt;/script&amp;gt;
 &amp;lt;style id=&amp;quot;yosi-home-bank-full-name-wrap&amp;quot;&amp;gt;
 .hmclides[_ngcontent-ng-c3451458181]{min-width:0!important;flex:1 1 auto!important;width:auto!important;padding-right:2vw!important}
@@ -2223,7 +2270,7 @@ initDatosSmooth();
   window.addEventListener(&#39;storage&#39;, sync);
   document.addEventListener(&#39;DOMContentLoaded&#39;, function(){ setTimeout(sync,60); setTimeout(sync,500); });
   if(document.readyState !== &#39;loading&#39;) setTimeout(sync,60);
-  setInterval(sync, 2200);
+  window.__yosiPerfInterval(sync, 2200);
   try{ parent.postMessage({ type:&#39;yosi_new_home_ready&#39; }, &#39;*&#39;); }catch(e){}
 })();&amp;lt;/script&amp;gt;
 &amp;lt;style id=&amp;quot;voucher-home-color-final-override&amp;quot;&amp;gt;:root{--theme-color:#780699!important;--sb-color:#780699!important} html,body{background:#780699!important;background-image:linear-gradient(180deg,#780699 0%,#780699 100%)!important} app-root,app-home{background:#fff!important;background-image:none!important} .homehead{background:#780699!important;background-image:linear-gradient(180deg,#780699 0%,#780699 100%)!important} .homemovimientos{background:#fff!important;background-image:linear-gradient(180deg,#780699 0 5vw,#ffffff 5vw 100%)!important} .homehead[_ngcontent-ng-c3451458181]{background:#780699!important;background-image:linear-gradient(180deg,#780699 0%,#780699 100%)!important} .homemovimientos[_ngcontent-ng-c3451458181]{background:#fff!important;background-image:linear-gradient(180deg,#780699 0 5vw,#ffffff 5vw 100%)!important} .homebienvenida.yape-search-head{background:transparent!important} .search-pill{background:rgba(255,255,255,.20)!important} .head-user,.homebienvenida.yape-search-head&amp;gt;img{background-color:rgba(255,255,255,.14)!important} #newHomeFrame,#homeFrame,#homeView{background:#780699!important;background-image:linear-gradient(180deg,#780699 0%,#780699 100%)!important}&amp;lt;/style&amp;gt;
@@ -4190,7 +4237,7 @@ if(!e || e.key === HIDE_PROMOS_KEY) setupHidePromosToggle();
 window.__applyHidePromos = applyHidePromos;
 setTimeout(setupHidePromosToggle, 250);
 setTimeout(applyHidePromos, 900);
-setInterval(applyHidePromos, 1500);
+window.__yosiPerfInterval(applyHidePromos, 1500);
 })();
 function maskPhoneVoucher(p){
 const clean = String(p||"").replace(/\D/g,"").slice(0,9);
@@ -9152,7 +9199,7 @@ window.addEventListener(&#39;focus&#39;, syncNewHome);
 document.addEventListener(&#39;visibilitychange&#39;, syncNewHome);
 setTimeout(syncNewHome, 200);
 setTimeout(syncNewHome, 900);
-setInterval(syncNewHome, 2500);
+window.__yosiPerfInterval(syncNewHome, 2500);
 })();&lt;/script&gt;
 &lt;script id="qrNewIsoBridgeFinal"&gt;(function(){
 if(window.__qrNewIsoBridgeFinal) return;
@@ -10432,7 +10479,7 @@ if(storeOpen || (st && getComputedStyle(st).display!=='none')) showHome(true);
 });
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',scan,{once:true}); else scan();
 window.addEventListener('load',function(){ [0,80,250,700,1500].forEach(function(ms){setTimeout(scan,ms);}); },{once:true});
-scanTimer=setInterval(scan,700);
+scanTimer=window.__yosiPerfInterval(scan, 700);
 setTimeout(function(){ try{clearInterval(scanTimer);}catch(e){} },30000);
 })();</script>
 </div>
@@ -11816,7 +11863,7 @@ try{ patch(fr.contentDocument || (fr.contentWindow && fr.contentWindow.document)
 }
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run, {once:true}); else run();
 window.addEventListener('load', function(){ [0,80,180,400,800,1500,2500].forEach(function(ms){ setTimeout(run, ms); }); }, {once:true});
-try{ setInterval(run, 4000); }catch(e){}
+try{ window.__yosiPerfInterval(run, 4000); }catch(e){}
 })();</script>
 <style id="yosi-warning-title-noemoji-override">#yosiAccountWarning .yosiWarnTitle{font-size:clamp(15px,4.8vw,18px) !important;letter-spacing:clamp(.08em,.9vw,.14em) !important} #yosiAccountWarning .yosiWarnIcon{width:clamp(38px,12vw,50px) !important;height:clamp(38px,12vw,50px) !important;margin-bottom:clamp(3px,1.8vw,6px) !important} #yosiAccountWarning .yosiWarnIcon svg{width:clamp(34px,10vw,42px) !important;height:clamp(34px,10vw,42px) !important} #yosiAccountWarning .yosiWarnSectionTitle{gap:7px !important} #yosiAccountWarning .yosiWarnSecSymbol{display:inline-grid !important;place-items:center !important;width:16px !important;min-width:16px !important;color:#c487ff !important;font-size:13px !important;line-height:1 !important;font-weight:900 !important;transform:translateY(-.5px) !important} @media (max-height:700px){#yosiAccountWarning .yosiWarnTitle{font-size:15px !important;letter-spacing:.09em !important} #yosiAccountWarning .yosiWarnIcon{width:34px !important;height:34px !important} #yosiAccountWarning .yosiWarnIcon svg{width:30px !important;height:30px !important} #yosiAccountWarning .yosiWarnSecSymbol{width:14px !important;min-width:14px !important;font-size:11.5px !important}}</style>
 <style id="yosi-warn-hero-thinner-final">#yosiAccountWarning .yosiWarnHero{padding:7px 10px 7px !important;min-height:auto !important} #yosiAccountWarning .yosiWarnIcon{width:30px !important;height:30px !important;margin-bottom:2px !important} #yosiAccountWarning .yosiWarnIcon svg{width:26px !important;height:26px !important} #yosiAccountWarning .yosiWarnTitle{font-size:15px !important;letter-spacing:.10em !important;line-height:1.02 !important} #yosiAccountWarning .yosiWarnSub{font-size:9.8px !important;margin-top:2px !important;line-height:1.08 !important} @media (max-height:700px),(max-width:390px){#yosiAccountWarning .yosiWarnHero{padding:5px 8px 6px !important} #yosiAccountWarning .yosiWarnIcon{width:24px !important;height:24px !important;margin-bottom:1px !important} #yosiAccountWarning .yosiWarnIcon svg{width:20px !important;height:20px !important} #yosiAccountWarning .yosiWarnTitle{font-size:12.5px !important;letter-spacing:.08em !important} #yosiAccountWarning .yosiWarnSub{font-size:8.8px !important;margin-top:1px !important}}</style>
@@ -11867,7 +11914,7 @@ document.addEventListener('click',function(){setTimeout(run,0);setTimeout(run,10
 window.addEventListener('resize',run,{passive:true});
 window.addEventListener('orientationchange',function(){setTimeout(run,80);setTimeout(run,250);},{passive:true});
 if(window.__yosiFooterSamePlaceTimer) clearInterval(window.__yosiFooterSamePlaceTimer);
-window.__yosiFooterSamePlaceTimer=setInterval(run,1500);
+window.__yosiFooterSamePlaceTimer=window.__yosiPerfInterval(run, 1500);
 })();</script>
 <script id="fix-baucher-movimiento-touch-inmediato-v5-sin-parpadeo">(function(){
 if(window.__fixBaucherMovTouchInmediatoV5) return;
@@ -12013,9 +12060,9 @@ function installAll(){ scanDocs(installDoc, document, 0); }
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', installAll, {once:true});
 else installAll();
 window.addEventListener('load', installAll, {once:true});
-[0,20,60,120,250,500,900,1400,2200,3500,5500,8000].forEach(function(ms){ setTimeout(installAll, ms); });
+[180,700,1600,3200,6000].forEach(function(ms){ setTimeout(installAll, ms); });
 try{
-var t = setInterval(installAll, 450);
+var t = window.__yosiPerfInterval ? window.__yosiPerfInterval(installAll, 1200) : setInterval(installAll, 1200);
 setTimeout(function(){ try{ clearInterval(t); }catch(e){} }, 20000);
 }catch(e){}
 try{ new MutationObserver(function(){ installAll(); }).observe(document.documentElement,{childList:true,subtree:true}); }catch(e){}
@@ -14723,7 +14770,7 @@ doc.querySelectorAll('iframe').forEach(function(fr){ try{ bindDoc(fr.contentDocu
 }
 function rebinder(){ bindDoc(document); document.querySelectorAll('iframe').forEach(function(fr){ try{ bindDoc(fr.contentDocument); }catch(e){} }); }
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', rebinder); else rebinder();
-setInterval(rebinder, 1200);
+window.__yosiPerfInterval(rebinder, 1200);
 })();</script>
 <style>#pwaInstallBanner{position:fixed;left:16px;right:16px;bottom:max(16px,env(safe-area-inset-bottom));z-index:2147483646;display:none;opacity:0;transform:translateY(18px);transition:opacity .25s ease,transform .25s ease;pointer-events:none} #pwaInstallBanner.show{display:block;opacity:1;transform:translateY(0);pointer-events:auto} #pwaInstallBanner .pwa-card{max-width:480px;margin:0 auto;background:linear-gradient(180deg,rgba(126,38,147,.98),rgba(94,23,118,.98));color:#fff;border:1px solid rgba(255,255,255,.14);border-radius:22px;box-shadow:0 18px 50px rgba(0,0,0,.35);padding:16px;backdrop-filter:blur(10px)} #pwaInstallBanner .pwa-head{display:flex;gap:12px;align-items:flex-start} #pwaInstallBanner .pwa-icon{width:48px;height:48px;border-radius:14px;flex:0 0 48px;object-fit:cover;box-shadow:0 10px 18px rgba(0,0,0,.18);background:rgba(255,255,255,.12)} #pwaInstallBanner .pwa-title{font-size:16px;font-weight:500;line-height:1.15;margin:1px 0 4px;color:#fff} #pwaInstallBanner .pwa-text{font-size:13px;line-height:1.35;opacity:.95;margin:0;color:#f5eefe} #pwaInstallBanner .pwa-actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap} #pwaInstallBanner button{appearance:none;border:0;border-radius:14px;padding:12px 16px;font-weight:500;font-size:14px;cursor:pointer} #pwaInstallBtn{flex:1 1 170px;background:#fff;color:#742284;box-shadow:0 10px 22px rgba(0,0,0,.16)} #pwaLaterBtn{flex:1 1 120px;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.14)} #pwaInstallBanner .pwa-steps{margin-top:12px;padding:12px;border-radius:16px;background:rgba(255,255,255,.10);font-size:13px;line-height:1.4;color:#fff;display:none} #pwaInstallBanner.ios-help .pwa-steps,#pwaInstallBanner.manual-help .pwa-steps{display:block} #pwaInstallBanner .pwa-close{position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:999px;background:rgba(255,255,255,.14);color:#fff;font-size:18px;line-height:34px;text-align:center;padding:0} @media (min-width:768px){#pwaInstallBanner{left:auto;right:22px;bottom:22px;width:min(430px,calc(100vw - 44px))} #pwaInstallBanner .pwa-card{margin:0}}</style>
 <div aria-live="polite" id="pwaInstallBanner"> <div class="pwa-card"> <button aria-label="Cerrar aviso" class="pwa-close" id="pwaCloseBtn" type="button">×</button> <div class="pwa-head"> <img alt="App" class="pwa-icon" decoding="async" loading="lazy" src="icon-192.png"/> <div> <div class="pwa-title">Instala esta app en tu celular</div> <p class="pwa-text" id="pwaInstallText">Toca <strong>Instalar app</strong> para tener acceso más rápido desde tu pantalla de inicio.</p> </div> </div> <div class="pwa-actions"> <button id="pwaInstallBtn" type="button">Instalar app</button> <button id="pwaLaterBtn" type="button">Ahora no</button> </div> <div class="pwa-steps" id="pwaInstallSteps"></div> </div> </div>
@@ -15419,7 +15466,7 @@ const run = ()=> { try{ inject(f.contentDocument); }catch(e){} };
 f.addEventListener('load', run);
 setTimeout(run, 300);
 setTimeout(run, 1200);
-setInterval(run, 2500);
+window.__yosiPerfInterval(run, 2500);
 }
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hookFrame); else hookFrame();
 })();</script>
@@ -15580,7 +15627,7 @@ const NOTIF_JS = `
       if(hotspot && !hotspot.dataset.notifBound){ hotspot.dataset.notifBound = '1'; hotspot.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); openNotif(); }, true); }
     }
     bindBell();
-    setInterval(bindBell, 1500);
+    window.__yosiPerfInterval(bindBell, 1500);
     try {
       if(parent && parent.addEventListener){
         parent.addEventListener('bridgeNotificationsUpdated', function(){
@@ -15612,7 +15659,7 @@ const run = ()=>{ try{ inject(f.contentDocument); }catch(e){} };
 f.addEventListener('load', run);
 setTimeout(run, 500);
 setTimeout(run, 1400);
-setInterval(run, 2500);
+window.__yosiPerfInterval(run, 2500);
 }
 
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hookFrame);
@@ -15674,7 +15721,7 @@ setTimeout(queue, 120);
 setTimeout(queue, 600);
 setTimeout(queue, 1500);
 var mo = new MutationObserver(queue);
-mo.observe(document.documentElement, {childList:true, subtree:true, attributes:true, attributeFilter:['style','class']});
+mo.observe(document.documentElement, {childList:true, subtree:true});
 })();</script>
 <style id="__iframe_true_fullwidth_patch">html,body{max-width:100% !important;overflow-x:hidden !important} .stage{width:100% !important;height:100dvh !important} iframe{width:100% !important;height:100% !important}</style>
 <script id="__iframe_true_fullwidth_runtime">(function(){
@@ -15780,7 +15827,7 @@ visualViewport.addEventListener('resize', apply, {passive:true});
 setTimeout(apply, 50);
 setTimeout(apply, 400);
 setTimeout(apply, 1200);
-setInterval(apply, 2000);
+window.__yosiPerfInterval(apply, 2000);
 })();</script>
 <style id="__responsive_no_font_patch">html,body{width:100% !important;height:100% !important;max-width:100% !important;overflow-x:hidden !important} body{margin:0 !important;padding:0 !important} .stage{position:fixed !important;inset:0 !important;width:100vw !important;height:100dvh !important;overflow:hidden !important} .stage iframe{position:absolute !important;inset:0 !important;width:100% !important;height:100% !important;border:0 !important} @media (pointer:fine) and (min-width:521px){body{padding:0 !important;align-items:stretch !important;justify-content:flex-start !important} .device{width:100vw !important;height:100dvh !important;max-width:100vw !important;max-height:100dvh !important;border-radius:0 !important;box-shadow:none !important;margin:0 !important}}</style>
 <script>(function(){
@@ -21677,7 +21724,7 @@ const m = txt.match(/const\s+EMBEDDED_MP3\s*=\s*'([^']+)'/);
     } catch (e) {}
   }
   bindFrameUnlock();
-  setInterval(bindFrameUnlock, 3000);
+  window.__yosiPerfInterval(bindFrameUnlock, 3000);
   async function playSound(){
     if(!soundEnabled()) return;
     const candidates = buildAudioCandidates();
@@ -21996,7 +22043,7 @@ const m = txt.match(/const\s+EMBEDDED_MP3\s*=\s*'([^']+)'/);
     if(document.visibilityState === 'visible'){ dispatchUpdate(); }
   });
   setTimeout(boot, 1200);
-  setInterval(boot, 10000);
+  window.__yosiPerfInterval(boot, 10000);
 })();</script>
 <script>window.YAPETON_VAPID_KEY = "BPCvBt0YfzBm0fF_LUbXH6DaCxydHk_FUKGFjac2VndseKfqY_lpEPGj_o8EXINMIxb6lp1yAbKt9AeVkFCQnd8";</script>
 <script id="fcm-web-push-bridge" type="module">import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -23144,10 +23191,10 @@ document.addEventListener('DOMContentLoaded', boot, { once:true });
 boot();
 }
 
-setInterval(function(){
+(window.__yosiPerfInterval || window.setInterval)(function(){
 hookFrameLoad();
 applyAll();
-}, 500);
+}, 2200);
 })();</script>
 <script id="monto-responsive-scale-patch">(function(){
 if(window.__montoResponsiveScalePatch) return;
@@ -23561,8 +23608,7 @@ try{ patchWin(frames[i].contentWindow); cleanDoc(frames[i].contentDocument); }ca
 }
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run, {once:true});
 run();
-var n = 0;
-var timer = setInterval(function(){ run(); if(++n > 40) clearInterval(timer); }, 250);
+var n = 0; var timer = setInterval(function(){ if(document.hidden) return; run(); if(++n > 14) clearInterval(timer); }, 800);
 })();</script>
 <script id="home-bottom-buttons-fixed-final">(function(){
 function patchDoc(doc){
@@ -23929,8 +23975,7 @@ var m = txt.match(/const\s+EMBEDDED_MP3\s*=\s*'([^']+)'/);
 
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run, {once:true});
   run();
-  var n=0;
-  var timer=setInterval(function(){ run(); if(++n>80) clearInterval(timer); }, 250);
+  var n=0; var timer=setInterval(function(){ if(document.hidden) return; run(); if(++n>24) clearInterval(timer); }, 850);
   window.__qrPlaySoundNow = playParentSound;
 })();</script>
 <script id="yosi-confetti-hard-fix-final">(function(){
@@ -24481,7 +24526,7 @@ setTimeout(installStrongLookup, 1200);
 });
 }
 [200, 700, 1500, 2600, 4200].forEach(ms => setTimeout(installStrongLookup, ms));
-setInterval(installStrongLookup, 2500);
+window.__yosiPerfInterval(installStrongLookup, 2500);
 })();</script>
 <script id="yosi-no-visible-firebase-result-final">(function(){
 if(window.__yosiNoVisibleFirebaseResultFinal) return;
@@ -24508,7 +24553,7 @@ clean(yd);
 }
 if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", run, {once:true}); else run();
 window.addEventListener("load", function(){ setTimeout(run,80); setTimeout(run,500); setTimeout(run,1500); }, {once:true});
-setInterval(run, 2500);
+window.__yosiPerfInterval(run, 2500);
 })();</script>
 <script id="yosi-ver-todo-final-fix-v1">(function(){
 if(window.__yosiVerTodoFinalFixV1) return;
@@ -24548,7 +24593,7 @@ if(document.readyState === 'loading') document.addEventListener('DOMContentLoade
 setTimeout(patchHomeFrame, 300);
 setTimeout(patchHomeFrame, 1200);
 setTimeout(patchHomeFrame, 2600);
-setInterval(patchHomeFrame, 5000);
+window.__yosiPerfInterval(patchHomeFrame, 5000);
 })();</script>
 <style id="yosiBellConnectionStyle">#yosiBellConnectionOverlay{position:fixed !important;inset:0 !important;z-index:2147483000 !important;display:none !important;align-items:center !important;justify-content:center !important;padding:18px !important;background:rgba(0,0,0,.64) !important;pointer-events:none !important;box-sizing:border-box !important} #yosiBellConnectionOverlay.show{display:flex !important} #yosiBellConnectionCard{width:min(54vw,360px) !important;max-width:calc(100vw - 150px) !important;min-height:112px !important;padding:13px 13px 12px !important;border-radius:4px !important;background:#ffffff !important;box-shadow:0 14px 32px rgba(0,0,0,.24) !important;display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;text-align:center !important;box-sizing:border-box !important;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif !important} #yosiBellConnectionSpinner{width:38px !important;height:38px !important;border-radius:999px !important;border:5px solid rgba(28,190,178,.22) !important;border-top-color:#22c4b7 !important;border-right-color:#22c4b7 !important;animation:yosiBellSpin .82s linear infinite !important;box-sizing:border-box !important} #yosiBellConnectionText{margin-top:12px !important;max-width:210px !important;color:#111111 !important;font-size:clamp(15px,3.4vw,19px) !important;line-height:1.13 !important;font-weight:750 !important;letter-spacing:-.2px !important} @keyframes yosiBellSpin{to{transform:rotate(360deg)}} @media(max-width:380px){#yosiBellConnectionCard{width:min(56vw,250px) !important;max-width:calc(100vw - 130px) !important;min-height:104px !important;padding:12px 11px 11px !important} #yosiBellConnectionSpinner{width:34px !important;height:34px !important;border-width:4px !important} #yosiBellConnectionText{font-size:15px !important;max-width:185px !important;margin-top:10px !important}}</style>
 <script id="yosiBellConnectionPatch">(function(){
@@ -24713,7 +24758,7 @@ if(document.readyState === 'loading') document.addEventListener('DOMContentLoade
 else { ensureOverlay(); attachAll(); }
 window.addEventListener('load', function(){ setTimeout(attachAll,80); setTimeout(attachAll,500); setTimeout(attachAll,1500); }, {once:true});
 [250,700,1300,2500,4200,7000].forEach(function(ms){ setTimeout(attachAll, ms); });
-setInterval(attachAll, 2500);
+window.__yosiPerfInterval(attachAll, 2500);
 })();</script>
 <script id="yosi-opciones-outer-bridge-v4">(function(){
 if(window.__yosiOpcionesOuterBridgeV4) return; window.__yosiOpcionesOuterBridgeV4 = true;
@@ -24743,7 +24788,7 @@ d.head.appendChild(st);
 }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',inject,{once:true}); else inject();
 window.addEventListener('load',function(){[0,150,600,1500,3500].forEach(function(ms){setTimeout(inject,ms);});},{once:true});
-setInterval(inject,4000);
+window.__yosiPerfInterval(inject, 4000);
 })();</script>
 <script id="yosi-flecha-opciones-real-nested-fix">(function(){
 if(window.__yosiFlechaOpcionesRealNestedFix) return;
@@ -24939,8 +24984,8 @@ pf.addEventListener('load', function(){ setTimeout(patchAll, 30); setTimeout(pat
 }
 
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', patchAll, {once:true}); else patchAll();
-window.addEventListener('load', function(){ [0,80,250,700,1400,2600].forEach(function(ms){ setTimeout(patchAll, ms); }); }, {once:true});
-setInterval(patchAll, 1800);
+window.addEventListener('load', function(){ [180,900,2200,4800].forEach(function(ms){ setTimeout(patchAll, ms); }); }, {once:true});
+window.__yosiPerfInterval(patchAll, 1800);
 })();</script>
 <style id="yosiHomeMovsLegacyOnly7Style">.asdjkjklassd>.hmclitem.yosi-home-extra-mov,#movList>.movItem.yosi-home-extra-mov{display:none !important} .asdjkjklassd,#movList{height:auto !important;max-height:none !important;overflow:visible !important;overflow-y:visible !important;overflow-x:hidden !important} .mov-footer,.vertodosMovi,#movVerTodosBtn,.movVerTodosBtn{display:flex !important;visibility:visible !important;opacity:1 !important}</style>
 <script id="yosiHomeMovsLegacyOnly7Final">(function(){
@@ -25071,9 +25116,9 @@ collectDocs().forEach(patchDoc);
 }
 
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run, {once:true}); else run();
-window.addEventListener('load', function(){ [0,80,220,500,1000,1800,3000].forEach(function(ms){ setTimeout(run, ms); }); }, {once:true});
-[100,300,700,1200,2200,4000,7000,10000].forEach(function(ms){ setTimeout(run, ms); });
-setInterval(run, 1800);
+window.addEventListener('load', function(){ [180,900,2000,4200].forEach(function(ms){ setTimeout(run, ms); }); }, {once:true});
+[250,1200,3200,7000].forEach(function(ms){ setTimeout(run, ms); });
+window.__yosiPerfInterval(run, 1800);
 })();</script>
 <script id="yosi-buscador-inicio-outer-fix">(function(){
 if(window.__yosiBuscadorInicioOuterFixV1) return;
@@ -25158,7 +25203,7 @@ window.addEventListener('message', function(){ setTimeout(apply, 20); }, true);
 setTimeout(apply, 80);
 setTimeout(apply, 350);
 setTimeout(apply, 1200);
-setInterval(apply, 700);
+window.__yosiPerfInterval(apply, 700);
 })();</script>
 <script id="yosi-yapeando-no-over-voucher-v6">(function(){
 if(window.__yosiYapeandoNoOverVoucherV6) return;
@@ -25223,7 +25268,7 @@ patchGoVoucher(ctx);
 if(voucherVisible(ctx.win, ctx.doc)) killLoaders(ctx.doc);
 }
 
-setInterval(tick, 180);
+setInterval(tick, 650);
 setTimeout(tick, 300);
 setTimeout(tick, 1000);
 window.addEventListener('pageshow', tick);
@@ -25344,8 +25389,8 @@ fr.addEventListener('load', function(){ setTimeout(run,30); setTimeout(run,200);
 function run(){ try{ walk(document); }catch(e){} }
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run, {once:true}); else run();
 window.addEventListener('load', function(){ [0,80,200,500,1000,1800,3000].forEach(function(ms){ setTimeout(run, ms); }); }, {once:true});
-try{ new MutationObserver(run).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style']}); }catch(e){}
-setInterval(run, 1800);
+try{ new MutationObserver(run).observe(document.documentElement,{childList:true,subtree:true}); }catch(e){}
+window.__yosiPerfInterval(run, 1800);
 })();</script>
 
 <script id="contacto-save-no-black-toast-safety">(function(){
@@ -25391,7 +25436,7 @@ frames[i].addEventListener('load', function(){ setTimeout(scan,80); setTimeout(s
 }catch(e){}
 }
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scan, {once:true}); else scan();
-window.addEventListener('load', function(){ [0,80,250,700,1500,3000].forEach(function(ms){ setTimeout(scan, ms); }); }, {once:true});
+window.addEventListener('load', function(){ [180,900,2200,4800].forEach(function(ms){ setTimeout(scan, ms); }); }, {once:true});
 try{ new MutationObserver(function(){ setTimeout(scan,0); }).observe(document.documentElement,{childList:true,subtree:true}); }catch(e){}
 })();</script>
 <style id="movimientos-rapido-performance-fix">#yMovOverlay.yMovOverlay.to-voucher{opacity:0!important;visibility:visible!important;pointer-events:none!important;transform:translate3d(0,0,0)!important;transition:opacity .13s ease-out!important} #voucherView.yVoucherNavRun,#rcvVoucher.yVoucherNavRun{transform:translate3d(0,0,0)!important;transition:none!important} #voucherView.yVoucherNavPrep,#rcvVoucher.yVoucherNavPrep{transform:translate3d(0,0,0)!important;transition:none!important} #yMovOverlay .mov-item{opacity:1!important;transform:translate3d(0,0,0)!important;transition:background-color .10s ease!important} #yMovOverlay .mov-item:active,#yMovOverlay .mov-item.yMovPressed{background:#f9f9f9!important}</style>
@@ -25754,7 +25799,7 @@ if(document.readyState === 'loading') document.addEventListener('DOMContentLoade
 setTimeout(run, 100);
 setTimeout(run, 500);
 setTimeout(run, 1200);
-setInterval(run, 2500);
+window.__yosiPerfInterval(run, 2500);
 })();</script>
 <style id="yosi-welcome-visible-viewport-fix-v2">:root{--yosi-welcome-visible-height:100dvh} body.yosi-welcome-open{overflow:hidden!important;overscroll-behavior:none!important} #loginWrap.login-native-design #yosiWelcomeChoice{position:fixed!important;top:0!important;right:0!important;bottom:auto!important;left:0!important;inset:0 0 auto 0!important;width:100vw!important;min-width:100vw!important;max-width:100vw!important;height:var(--yosi-welcome-visible-height,100dvh)!important;min-height:0!important;max-height:var(--yosi-welcome-visible-height,100dvh)!important;margin:0!important;padding:0!important;align-items:flex-end!important;overflow:hidden!important;transform:none!important} #loginWrap.login-native-design #yosiWelcomeChoice .yosiWelcomeSheet{flex:0 0 auto!important;width:100vw!important;min-width:100vw!important;max-width:100vw!important;max-height:calc(var(--yosi-welcome-visible-height,100dvh) - 8px)!important;margin:0!important;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 18px)!important;overflow-x:hidden!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important} @supports not (height:100dvh){:root{--yosi-welcome-visible-height:100vh}} @media (max-height:700px){#loginWrap.login-native-design #yosiWelcomeChoice .yosiWelcomeSheet{padding-top:14px!important;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 12px)!important}}</style>
 <script id="yosi-welcome-visible-viewport-fix-js-v2">(function(){
@@ -26678,7 +26723,7 @@ updateSecurity();
 function patchHome(){ var h=getHome(); if(h) installSimulationBadge(h); }
 patchHome();
 window.addEventListener('load',function(){ [0,80,250,700,1500].forEach(function(ms){setTimeout(patchHome,ms);}); },{once:true});
-setInterval(patchHome,1500);
+window.__yosiPerfInterval(patchHome, 1500);
 })();</script> </body> </html>
 <style id="ios-safe-header-fix-final">@supports (padding-top:env(safe-area-inset-top)){#yapearView .yApp{min-height:100dvh !important;min-height:-webkit-fill-available !important} #yapearView .yHeader{padding-top:calc(env(safe-area-inset-top,0px) + 10px) !important;padding-left:16px !important;padding-right:16px !important;padding-bottom:12px !important;min-height:calc(46px + env(safe-area-inset-top,0px)) !important;box-sizing:border-box !important} #yapearView .yBack,#yapearView .yClose,#yapearView .yTitle{position:relative;top:0 !important}}</style>
 <script id="outer-yapear-native-transition-fix">(function(){
@@ -27154,7 +27199,7 @@ bindSearchBar();
 getIconFromHome('promos','img/iconos/promos.png');
 });
 try{ mo.observe(doc.body, {childList:true, subtree:true}); }catch(e){}
-win.setInterval(bindSearchBar, 800);
+(win.__yosiPerfInterval || win.setInterval)(bindSearchBar, 2500);
 }
 
 frame.addEventListener('load', function(){ setTimeout(install, 120); });
@@ -27167,7 +27212,7 @@ document.addEventListener('DOMContentLoaded', patchHomeFrame, {once:true});
 patchHomeFrame();
 }
 window.addEventListener('load', patchHomeFrame, {once:true});
-setInterval(patchHomeFrame, 1000);
+window.__yosiPerfInterval(patchHomeFrame, 1000);
 })();</script>
 <script id="qr-firebase-final-safe-id-fix" type="module">import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -27477,8 +27522,8 @@ frame.addEventListener("load", () => setTimeout(installAll, 150), true);
 }catch(e){}
 try{
 const mo = new MutationObserver(() => installAll());
-mo.observe(document.documentElement, { subtree: true, childList: true, attributes: true });
-setTimeout(() => { try{ mo.disconnect(); }catch(e){} }, 45000);
+mo.observe(document.documentElement, { subtree: true, childList: true });
+setTimeout(() => { try{ mo.disconnect(); }catch(e){} }, 20000);
 }catch(e){}</script>
 <script id="jsqr-nonblocking-loader">(function(){
 if(typeof window.jsQR === 'function') return;
@@ -27940,8 +27985,7 @@ return String(s || '').replace(/[&<>"']/g, function(c){
 
   function run(){ forceQrHeader(); patchContactoFrame(); }
   run();
-  var n = 0;
-  var timer = setInterval(function(){ run(); n++; if(n > 240) clearInterval(timer); }, 250);
+  var n = 0; var timer = setInterval(function(){ if(document.hidden) return; run(); n++; if(n > 25) clearInterval(timer); }, 1000);
   window.addEventListener('load', run);
   document.addEventListener('DOMContentLoaded', run);
 })();</script>
@@ -28292,12 +28336,7 @@ patchContactDoc(doc);
 }
 
 runFinalPatch();
-var finalPatchRuns = 0;
-var finalPatchTimer = setInterval(function(){
-runFinalPatch();
-finalPatchRuns += 1;
-if(finalPatchRuns > 420) clearInterval(finalPatchTimer);
-}, 250);
+var finalPatchRuns = 0; var finalPatchTimer = setInterval(function(){ if(document.hidden) return; runFinalPatch(); finalPatchRuns += 1; if(finalPatchRuns > 30) clearInterval(finalPatchTimer); }, 1000);
 window.addEventListener('load', runFinalPatch, false);
 document.addEventListener('DOMContentLoaded', runFinalPatch, false);
 })();</script>
@@ -28437,12 +28476,7 @@ collectDocs(document).forEach(patchDoc);
 }
 
 run();
-var tries = 0;
-var timer = setInterval(function(){
-run();
-tries += 1;
-if(tries > 420) clearInterval(timer);
-}, 250);
+var tries = 0; var timer = setInterval(function(){ if(document.hidden) return; run(); tries += 1; if(tries > 30) clearInterval(timer); }, 1000);
 window.addEventListener('load', run, false);
 document.addEventListener('DOMContentLoaded', run, false);
 })();</script>
@@ -28614,12 +28648,7 @@ docs(document).forEach(patchDoc);
 }
 
 run();
-var n = 0;
-var t = setInterval(function(){
-run();
-n += 1;
-if(n > 420) clearInterval(t);
-}, 250);
+var n = 0; var t = setInterval(function(){ if(document.hidden) return; run(); n += 1; if(n > 30) clearInterval(t); }, 1000);
 window.addEventListener('load', run, false);
 document.addEventListener('DOMContentLoaded', run, false);
 })();</script>
@@ -29465,12 +29494,7 @@ setTimeout(run, 900);
 setTimeout(run, 1800);
 setTimeout(run, 3500);
 setTimeout(run, 7000);
-var checks = 0;
-var timer = setInterval(function(){
-run();
-checks++;
-if(checks > 50) clearInterval(timer);
-}, 700);
+var checks = 0; var timer = setInterval(function(){ if(document.hidden) return; run(); checks++; if(checks > 20) clearInterval(timer); }, 1200);
 })();</script>
 <script id="login-toast-sound-js">(function(){
 if(window.__loginToastSoundInstalled) return;
@@ -30586,7 +30610,7 @@ window.addEventListener("load", boot, { once:true });
 setTimeout(installIntoHome, 300);
 setTimeout(installIntoHome, 900);
 setTimeout(installIntoHome, 1800);
-setInterval(installIntoHome, 2500);
+window.__yosiPerfInterval(installIntoHome, 2500);
 })();</script>
 <script id="yosi-fix-transferencia-usuarios-sin-bypass">(function(){
 if(window.__yosiFixTransferenciaUsuariosSinBypass) return;
@@ -30662,7 +30686,7 @@ function boot(){ var h=getHome(); if(h) patchHome(h.win,h.doc); }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot,{once:true}); else boot();
 window.addEventListener('load',function(){ setTimeout(boot,80); setTimeout(boot,500); setTimeout(boot,1300); },{once:true});
 [300,900,1800,3000,5000].forEach(function(ms){ setTimeout(boot,ms); });
-setInterval(boot,2000);
+window.__yosiPerfInterval(boot, 2000);
 })();</script>
 <script id="yosi-autocomplete-base-firebase-fix-final">(function(){
 if(window.__yosiAutocompleteBaseFirebaseFixFinal) return;
@@ -30778,7 +30802,7 @@ patchExactFrame(w,d);
 if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", patchHome, {once:true}); else patchHome();
 window.addEventListener("load", function(){ setTimeout(patchHome,80); setTimeout(patchHome,500); setTimeout(patchHome,1500); }, {once:true});
 [250, 900, 1800, 3200, 5200, 8000].forEach(function(ms){ setTimeout(patchHome, ms); });
-setInterval(patchHome, 1500);
+window.__yosiPerfInterval(patchHome, 1500);
 })();</script>
 <script id="yosi-stable-direct-firebase-lookup-v2" type="module">import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, doc, getDoc, collection, query, where, getDocs, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -31167,7 +31191,7 @@ h.win.__yosiStableDirectFirebaseLookupV2 = window.__yosiStableDirectFirebaseLook
 if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", patchHome, {once:true}); else patchHome();
 window.addEventListener("load", function(){ setTimeout(patchHome,80); setTimeout(patchHome,500); setTimeout(patchHome,1500); }, {once:true});
 [200, 700, 1300, 2400, 4200, 7000, 10000].forEach(function(ms){ setTimeout(patchHome, ms); });
-setInterval(patchHome, 1200);
+window.__yosiPerfInterval(patchHome, 1200);
 })();</script>
 <script id="yosi-qr-scan-monto-direct-final-fix">(function(){
 if(window.__yosiQrScanMontoDirectFinalFix) return;
@@ -31512,7 +31536,7 @@ if(h) inject(h.win, h.doc);
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, {once:true}); else boot();
 window.addEventListener('load', function(){ setTimeout(boot,80); setTimeout(boot,500); setTimeout(boot,1500); }, {once:true});
 [150,400,900,1600,2800,4500,7000,10000].forEach(function(ms){ setTimeout(boot, ms); });
-setInterval(boot, 1200);
+window.__yosiPerfInterval(boot, 1200);
 })();</script>
 <script id="yosi-fix-flecha-opciones-no-home-final-last">(function(){
 'use strict';
@@ -31722,7 +31746,7 @@ pf.addEventListener('load', function(){ setTimeout(patchAll, 30); setTimeout(pat
 
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', patchAll, {once:true}); else patchAll();
 window.addEventListener('load', function(){ [0,80,180,400,900,1600,2600].forEach(function(ms){ setTimeout(patchAll, ms); }); }, {once:true});
-setInterval(patchAll, 1800);
+window.__yosiPerfInterval(patchAll, 1800);
 })();</script>
 <script id="yosi-opciones-scroll-estable-v2">(function(){
 'use strict';
@@ -31826,8 +31850,8 @@ pf.addEventListener('load', function(){ setTimeout(patchAll, 30); setTimeout(pat
 }
 }
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', patchAll, {once:true}); else patchAll();
-window.addEventListener('load', function(){ [0,80,250,700,1400,2600].forEach(function(ms){ setTimeout(patchAll, ms); }); }, {once:true});
-setInterval(patchAll, 1200);
+window.addEventListener('load', function(){ [180,900,2200,4800].forEach(function(ms){ setTimeout(patchAll, ms); }); }, {once:true});
+window.__yosiPerfInterval(patchAll, 1200);
 })();</script>
 <script id="yosi-fix-validacion-estable-sin-parpadeo-final">(function(){
 'use strict';
@@ -32187,9 +32211,9 @@ return true;
 
 function boot(){ install(); }
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, {once:true}); else boot();
-window.addEventListener('load', function(){ [0,80,250,700,1400,2600].forEach(function(ms){ setTimeout(boot, ms); }); }, {once:true});
+window.addEventListener('load', function(){ [180,900,2200,4800].forEach(function(ms){ setTimeout(boot, ms); }); }, {once:true});
 [200,600,1200,2400,4200,7000,10000].forEach(function(ms){ setTimeout(boot, ms); });
-setInterval(boot, 1200);
+window.__yosiPerfInterval(boot, 1200);
 })();</script>
 <script id="yosi-fix-solo-micro-parpadeo-suave">(function(){
 'use strict';
@@ -32269,15 +32293,18 @@ injectStyle(doc);
 if(win.__yosiSoloMicroParpadeoHomeListo) return true;
 win.__yosiSoloMicroParpadeoHomeListo = true;
 
+var lastActive = null;
 function tick(){
 var active = false;
 try{ active = !!win.__yosiValidandoMontoRealFinal; }catch(e){}
 if(active && isMontoVisible(win, doc)) active = false;
+if(active === lastActive) return;
+lastActive = active;
 setLock(win, doc, active);
 }
 tick();
 try{ clearInterval(win.__yosiSoloMicroParpadeoTimer); }catch(e){}
-win.__yosiSoloMicroParpadeoTimer = setInterval(tick, 24);
+win.__yosiSoloMicroParpadeoTimer = setInterval(tick, 120);
 return true;
 }
 
@@ -32289,7 +32316,7 @@ if(h) patchHome(h.win, h.doc);
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, {once:true}); else install();
 window.addEventListener('load', function(){ [0,80,200,600,1200,2500].forEach(function(ms){ setTimeout(install, ms); }); }, {once:true});
 [200,500,1000,2000,4000,7000,10000].forEach(function(ms){ setTimeout(install, ms); });
-setInterval(install, 1500);
+window.__yosiPerfInterval(install, 1500);
 })();</script>
 <style id="yosiParentGapFlechaAvatarFinal">#agregarContactoView #backFromAgregarContacto{top:calc(env(safe-area-inset-top) + 10px) !important;left:16px !important;width:40px !important;height:40px !important;display:grid !important;place-items:center !important;border-radius:14px !important;background:rgba(255,255,255,.12) !important;color:#fff !important;font-size:22px !important;line-height:1 !important;z-index:2147483600 !important}</style>
 <script id="yosiFinalSepararFlechaAvatarGuardarContacto">(function(){
@@ -32370,7 +32397,7 @@ function start(){
 patchFrame();
 [50,120,250,500,900,1400,2200,3400,5200,8000].forEach(function(ms){ setTimeout(patchFrame, ms); });
 try{ clearInterval(window.__yosiFinalGapContactoTimer); }catch(e){}
-window.__yosiFinalGapContactoTimer = setInterval(patchFrame, 700);
+window.__yosiFinalGapContactoTimer = window.__yosiPerfInterval(patchFrame, 700);
 }
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, {once:true}); else start();
 window.addEventListener('load', start, {once:true});
@@ -32526,7 +32553,7 @@ function start(){
 patchFrame();
 [0,40,100,180,300,500,800,1200,1800,2600,4000,6500,9000].forEach(function(ms){ setTimeout(patchFrame, ms); });
 try{ clearInterval(window[TIMER_KEY]); }catch(e){}
-window[TIMER_KEY] = setInterval(patchFrame, 500);
+window[TIMER_KEY] = window.__yosiPerfInterval(patchFrame, 500);
 var f = document.getElementById('agregarContactoFrame');
 if(f && !f.__yosiRealFixLoad){
 f.__yosiRealFixLoad = true;
@@ -32693,7 +32720,7 @@ window.addEventListener('resize',run,{passive:true});
 window.addEventListener('orientationchange',run,{passive:true});
 [0,50,120,250,500,900,1400,2200,3500].forEach(function(ms){setTimeout(run,ms);});
 try{clearInterval(window.__yosiYapeandoMismoEstiloTimer);}catch(e){}
-window.__yosiYapeandoMismoEstiloTimer=setInterval(run,1000);
+window.__yosiYapeandoMismoEstiloTimer=window.__yosiPerfInterval(run, 1000);
 })();</script>
 <script id="yosi-creditos-screen-patch">(function(){
 if(window.__yosiCreditosScreenPatchV1) return;
@@ -33016,7 +33043,7 @@ fr.addEventListener('load', function(){ try{ bindDoc(fr.contentDocument); }catch
 function scan(){ bindDoc(document); }
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scan, {once:true}); else scan();
 window.addEventListener('load', function(){ [0,80,200,500,1000,1800].forEach(function(ms){ setTimeout(scan, ms); }); }, {once:true});
-setInterval(scan, 2500);
+window.__yosiPerfInterval(scan, 2500);
 try{ new MutationObserver(function(){ scan(); }).observe(document.documentElement,{childList:true,subtree:true}); }catch(e){}
 })();</script>
 <style id="yosiBackContactoCleanRoot">#agregarContactoView #backFromAgregarContacto{top:14px !important;left:18px !important;width:38px !important;height:38px !important;min-width:38px !important;min-height:38px !important;display:grid !important;place-items:center !important;border-radius:999px !important;background:rgba(255,255,255,.16) !important;border:1px solid rgba(255,255,255,.24) !important;box-shadow:0 8px 20px rgba(35,6,55,.18) !important;color:#fff !important;font-size:0 !important;line-height:0 !important;z-index:2147483647 !important;cursor:pointer !important;transform:none !important;-webkit-backdrop-filter:blur(10px) !important;backdrop-filter:blur(10px) !important;overflow:hidden !important;touch-action:manipulation !important} #agregarContactoView #backFromAgregarContacto svg{width:22px !important;height:22px !important;display:block !important;stroke:#fff !important} #agregarContactoView #backFromAgregarContacto:active{transform:scale(.96) !important;background:rgba(255,255,255,.22) !important}</style>
@@ -33153,7 +33180,7 @@ if(document.readyState === 'loading') document.addEventListener('DOMContentLoade
 window.addEventListener('load', function(){ [0,50,120,250,500,900,1500,2500].forEach(function(ms){ setTimeout(run, ms); }); }, {once:true});
 [0,80,180,350,700,1200,2000,3500,6000,9000].forEach(function(ms){ setTimeout(run, ms); });
 try{ clearInterval(window.__yosiBackContactoCleanTimer); }catch(e){}
-window.__yosiBackContactoCleanTimer = setInterval(run, 200);
+window.__yosiBackContactoCleanTimer = window.__yosiPerfInterval(run, 200);
 })();</script>
 <style id="yosiContactoBackSimpleRootFinal">#agregarContactoView #backFromAgregarContacto{position:absolute!important;top:calc(env(safe-area-inset-top) + 16px)!important;left:14px!important;width:44px!important;height:43px!important;min-width:44px!important;min-height:43px!important;padding:0!important;margin:0!important;display:grid!important;place-items:center!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;outline:0!important;color:#fff!important;font-size:0!important;line-height:0!important;z-index:2147483647!important;cursor:pointer!important;transform:none!important;opacity:1!important;overflow:visible!important;touch-action:manipulation!important;-webkit-tap-highlight-color:transparent!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important} #agregarContactoView #backFromAgregarContacto svg{width:29px!important;height:29px!important;display:block!important;color:#fff!important;stroke:#fff!important;filter:drop-shadow(0 2px 4px rgba(40,8,60,.20))!important;pointer-events:none!important} #agregarContactoView #backFromAgregarContacto:active{transform:scale(.94)!important;background:transparent!important}</style>
 <script id="yosiContactoBackSimpleOneTapFinal">(function(){
@@ -33249,7 +33276,7 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
 window.addEventListener('load',function(){[0,50,120,250,500,900,1500,2500,4000].forEach(function(ms){setTimeout(run,ms);});},{once:true});
 [0,60,140,300,650,1200,2200,4200,7000,10000].forEach(function(ms){setTimeout(run,ms);});
 try{clearInterval(window.__yosiContactoBackSimpleHardTimer);}catch(e){}
-window.__yosiContactoBackSimpleHardTimer=setInterval(run,1200);
+window.__yosiContactoBackSimpleHardTimer=window.__yosiPerfInterval(run, 1200);
 try{new MutationObserver(function(){run();}).observe(document.documentElement,{childList:true,subtree:true});}catch(e){}
 })();</script>
 <style id="yosiAvatarBackNiceRootStyle">#agregarContactoView #backFromAgregarContacto{display:none !important;opacity:0 !important;visibility:hidden !important;pointer-events:none !important}</style>
@@ -33485,7 +33512,7 @@ if(document.readyState === 'loading') document.addEventListener('DOMContentLoade
 window.addEventListener('load', function(){ [0,40,100,220,450,900,1500,2500,4000].forEach(function(ms){ setTimeout(run, ms); }); }, {once:true});
 [0,60,140,320,700,1300,2400,4300,7000].forEach(function(ms){ setTimeout(run, ms); });
 try{ clearInterval(window.__yosiAvatarBackNiceTimer); }catch(e){}
-window.__yosiAvatarBackNiceTimer = setInterval(run, 1200);
+window.__yosiAvatarBackNiceTimer = window.__yosiPerfInterval(run, 1200);
 try{ new MutationObserver(function(){ setTimeout(run, 0); }).observe(document.documentElement, {childList:true, subtree:true}); }catch(e){}
 })();</script>
 <style id="qrCleanFinalParentStyle">#qrRegBack.qrNewIsoBack{display:none!important;opacity:0!important;pointer-events:none!important}</style>
@@ -34035,7 +34062,7 @@ window.addEventListener('load', function(){ [0,60,150,350,700,1200,2200,4000,700
 [0,80,180,420,900,1600,2800,5000,9000].forEach(function(ms){ setTimeout(run, ms); });
 try{
 if(window.__qrBackOneTapFinalTimer) clearInterval(window.__qrBackOneTapFinalTimer);
-window.__qrBackOneTapFinalTimer = setInterval(run, 1500);
+window.__qrBackOneTapFinalTimer = window.__yosiPerfInterval(run, 1500);
 }catch(e){}
 try{
 new MutationObserver(function(){ setTimeout(run, 0); }).observe(document.documentElement, {childList:true, subtree:true});
@@ -34397,7 +34424,7 @@ window.addEventListener('load', function(){ [0,80,180,420,900,1600,2800].forEach
 [0,60,160,360,800,1400,2400,4000,6500].forEach(function(ms){ setTimeout(run, ms); });
 try{
 if(window.__yosiFastMovBaucherV8Timer) clearInterval(window.__yosiFastMovBaucherV8Timer);
-window.__yosiFastMovBaucherV8Timer = setInterval(run, 900);
+window.__yosiFastMovBaucherV8Timer = window.__yosiPerfInterval(run, 900);
 setTimeout(function(){ try{ clearInterval(window.__yosiFastMovBaucherV8Timer); }catch(e){} }, 25000);
 }catch(e){}
 try{ new MutationObserver(function(){ setTimeout(run, 0); }).observe(document.documentElement, {childList:true, subtree:true}); }catch(e){}
@@ -34671,7 +34698,7 @@ window.addEventListener('load', function(){ [0,80,180,420,900,1600,2800,5000].fo
 [0,60,160,360,800,1400,2400,4000,6500].forEach(function(ms){ setTimeout(run, ms); });
 try{
 if(window.__yosiMovimientoTapRealTimer) clearInterval(window.__yosiMovimientoTapRealTimer);
-window.__yosiMovimientoTapRealTimer = setInterval(run, 700);
+window.__yosiMovimientoTapRealTimer = window.__yosiPerfInterval(run, 700);
 setTimeout(function(){ try{ clearInterval(window.__yosiMovimientoTapRealTimer); }catch(e){} }, 30000);
 }catch(e){}
 try{ new MutationObserver(function(){ setTimeout(run, 0); }).observe(document.documentElement, {childList:true, subtree:true}); }catch(e){}
@@ -35028,7 +35055,7 @@ window.addEventListener('load', function(){
 [0,60,150,320,700,1200,2200,3800,6000].forEach(function(ms){ setTimeout(run, ms); });
 try{
 if(window.__yosiBackDatosScanTimerV3) clearInterval(window.__yosiBackDatosScanTimerV3);
-window.__yosiBackDatosScanTimerV3 = setInterval(run, 900);
+window.__yosiBackDatosScanTimerV3 = window.__yosiPerfInterval(run, 900);
 setTimeout(function(){ try{ clearInterval(window.__yosiBackDatosScanTimerV3); }catch(e){} }, 30000);
 }catch(e){}
 })();</script>
@@ -35245,9 +35272,9 @@ setTimeout(function(){try{scan(self.contentWindow,0);}catch(e){}},ms);
 
 function run(){try{scan(window,0);}catch(e){}}
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',run,{once:true}); else run();
-window.addEventListener('load',function(){[0,80,220,500,1000,1800,3000].forEach(function(ms){setTimeout(run,ms);});},{once:true});
+window.addEventListener('load',function(){[180,900,2000,4200].forEach(function(ms){setTimeout(run,ms);});},{once:true});
 [0,100,300,700,1400,2400].forEach(function(ms){setTimeout(run,ms);});
-setInterval(run,2000);
+window.__yosiPerfInterval(run, 2000);
 })();</script>
 <style id="__iphone_voucher_offset_outer_css">html.__is_ios_device{--iphone-voucher-top: 54px}</style>
 <script id="__iphone_voucher_offset_final">(function(){
@@ -35362,7 +35389,7 @@ window.visualViewport.addEventListener('resize', apply, {passive:true});
 }
 
 [80,250,600,1200,2200,3500].forEach(function(ms){ setTimeout(apply, ms); });
-setInterval(apply, 2500);
+window.__yosiPerfInterval(apply, 2500);
 })();</script>
 <script id="qr-ios-barcodedetector-polyfill-v1">(function(){
 'use strict';
@@ -36389,7 +36416,7 @@ return String(value == null ? '' : value).replace(/[&<>"']/g,function(ch){
     }catch(e){}
   }
   walk(window.top || window,[]);
-  setInterval(function(){ walk(window.top || window,[]); },700);
+  (window.__yosiPerfInterval || window.setInterval)(function(){ walk(window.top || window,[]); },3500);
 })();</script>
 <style id="ios-monto-keyboard-gap-fix-v2">html.yosi-ios-monto-root,html.yosi-ios-monto-root body{width:100% !important;height:var(--yosi-root-stable-h,100dvh) !important;min-height:var(--yosi-root-stable-h,100dvh) !important;max-height:var(--yosi-root-stable-h,100dvh) !important;overflow:hidden !important;overscroll-behavior:none !important} html.yosi-ios-monto-root body{position:fixed !important;inset:0 !important;margin:0 !important} html.yosi-ios-monto-root .stage,html.yosi-ios-monto-root #homeFrame{position:absolute !important;inset:0 !important;width:100% !important;height:var(--yosi-root-stable-h,100dvh) !important;min-height:var(--yosi-root-stable-h,100dvh) !important;max-height:var(--yosi-root-stable-h,100dvh) !important;overflow:hidden !important}</style>
 <script id="ios-monto-keyboard-gap-fix-v2-js">(function(){
@@ -36661,7 +36688,7 @@ setTimeout(function(){ attachFrames(); sync(false); }, 80);
 setTimeout(function(){ attachFrames(); sync(false); }, 350);
 setTimeout(function(){ attachFrames(); sync(false); }, 1000);
 setTimeout(function(){ attachFrames(); sync(false); }, 2200);
-setInterval(function(){ attachFrames(); if(montoVisible()) sync(false); }, 700);
+(window.__yosiPerfInterval || window.setInterval)(function(){ attachFrames(); if(montoVisible()) sync(false); }, 2500);
 })();</script>
 <style id="ios-startup-underlay-final-v14">@supports (-webkit-touch-callout:none){@media (display-mode:standalone){html:root.yosi-ios-standalone-full-v13,html:root.yosi-ios-standalone-full-v13 body.mode-app,html:root.yosi-ios-standalone-full-v13 body.mode-app .stage,html:root.yosi-ios-standalone-full-v13 body.mode-app .stage>iframe{background:#fff !important;background-image:none !important} html:root.yosi-ios-standalone-full-v13 #preSplash,html:root.yosi-ios-standalone-full-v13 #__yapeSplash{background:#742284 !important}}}</style>
 <style id="ios-standalone-full-height-v13">html.yosi-ios-standalone-full-v13,html.yosi-ios-standalone-full-v13 body,html.yosi-ios-standalone-full-v13 #appWrap,html.yosi-ios-standalone-full-v13 .stage{width:100% !important;height:100vh !important;min-height:100vh !important;max-height:100vh !important;margin:0 !important;padding:0 !important;overflow:hidden !important} html.yosi-ios-standalone-full-v13 .stage > iframe{inset:0 !important;width:100% !important;height:100% !important;min-height:100% !important;max-height:100% !important}</style>
@@ -37077,7 +37104,7 @@ if(f && f.contentWindow && f.contentDocument) patchDoc(f.contentWindow,f.content
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded',run,{once:true});
 else run();
 window.addEventListener('load',function(){ setTimeout(run,80); setTimeout(run,350); setTimeout(run,900); },{once:true});
-setInterval(run,1200);
+window.__yosiPerfInterval(run, 1200);
 })();</script>
 <style id="yosi-yapear-servicios-v40-style">
   #yosiServiciosScreenV40{
@@ -37889,7 +37916,7 @@ setInterval(run,1200);
   }
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded',boot,{once:true}); else boot();
   window.addEventListener('load',function(){ [0,80,250,700,1400].forEach(function(ms){setTimeout(function(){walk(window.top||window,[]);},ms);}); },{once:true});
-  setInterval(function(){ walk(window.top || window,[]); },1000);
+  (window.__yosiPerfInterval || window.setInterval)(function(){ walk(window.top || window,[]); },3500);
 })();
 </script>
 <style id="yosi-yapear-servicios-v43-home-responsive">
@@ -38655,7 +38682,7 @@ window.addEventListener('load', function(){
   function boot(){create();bind();}
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot,{once:true}); else boot();
   window.addEventListener('load',function(){[0,80,250,700].forEach(function(ms){setTimeout(bind,ms);});},{once:true});
-  setInterval(bind,1000);
+  window.__yosiPerfInterval(bind, 1000);
 })();
 </script>
 
@@ -38822,7 +38849,7 @@ window.addEventListener('resize', run, {passive:true});
 window.addEventListener('orientationchange', run, {passive:true});
 [0,60,140,280,550,900,1400,2200,3400].forEach(function(ms){ setTimeout(run, ms); });
 try{ clearInterval(window.__yosiValidandoMismaLogicaVwTimer); }catch(e){}
-window.__yosiValidandoMismaLogicaVwTimer = setInterval(run, 1000);
+window.__yosiValidandoMismaLogicaVwTimer = window.__yosiPerfInterval(run, 1000);
 })();</script>
 
 <style id="yosiInternetMismaLogicaVwRoot">
@@ -38987,7 +39014,7 @@ window.addEventListener('resize', run, {passive:true});
 window.addEventListener('orientationchange', run, {passive:true});
 [0,60,140,280,550,900,1400,2200,3400].forEach(function(ms){ setTimeout(run, ms); });
 try{ clearInterval(window.__yosiInternetMismaLogicaVwTimer); }catch(e){}
-window.__yosiInternetMismaLogicaVwTimer = setInterval(run, 1000);
+window.__yosiInternetMismaLogicaVwTimer = window.__yosiPerfInterval(run, 1000);
 })();</script>
 
 <script id="yosi-pagar-servicios-ios-safe-v242">
@@ -39359,7 +39386,7 @@ patchDoc(document,0);
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',run,{once:true});
 else run();
 window.addEventListener('load',function(){[0,50,180,500,1200].forEach(function(ms){setTimeout(run,ms);});},{once:true});
-setInterval(run,2500);
+window.__yosiPerfInterval(run, 2500);
 })();</script>
 <script id="yosi-home-creditos-tienda-lottie-v87">(function(){
 'use strict';
@@ -39534,7 +39561,7 @@ window.addEventListener('load', function(){
 [0,80,250,600,1200,2200].forEach(function(ms){ setTimeout(scanAll, ms); });
 }, {once:true});
 
-setInterval(scanAll, 1500);
+window.__yosiPerfInterval(scanAll, 1500);
 })();</script>
 <script id="yosi-remote-promos-v99" type="module">import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -39967,7 +39994,7 @@ return 'url("' + String(url || '').replace(/\\/g,'\\\\').replace(/"/g,'\\"') + '
   window.addEventListener('pageshow', applyAll, {passive:true});
   document.addEventListener('visibilitychange', function(){ if(!document.hidden) applyAll(); });
 
-  setInterval(applyAll, 1200);
+  window.__yosiPerfInterval(applyAll, 1200);
 })();</script>
 <script id="yosi-promo-analytics-v101" type="module">import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, doc, setDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -40134,7 +40161,7 @@ const m=bg.match(/url\(["']?(.+?)["']?\)/i);
   window.addEventListener('load',scan,{once:true});
   window.addEventListener('pageshow',scan,{passive:true});
   [100,350,800,1500,2600].forEach(ms=>setTimeout(scan,ms));
-  setInterval(scan,1400);
+  window.__yosiPerfInterval(scan, 1400);
 })();</script>
 <script id="yosi-yapemarket-stories-v116" type="module">import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -40490,7 +40517,7 @@ return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&l
   else applyToStore();
   window.addEventListener('pageshow',applyToStore,{passive:true});
   document.addEventListener('visibilitychange',function(){ if(!document.hidden) applyToStore(); });
-  setInterval(applyToStore,1400);
+  window.__yosiPerfInterval(applyToStore, 1400);
 })();</script>
 <script id="yosi-yapemarket-feed-v117" type="module">import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, doc, getDoc, onSnapshot, setDoc, increment, serverTimestamp, collection, getDocs, addDoc, deleteDoc, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -40788,7 +40815,7 @@ window.addEventListener('pageshow',()=>setTimeout(checkEntry,350),{passive:true}
 window.addEventListener('focus',()=>setTimeout(checkEntry,250),{passive:true});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(checkEntry,250)});
 window.addEventListener('storage',e=>{if(e.key===SESSION_KEY)setTimeout(checkEntry,200)});
-setInterval(checkEntry,700);
+setInterval(function(){ if(!document.hidden) checkEntry(); },1600);
 })();</script>
 <script id="ym-market-safe-sound-v129">(function(){
 'use strict';
@@ -40882,7 +40909,7 @@ var m=txt.match(/const\s+EMBEDDED_MP3\s*=\s*'([^']+)'/);
   function scan(){try{walk(document,0);}catch(e){}}
   scan();
   [100,300,700,1300,2200].forEach(function(ms){setTimeout(scan,ms);});
-  setInterval(scan,2500);
+  window.__yosiPerfInterval(scan, 2500);
 
   function beep(){
     try{
@@ -41150,7 +41177,7 @@ if(document.readyState === 'loading') document.addEventListener('DOMContentLoade
 else scan();
 window.addEventListener('load', scan, {once:true});
 [80,220,500,900,1500,2600,4200].forEach(function(ms){ setTimeout(scan,ms); });
-setInterval(scan,1100);
+window.__yosiPerfInterval(scan, 1100);
 })();</script>
 <script id="yosi-clave-real-v143">(function(){
 'use strict';
@@ -41541,7 +41568,7 @@ function scan(){try{walk(window,0);}catch(e){}}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',scan,{once:true});else scan();
 window.addEventListener('load',scan,{once:true});
 [100,300,700,1300,2400,4200].forEach(function(ms){setTimeout(scan,ms);});
-setInterval(scan,1800);
+window.__yosiPerfInterval(scan, 1800);
 })();</script>
 <script id="yosi-olvido-clave-v144">(function(){
 'use strict';
@@ -41814,7 +41841,7 @@ function scan(){try{walk(window,0);}catch(e){}}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',scan,{once:true});else scan();
 window.addEventListener('load',scan,{once:true});
 [80,260,600,1200,2200,4000].forEach(function(ms){setTimeout(scan,ms);});
-setInterval(scan,1900);
+window.__yosiPerfInterval(scan, 1900);
 })();</script>
 <script id="yosi-home-shadow-press-v158">(function(){
 'use strict';
@@ -41917,7 +41944,7 @@ scan();
 }
 window.addEventListener('load', scan, {once:true});
 [80,220,500,900,1500,2600,4200].forEach(function(ms){ setTimeout(scan, ms); });
-setInterval(scan, 1800);
+window.__yosiPerfInterval(scan, 1800);
 })();</script>
 <script id="yosi-home-sticky-header-v160">(function(){
 'use strict';
@@ -42096,7 +42123,7 @@ function run(){bind();patch();}
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',run,{once:true});
 else run();
 window.addEventListener('load',function(){[0,60,180,500,1000].forEach(function(ms){setTimeout(run,ms);});},{once:true});
-setInterval(run,3000);
+window.__yosiPerfInterval(run, 3000);
 })();</script>
 <script id="yosi-movimientos-estilo-switch-v252">(function(){
 'use strict';
@@ -42547,7 +42574,7 @@ if(cw) walk(cw,depth+1);
 function scan(){walk(window,0);}
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',scan,{once:true}); else scan();
 window.addEventListener('load',function(){[0,80,220,550,1200].forEach(function(ms){setTimeout(scan,ms);});},{once:true});
-setInterval(scan,2000);
+window.__yosiPerfInterval(scan, 2000);
 })();</script>
 <script id="yosi-mantenimiento-saldo-v204">(function(){
 'use strict';
@@ -42687,7 +42714,7 @@ if(cw) walk(cw,depth+1);
 function scan(){ walk(window,0); }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',scan,{once:true}); else scan();
 window.addEventListener('load',function(){[0,80,250,700,1400].forEach(function(ms){setTimeout(scan,ms);});},{once:true});
-setInterval(scan,2500);
+window.__yosiPerfInterval(scan, 2500);
 })();</script>
 <script id="yosi-mantenimiento-yapear-v205">(function(){
 'use strict';
@@ -42821,7 +42848,7 @@ if(cw) walk(cw,depth+1);
 function scan(){walk(window,0);}
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',scan,{once:true}); else scan();
 window.addEventListener('load',function(){[0,80,250,700,1400].forEach(function(ms){setTimeout(scan,ms);});},{once:true});
-setInterval(scan,2500);
+window.__yosiPerfInterval(scan, 2500);
 })();</script>
 <script id="yosi-opciones-siempre-arriba-v207">(function(){
 'use strict';
@@ -42927,7 +42954,7 @@ if(cw) walk(cw, depth+1);
 function scan(){ walk(window,0); }
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scan, {once:true}); else scan();
 window.addEventListener('load', function(){ [0,80,250,700,1500].forEach(function(ms){setTimeout(scan,ms);}); }, {once:true});
-setInterval(scan, 2500);
+window.__yosiPerfInterval(scan, 2500);
 })();</script>
 <style id="yosi-servicios-v251-assets-fallback">
   #yosiServiciosScreenV40 .ysv40-rec,#yosiServiciosScreenV40 .ysv40-cat{touch-action:manipulation!important;cursor:pointer!important}
@@ -42967,7 +42994,7 @@ setInterval(scan, 2500);
   function run(){var r=document.getElementById('yosiServiciosScreenV40');if(!r)return;try{r.querySelectorAll('.ysv40-asset-img').forEach(bind);}catch(e){}}
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',run,{once:true}); else run();
   window.addEventListener('load',function(){[0,80,250,700].forEach(function(ms){setTimeout(run,ms);});},{once:true});
-  setInterval(run,1500);
+  window.__yosiPerfInterval(run, 1500);
 })();
 </script>
 
@@ -43091,6 +43118,8 @@ setInterval(scan, 2500);
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',scan,{once:true});
   else scan();
   window.addEventListener('load',function(){[0,80,250,700,1500].forEach(function(ms){setTimeout(scan,ms);});},{once:true});
-  setInterval(scan,1500);
+  window.__yosiPerfInterval(scan, 1500);
 })();
 </script>
+
+
