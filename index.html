@@ -1744,33 +1744,72 @@ showLogin();
 })();</script>
 <div id="appWrap" style="display:none"> <div aria-label="Splash" id="__yapeSplash"> <img alt="Logo" data-splash-asset-key="logo" data-local-src="assets/embedded/logo-yape-principal.svg" decoding="async" id="__yapeSplashLogo" loading="eager" onerror="if(this.dataset.fallbackDone!=='1'){this.dataset.fallbackDone='1';this.src='assets/logo_yape_principal.webp';}" src="assets/embedded/logo-yape-principal.svg"/> <img alt="BCP" data-splash-asset-key="bcp" data-local-src="bcp.png" decoding="async" id="__yapeSplashBCP" loading="eager" onerror="if(!this.dataset.remoteActive){this.style.display='none';}" src="bcp.png"/> </div>
 <script id="yape-splash-assets-cache-v1">(function(){
-if(window.__yapeSplashAssetsCacheV1)return;window.__yapeSplashAssetsCacheV1=true;
-var KEY='yape_splash_assets_v1',urls={};function clean(v){v=String(v||'').trim();return /^https:\/\//i.test(v)?v:'';}
-function norm(raw){raw=raw&&typeof raw==='object'?raw:{};var o={};['logo','bcp'].forEach(function(k){var v=raw[k];if(v&&typeof v==='object')v=v.url||v.secure_url||'';v=clean(v);if(v)o[k]=v;});return o;}
-function warm(){var list=Object.keys(urls).map(function(k){return urls[k];}).filter(Boolean);try{navigator.serviceWorker&&navigator.serviceWorker.ready&&navigator.serviceWorker.ready.then(function(r){if(r.active)r.active.postMessage({type:'CACHE_URLS',urls:list});}).catch(function(){});}catch(e){}list.forEach(function(u){try{var im=new Image();im.src=u;}catch(e){}});}
-function apply(){try{document.querySelectorAll('img[data-splash-asset-key]').forEach(function(img){var k=img.getAttribute('data-splash-asset-key'),u=clean(urls[k]);if(u){img.dataset.remoteActive='1';img.style.display='block';if(img.getAttribute('src')!==u)img.setAttribute('src',u);}else{delete img.dataset.remoteActive;var f=img.getAttribute('data-local-src')||'';if(f&&img.getAttribute('src')!==f)img.setAttribute('src',f);}});}catch(e){}}
-window.__yapeGetSplashAssetUrl=function(k){return clean(urls[String(k||'')])||'';};
-window.__yapeSetSplashAssets=function(raw){urls=norm(raw);try{localStorage.setItem(KEY,JSON.stringify(urls));}catch(e){}warm();apply();try{window.dispatchEvent(new CustomEvent('yape-splash-assets-updated'));}catch(e){}};
-try{urls=norm(JSON.parse(localStorage.getItem(KEY)||'{}'));}catch(e){urls={};}warm();
-window.__yapeApplySplashAssets=apply;setTimeout(apply,0);setTimeout(apply,80);
+'use strict';
+if(window.__yapeSplashAssetsCacheV1) return;
+window.__yapeSplashAssetsCacheV1=true;
+// Siempre se usa la carpeta del proyecto. Se sustituyen únicamente los ajustes de recursos.
+var KEY="yape_splash_assets_v1";
+var LOCAL={"logo": "assets/embedded/logo-yape-principal.svg"};
+function absolute(ref){try{return new URL(ref,document.baseURI).href;}catch(e){return ref;}}
+function urls(){var out={};Object.keys(LOCAL).forEach(function(k){out[k]=absolute(LOCAL[k]);});return out;}
+window.__yapeGetSplashAssetUrl=function(key){var ref=LOCAL[String(key||'')];return ref?absolute(ref):'';};
+
+function apply(){
+  try{document.querySelectorAll('img[data-splash-asset-key]').forEach(function(img){
+    var key=img.getAttribute('data-splash-asset-key');
+    var next=window.__yapeGetSplashAssetUrl(key) || img.getAttribute('data-local-src') || '';
+    delete img.dataset.remoteActive;
+    if(next && img.getAttribute('src')!==next) img.setAttribute('src',next);
+  });}catch(e){}
+}
+window.__yapeApplySplashAssets=apply;
+setTimeout(apply,0);setTimeout(apply,80);
+
+function publish(){
+  var current=urls();
+  try{localStorage.setItem(KEY,JSON.stringify(current));}catch(e){}
+  apply();
+  try{window.dispatchEvent(new CustomEvent("yape-splash-assets-updated",{detail:{urls:current}}));}catch(e){}
+}
+// Se mantiene la API anterior; los enlaces remotos ya no reemplazan los archivos locales.
+window.__yapeSetSplashAssets=function(){publish();};
+publish();
+var list=Object.keys(LOCAL).map(function(k){return absolute(LOCAL[k]);});
+try{if(navigator.serviceWorker)navigator.serviceWorker.ready.then(function(reg){
+  if(reg.active)reg.active.postMessage({type:'CACHE_URLS',urls:list});
+}).catch(function(){});}catch(e){}
+list.forEach(function(url){try{var img=new Image();img.decoding='async';img.src=url;}catch(e){}});
 })();</script>
-<script type="module" id="yape-splash-assets-firestore-v1">import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getFirestore, doc, getDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-try{const cfg={apiKey:'AIzaSyCfjKjr5rqM8qzpUpgqKfWMx3QsiPMHUeY',authDomain:'login-48d79.firebaseapp.com',projectId:'login-48d79',storageBucket:'login-48d79.firebasestorage.app',messagingSenderId:'1081911677152',appId:'1:1081911677152:web:dfe5416b6fe656f8994085',measurementId:'G-KG2RDVTX9E'};const app=getApps().find(a=>a&&a.name==='yape-splash-assets-v1')||initializeApp(cfg,'yape-splash-assets-v1');const db=getFirestore(app),ref=doc(db,'config','promotions');const use=d=>{try{window.__yapeSetSplashAssets&&window.__yapeSetSplashAssets((d&&d.splashAssets)||(d&&d.flashAssets)||{});}catch(e){}};getDoc(ref).then(s=>{if(s.exists())use(s.data())}).catch(()=>{});try{onSnapshot(ref,s=>{if(s.exists())use(s.data())},()=>{});}catch(e){}}catch(e){}</script>
+
 <script id="yape-splash-assets-dom-ready-v1">(function(){function a(){try{window.__yapeApplySplashAssets&&window.__yapeApplySplashAssets();}catch(e){}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',a,{once:true});else a();window.addEventListener('yape-splash-assets-updated',a);setTimeout(a,30);setTimeout(a,180);setTimeout(a,700);})();</script>
 <script id="yape-app-resources-cache-v1">(function(){
-if(window.__yapeAppResourcesCacheV1)return;window.__yapeAppResourcesCacheV1=true;
-var KEY='yape_app_resources_v1',urls={};function clean(v){v=String(v||'').trim();return /^https:\/\//i.test(v)?v:'';}
-function norm(raw){raw=raw&&typeof raw==='object'?raw:{};var o={};['check-logo','font-main','font-symbols','confetti-data','confetti'].forEach(function(k){var v=raw[k];if(v&&typeof v==='object')v=v.url||v.secure_url||'';v=clean(v);if(v)o[k]=v;});return o;}
-function warm(){var list=Object.keys(urls).map(function(k){return urls[k];}).filter(Boolean);try{navigator.serviceWorker&&navigator.serviceWorker.ready&&navigator.serviceWorker.ready.then(function(r){if(r.active)r.active.postMessage({type:'CACHE_URLS',urls:list});}).catch(function(){});}catch(e){}list.forEach(function(u){try{fetch(u,{mode:'cors',cache:'force-cache'}).catch(function(){});}catch(e){}});}
-window.__yapeGetResourceUrl=function(k){return clean(urls[String(k||'')])||'';};
-window.__yapeSetAppResources=function(raw){urls=norm(raw);try{localStorage.setItem(KEY,JSON.stringify(urls));}catch(e){}warm();try{window.dispatchEvent(new CustomEvent('yape-resources-updated',{detail:{urls:Object.assign({},urls)}}));}catch(e){}};
-try{urls=norm(JSON.parse(localStorage.getItem(KEY)||'{}'));}catch(e){urls={};}warm();
-try{fetch('assets/baucher/Check_Logo_bucher.json',{cache:'force-cache'}).catch(function(){});}catch(e){}
+'use strict';
+if(window.__yapeAppResourcesCacheV1) return;
+window.__yapeAppResourcesCacheV1=true;
+// Siempre se usa la carpeta del proyecto. Se sustituyen únicamente los ajustes de recursos.
+var KEY="yape_app_resources_v1";
+var LOCAL={"check-logo": "assets/baucher/Check_Logo_bucher.json", "font-main": "assets/roboto_latin.woff2", "font-symbols": "assets/roboto_simbolos.woff2", "confetti": "assets/animacion_confetti.gif"};
+function absolute(ref){try{return new URL(ref,document.baseURI).href;}catch(e){return ref;}}
+function urls(){var out={};Object.keys(LOCAL).forEach(function(k){out[k]=absolute(LOCAL[k]);});return out;}
+window.__yapeGetResourceUrl=function(key){var ref=LOCAL[String(key||'')];return ref?absolute(ref):'';};
+function apply(){}
+
+function publish(){
+  var current=urls();
+  try{localStorage.setItem(KEY,JSON.stringify(current));}catch(e){}
+  apply();
+  try{window.dispatchEvent(new CustomEvent("yape-resources-updated",{detail:{urls:current}}));}catch(e){}
+}
+// Se mantiene la API anterior; los enlaces remotos ya no reemplazan los archivos locales.
+window.__yapeSetAppResources=function(){publish();};
+publish();
+var list=Object.keys(LOCAL).map(function(k){return absolute(LOCAL[k]);});
+try{if(navigator.serviceWorker)navigator.serviceWorker.ready.then(function(reg){
+  if(reg.active)reg.active.postMessage({type:'CACHE_URLS',urls:list});
+}).catch(function(){});}catch(e){}
+list.forEach(function(url){try{fetch(url,{cache:'force-cache'}).catch(function(){});}catch(e){}});
 })();</script>
-<script type="module" id="yape-app-resources-firestore-v1">import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getFirestore, doc, getDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-try{const cfg={apiKey:'AIzaSyCfjKjr5rqM8qzpUpgqKfWMx3QsiPMHUeY',authDomain:'login-48d79.firebaseapp.com',projectId:'login-48d79',storageBucket:'login-48d79.firebasestorage.app',messagingSenderId:'1081911677152',appId:'1:1081911677152:web:dfe5416b6fe656f8994085',measurementId:'G-KG2RDVTX9E'};const app=getApps().find(a=>a&&a.name==='yape-app-resources-v1')||initializeApp(cfg,'yape-app-resources-v1');const db=getFirestore(app),ref=doc(db,'config','promotions');const use=d=>{try{window.__yapeSetAppResources&&window.__yapeSetAppResources((d&&d.appResources)||(d&&d.remoteResources)||{});}catch(e){}};getDoc(ref).then(s=>{if(s.exists())use(s.data())}).catch(()=>{});try{onSnapshot(ref,s=>{if(s.exists())use(s.data())},()=>{});}catch(e){}}catch(e){}</script>
+
 <script id="yape-app-resources-runtime-v1">(function(){
 function fontCss(url){return "@font-face{font-family:'YapeRemoteRoboto';src:url('"+String(url).replace(/'/g,"\\'")+"') format('woff2');font-style:normal;font-weight:100 900;font-display:swap;}html,body{font-family:'YapeRemoteRoboto','Roboto',Arial,sans-serif!important;}*:not(.material-symbols-outlined):not(.material-symbols-rounded):not(.material-symbols-sharp):not(.material-icons):not([class*=material-symbols]){font-family:'YapeRemoteRoboto','Roboto',Arial,sans-serif!important;}input,textarea,select,button,option{font-family:'YapeRemoteRoboto','Roboto',Arial,sans-serif!important;}";}
  function symbolsCss(url){return "@font-face{font-family:'YapeRemoteMaterialSymbols';src:url('"+String(url).replace(/'/g,"\\'")+"') format('woff2');font-style:normal;font-weight:100 700;font-display:block;}.material-symbols-outlined,.material-symbols-rounded,.material-symbols-sharp,.material-icons,[class*=material-symbols]{font-family:'YapeRemoteMaterialSymbols','Material Symbols Outlined'!important;font-weight:normal!important;font-style:normal!important;line-height:1!important;letter-spacing:normal!important;text-transform:none!important;white-space:nowrap!important;word-wrap:normal!important;direction:ltr!important;-webkit-font-feature-settings:'liga'!important;font-feature-settings:'liga'!important;-webkit-font-smoothing:antialiased!important;text-rendering:optimizeLegibility!important;}";}
@@ -2824,7 +2863,7 @@ window.BancosPagoPantalla={abrir:openBank,setMonto:function(v){monto=String(v)},
   Nuevo Yapeo
               &lt;/button&gt; &lt;button class="voucher-btn voucher-btn-ghost" id="vHelpBtn" type="button"&gt; &lt;svg aria-hidden="true" class="btn-ico" viewbox="0 0 24 24"&gt; &lt;path d="M4 12a8 8 0 0 1 16 0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"&gt;&lt;/path&gt; &lt;path d="M4 12v4a2 2 0 0 0 2 2h2v-8H6a2 2 0 0 0-2 2z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"&gt;&lt;/path&gt; &lt;path d="M20 12v4a2 2 0 0 1-2 2h-2v-8h2a2 2 0 0 1 2 2z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"&gt;&lt;/path&gt; &lt;path d="M12 20h3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"&gt;&lt;/path&gt; &lt;/svg&gt;
   Necesito ayuda
-              &lt;/button&gt; &lt;/div&gt; &lt;div class="promo-wrap"&gt; &lt;div class="promo-head"&gt; &lt;div class="promo-title"&gt;Más en Yape &lt;span class="promo-badge"&gt;Nuevo&lt;/span&gt;&lt;/div&gt; &lt;/div&gt; &lt;div class="promo-card"&gt; &lt;div class="promo-grid"&gt; &lt;div class="promo-left"&gt; &lt;img alt="Promo" id="promoImg" src="img/promos/promo1.png"/&gt; &lt;/div&gt; &lt;/div&gt; &lt;/div&gt; &lt;/div&gt; &lt;/div&gt; &lt;/div&gt; &lt;/div&gt; &lt;/div&gt; &lt;/div&gt; &lt;div aria-live="polite" id="homeToast"&gt;&lt;/div&gt; &lt;div aria-hidden="true" class="netModal hidden" id="netModal"&gt; &lt;div aria-modal="true" class="netBox" role="dialog"&gt; &lt;div aria-hidden="true" class="netSpinner"&gt;&lt;/div&gt; &lt;div class="netText"&gt;Verifica tu conexión a&lt;br/&gt;internet&lt;/div&gt; &lt;/div&gt; &lt;/div&gt; &lt;div aria-hidden="true" class="vmWrap hidden" id="verMasWrap"&gt; &lt;div class="vmBackdrop" id="verMasBackdrop"&gt;&lt;/div&gt; &lt;div aria-label="Ver más" aria-modal="true" class="vmSheet" role="dialog"&gt; &lt;div class="vmHandle"&gt;&lt;/div&gt; &lt;div class="vmTabs" id="verMasTabs"&gt; &lt;button class="ver-todo-label" data-tab="all" type="button"&gt;Ver todo&lt;/button&gt; &lt;button class="vmTab" data-tab="yapeos" type="button"&gt;Yapeos&lt;/button&gt; &lt;button class="vmTab" data-tab="finanzas" type="button"&gt;Finanzas&lt;/button&gt; &lt;button class="vmTab" data-tab="compras" type="button"&gt;Compras&lt;/button&gt; &lt;/div&gt; &lt;div class="vmGrid" id="verMasGrid"&gt;&lt;/div&gt; &lt;/div&gt; &lt;/div&gt; &lt;template id="perfilEditarTemplate"&gt; &lt;!DOCTYPE html&gt; &lt;html lang="es"&gt; &lt;head&gt; &lt;meta charset="utf-8"/&gt; &lt;meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/&gt; &lt;title&gt;Mi Perfil&lt;/title&gt; &lt;link href="manifest.json" rel="manifest"/&gt; &lt;meta content="#5B1FA6" name="theme-color"/&gt; &lt;link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/&gt; &lt;link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;amp;display=swap" rel="stylesheet"/&gt;
+              &lt;/button&gt; &lt;/div&gt; &lt;div class="promo-wrap"&gt; &lt;div class="promo-head"&gt; &lt;div class="promo-title"&gt;Más en Yape &lt;span class="promo-badge"&gt;Nuevo&lt;/span&gt;&lt;/div&gt; &lt;/div&gt; &lt;div class="promo-card"&gt; &lt;div class="promo-grid"&gt; &lt;div class="promo-left"&gt; &lt;img alt="Promo" id="promoImg" src="assets/promo_01.webp"/&gt; &lt;/div&gt; &lt;/div&gt; &lt;/div&gt; &lt;/div&gt; &lt;/div&gt; &lt;/div&gt; &lt;/div&gt; &lt;/div&gt; &lt;/div&gt; &lt;div aria-live="polite" id="homeToast"&gt;&lt;/div&gt; &lt;div aria-hidden="true" class="netModal hidden" id="netModal"&gt; &lt;div aria-modal="true" class="netBox" role="dialog"&gt; &lt;div aria-hidden="true" class="netSpinner"&gt;&lt;/div&gt; &lt;div class="netText"&gt;Verifica tu conexión a&lt;br/&gt;internet&lt;/div&gt; &lt;/div&gt; &lt;/div&gt; &lt;div aria-hidden="true" class="vmWrap hidden" id="verMasWrap"&gt; &lt;div class="vmBackdrop" id="verMasBackdrop"&gt;&lt;/div&gt; &lt;div aria-label="Ver más" aria-modal="true" class="vmSheet" role="dialog"&gt; &lt;div class="vmHandle"&gt;&lt;/div&gt; &lt;div class="vmTabs" id="verMasTabs"&gt; &lt;button class="ver-todo-label" data-tab="all" type="button"&gt;Ver todo&lt;/button&gt; &lt;button class="vmTab" data-tab="yapeos" type="button"&gt;Yapeos&lt;/button&gt; &lt;button class="vmTab" data-tab="finanzas" type="button"&gt;Finanzas&lt;/button&gt; &lt;button class="vmTab" data-tab="compras" type="button"&gt;Compras&lt;/button&gt; &lt;/div&gt; &lt;div class="vmGrid" id="verMasGrid"&gt;&lt;/div&gt; &lt;/div&gt; &lt;/div&gt; &lt;template id="perfilEditarTemplate"&gt; &lt;!DOCTYPE html&gt; &lt;html lang="es"&gt; &lt;head&gt; &lt;meta charset="utf-8"/&gt; &lt;meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/&gt; &lt;title&gt;Mi Perfil&lt;/title&gt; &lt;link href="manifest.json" rel="manifest"/&gt; &lt;meta content="#5B1FA6" name="theme-color"/&gt; &lt;link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/&gt; &lt;link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;amp;display=swap" rel="stylesheet"/&gt;
 &lt;style&gt;html,body,*{-webkit-user-select:none !important;user-select:none !important;-webkit-touch-callout:none !important;-webkit-tap-highlight-color:transparent} input,textarea,select,option,[contenteditable="true"]{-webkit-user-select:text !important;user-select:text !important;-webkit-touch-callout:default !important} *{margin:0;padding:0;box-sizing:border-box;font-family:&#39;Roboto&#39;,sans-serif;-webkit-tap-highlight-color:transparent} html,body{height:100%;overscroll-behavior:none} body{background:#fff;color:#333333;max-width:430px;margin:0 auto;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;width:100%} .screen{display:none;height:100vh;overflow:hidden} #perfilScreen{overflow-y:auto !important;-webkit-overflow-scrolling:touch !important;overscroll-behavior-y:contain !important} .screen.active{display:block} .screen{-webkit-backface-visibility:hidden;backface-visibility:hidden;transform:translateZ(0);-webkit-transform:translateZ(0);will-change:transform,opacity} .screen.active:not(#opcionesScreen){animation:screenFadeIn .18s ease-out both} #opcionesScreen.active{animation:none!important;transition:none!important;opacity:1!important;transform:none!important;visibility:visible!important} @keyframes screenFadeIn{from{opacity:0;transform:translateY(6px) translateZ(0)} to{opacity:1;transform:translateY(0) translateZ(0)}} .app{min-height:100%;overflow:visible;padding:calc(env(safe-area-inset-top) + 16px) 20px calc(env(safe-area-inset-bottom) + 32px) 20px} .top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px} .top-left,.top-right{display:flex;align-items:center} .top-right{gap:6px} .material-symbols-outlined{font-variation-settings:&#39;FILL&#39;0,&#39;wght&#39;400,&#39;GRAD&#39;0,&#39;opsz&#39;24} .back-icon,.help-icon{font-size:22px} .help-text{font-size:18px;font-weight:500} .title{font-size:28px;font-weight:500;margin-bottom:4px} .subtitle{font-size:18px;color:#6f6f6f;margin-bottom:16px} .section-title{font-size:18px;font-weight:500;margin-bottom:14px} .menu-item{display:flex;justify-content:space-between;align-items:center;padding:16px 0;cursor:pointer} .left{display:flex;align-items:center;gap:18px} .icon{font-size:26px;color:#7B1FA2} .menu-text{font-size:18px;font-weight:400} .activate-btn{background:#F4B400;color:#333333;border:none;border-radius:6px;padding:6px 14px;font-size:14px;font-weight:500} @keyframes fingerprintScan{0%{background-position:0% -200%} 100%{background-position:0% 200%}} .fingerprint-animated{background:linear-gradient(180deg,rgba(255,255,255,0)0%,rgba(255,255,255,0.9)50%,rgba(255,255,255,0)100%);background-size:100% 300%;-webkit-background-clip:text;background-clip:text;animation:fingerprintScan 3s linear infinite} @keyframes heartBeat{0%{transform:scale(1)} 20%{transform:scale(1.08)} 40%{transform:scale(1)} 60%{transform:scale(1.05)} 80%{transform:scale(1)} 100%{transform:scale(1)}} .heart-animated{animation:heartBeat 2s ease-in-out infinite;transform-origin:center} #opcionesScreen .opciones-wrapper{background:radial-gradient(circle at 18% 12%,rgba(255,255,255,0.10),rgba(255,255,255,0) 45%),radial-gradient(circle at 86% 22%,rgba(255,255,255,0.08),rgba(255,255,255,0) 52%),linear-gradient(180deg,#742284 0%,#3b0f4f 55%,#1b0629 100%) !important} #opcionesScreen .sheet{background:rgba(255,255,255,0.06) !important;border-top-left-radius:28px !important;border-top-right-radius:28px !important;margin-top:-22px !important;padding:18px 16px 22px !important;border:1px solid rgba(255,255,255,0.08) !important;backdrop-filter:blur(14px) !important;-webkit-backdrop-filter:blur(14px) !important;box-shadow:0 20px 60px rgba(0,0,0,0.45) !important} #opcionesScreen .option-btn{height:68px !important;border-radius:18px !important;background:rgba(255,255,255,0.06) !important;margin-bottom:10px !important;padding:0 14px 0 12px !important;box-shadow:none !important;border:1px solid rgba(255,255,255,0.08) !important} #opcionesScreen .option-btn::before{display:none !important} #opcionesScreen .option-text{color:#fff !important;font-weight:500 !important;letter-spacing:.2px !important;text-transform:none !important} #opcionesScreen .option-icon{width:44px !important;height:43px !important;border-radius:14px !important;background:rgba(255,255,255,0.10) !important;border:1px solid rgba(255,255,255,0.10) !important} #opcionesScreen .option-icon .material-symbols-outlined{color:#fff !important;opacity:.95 !important} #opcionesScreen .option-arrow{color:rgba(255,255,255,0.55) !important} #opcionesScreen .new-badge{background:rgba(255,255,255,0.20) !important;color:#fff !important;border:1px solid rgba(255,255,255,0.12) !important} #opcionesScreen .otras{color:rgba(255,255,255,0.70) !important;font-size:12px !important;letter-spacing:.22em !important;text-transform:uppercase !important} #opcionesScreen .soporte-btn{height:68px !important;border-radius:18px !important;background:rgba(255,255,255,0.06) !important;border:1px solid rgba(255,255,255,0.08) !important;box-shadow:none !important;color:#fff !important} #opcionesScreen .soporte-btn::before{display:none !important} #opcionesScreen .soporte-btn .material-symbols-outlined{color:#fff !important} .opciones-wrapper{background:#f2f2f2;height:100%;overflow:hidden;display:flex;flex-direction:column} .opciones-header{position:relative;height:230px;padding:18px 18px 0;color:#fff;overflow:hidden;background:linear-gradient(180deg,#742284 0%,#3b0f4f 60%,#1b0629 100%);background-image:none} .opciones-header::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(116,34,132,0.25) 0%,rgba(27,6,41,0.18) 55%,rgba(27,6,41,0.22) 100%)} .opciones-hero-text{position:relative;z-index:2;margin-top:56px;max-width:520px} .opciones-hero-title{font-size:34px;font-weight:500;letter-spacing:1px;line-height:1} .opciones-hero-desc{margin-top:10px;font-size:14px;opacity:.85;line-height:1.25} .back-opciones{position:absolute;top:12px;left:12px;z-index:3;background:transparent;border:none;color:#fff;font-size:26px;line-height:1;padding:8px;border-radius:999px} .opciones-update{position:absolute;top:14px;right:14px;z-index:4;display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.18);color:#fff;font-size:13px;font-weight:600;letter-spacing:.2px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);cursor:pointer} .opciones-update .material-symbols-outlined{font-size:18px;line-height:1} .opciones-update:active{transform:scale(0.98);filter:brightness(1.05)} .back-opciones:active{transform:scale(0.98)} #opcionesScreen .sheet{transform:translateY(18px);opacity:0;transition:transform .35s ease,opacity .35s ease} #opcionesScreen.active .sheet{transform:translateY(0) !important;opacity:1 !important} #opcionesScreen.closing .sheet{transform:translateY(18px) !important;opacity:0 !important} #opcionesScreen{transition:opacity .35s ease} #opcionesScreen.active{opacity:1} #opcionesScreen.closing{opacity:0} #opcionesScreen.active .opciones-header::before{animation:opcionesHeroIn .35s ease-out both} @keyframes opcionesSheetUp{from{transform:translateY(18px);opacity:0} to{transform:translateY(0);opacity:1}} @keyframes opcionesHeroIn{from{transform:scale(1.06);filter:saturate(1.05) contrast(1.05) blur(1px);opacity:.6} to{transform:scale(1.02);filter:saturate(1.05) contrast(1.05) blur(0);opacity:1}} .opciones-logo-wrap{display:none !important} .opciones-logo{display:none !important} .opciones-subtitle{display:none !important} .opciones-title{font-size:30px;font-weight:500;margin-bottom:6px} .opciones-sub{font-size:18px;font-weight:400;letter-spacing:0.5px} .sheet{background:#f2f2f2;border-top-left-radius:28px;border-top-right-radius:28px;margin-top:-16px;padding:20px 20px 30px 20px;flex:1;overflow:hidden} @keyframes shimmerBorder{0%{background-position:-200% 0} 100%{background-position:200% 0}} .option-btn{position:relative;height:60px;border-radius:40px;background:linear-gradient(90deg,#5e17eb,#7B1FA2);display:flex;align-items:center;justify-content:space-between;padding:0 16px 0 10px;margin-bottom:16px;box-shadow:none;0 6px 10px rgba(0,0,0,0.12),inset 0 0 8px rgba(0,150,255,0.25);overflow:hidden} .option-btn::before{content:"";position:absolute;inset:0;border-radius:40px;padding:1px;background:linear-gradient(90deg,transparent,rgba(0,180,255,0.6),transparent);background-size:200% 100%;animation:shimmerBorder 6s linear infinite;-webkit-mask:linear-gradient(#333333 0 0) content-box,linear-gradient(#333333 0 0);-webkit-mask-composite:xor;mask-composite:exclude} .option-left{display:flex;align-items:center;gap:14px} .option-icon{width:44px;height:43px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center} .option-icon .material-symbols-outlined{font-size:22px;color:#333333} .option-text{font-size:18px;font-weight:500;color:#fff;letter-spacing:0.5px} .new-badge{background:#e6e6e6;color:#7B1FA2;font-size:11px;font-weight:500;padding:4px 10px;border-radius:17px} .otras{font-size:18px;margin:10px 0 14px 0;color:#333333} .soporte-btn{position:relative;height:48px;border-radius:40px;background:linear-gradient(90deg,#00BCD4,#80DEEA);display:flex;align-items:center;gap:14px;padding:0 16px;color:#fff;font-size:18px;font-weight:500;box-shadow:none;0 6px 10px rgba(0,0,0,0.12),inset 0 0 8px rgba(0,150,255,0.35);cursor:pointer;overflow:hidden} .soporte-btn::before{content:"";position:absolute;inset:0;border-radius:40px;padding:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.8),transparent);background-size:200% 100%;animation:shimmerBorder 6s linear infinite;-webkit-mask:linear-gradient(#333333 0 0) content-box,linear-gradient(#333333 0 0);-webkit-mask-composite:xor;mask-composite:exclude} .soporte-btn .material-symbols-outlined{font-size:22px} .movList{padding:0 14px 10px !important;width:100% !important;max-height:none !important;height:auto !important;overflow-y:visible !important;overflow-x:hidden !important;-webkit-overflow-scrolling:auto !important;overscroll-behavior:auto !important;touch-action:pan-y !important} .movCard{overflow:visible !important} .movItem{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:12px 0} .movName{font-size:15px !important} .movDate{font-size:12px !important} .movAmt{font-size:15px !important;color:#333333 !important} .movItem{border-top:1px solid rgba(0,0,0,.08) !important} .movName{font-size:15px !important;font-weight:500 !important} .movDate{font-size:12px !important} .movAmt{font-size:15px !important;font-weight:500 !important} .movAmt.pos{color:#111 !important} .movAmt.neg{color:#b0003a !important} .movAllBtn{width:100%;border:0;background:transparent;padding:14px 0 6px;font-weight:500;color:#1aa79b;cursor:pointer} .movModal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:9999} .movModalCard{width:min(92vw,420px);max-height:78vh;background:#fff;border-radius:14px;box-shadow:none;0 18px 45px rgba(0,0,0,.25);overflow:hidden;display:flex;flex-direction:column} .movModalHead{display:flex;align-items:center;justify-content:space-between;padding:14px 14px;border-bottom:1px solid rgba(0,0,0,.08)} .movModalTitle{font-weight:500;font-size:18px} .movModalClose{border:0;background:transparent;font-size:18px;cursor:pointer;opacity:.7} .movModalList{padding:0 14px 10px;overflow:auto;-webkit-overflow-scrolling:touch} .modalRow{border-top:1px solid rgba(0,0,0,.08) !important} .btn-ico{width:26px;height:26px;margin-right:14px;display:inline-block;vertical-align:middle} #montoView .mButtons.onlyYapear #mOtherBanks{display:none !important} #montoView .mButtons.onlyYapear #mYapearBtn{flex:1 1 100% !important;width:100% !important} #opcionesScreen .option-btn{height:74px !important;border-radius:22px !important;padding:0 16px 0 14px !important} #opcionesScreen .option-text{font-size:18px !important} #opcionesScreen .option-icon{width:52px !important;height:52px !important;border-radius:18px !important} #opcionesScreen .option-btn{box-shadow:0 14px 34px rgba(0,0,0,0.30) !important;border:1px solid rgba(200,170,255,0.22) !important} #opcionesScreen .soporte-btn{height:70px !important;border-radius:22px !important;background:rgba(255,255,255,0.07) !important;border:1px solid rgba(255,255,255,0.10) !important;box-shadow:0 10px 24px rgba(0,0,0,0.22) !important} #opcionesScreen .soporte-btn:active{transform:scale(0.985) !important;filter:brightness(1.04) !important} #opcionesScreen .soporte-btn::after{content:"";position:absolute;inset:0;border-radius:22px;background:radial-gradient(circle at 20% 50%,rgba(255,255,255,0.18),rgba(255,255,255,0) 55%);opacity:0;transform:scale(0.98);transition:opacity .18s ease,transform .18s ease;pointer-events:none} #opcionesScreen .soporte-btn:active::after{opacity:1;transform:scale(1)} #opcionesScreen .option-btn{background:linear-gradient(135deg,rgba(94,23,235,0.34),rgba(123,31,162,0.30)) !important;border:1px solid rgba(186,150,255,0.28) !important;box-shadow:0 10px 24px rgba(0,0,0,0.25) !important;transition:transform .12s ease,filter .12s ease,background .18s ease,border-color .18s ease !important} #opcionesScreen .option-btn::before{display:none !important} #opcionesScreen .option-btn::after{content:"";position:absolute;inset:0;border-radius:18px;background:radial-gradient(circle at 20% 50%,rgba(255,255,255,0.22),rgba(255,255,255,0) 55%);opacity:0;transform:scale(0.98);transition:opacity .18s ease,transform .18s ease;pointer-events:none} #opcionesScreen .option-btn:active{transform:scale(0.985) !important;filter:brightness(1.06) !important;border-color:rgba(210,185,255,0.40) !important} #opcionesScreen .option-btn:active::after{opacity:1;transform:scale(1)} #opcionesScreen .option-text{color:#fff !important;font-weight:500 !important} #opcionesScreen .option-icon{border-radius:16px !important;overflow:hidden !important;border:1px solid rgba(255,255,255,0.12) !important} #opcionesScreen .option-icon .material-symbols-outlined{color:#fff !important} #opcionesScreen .sheet .option-btn:nth-of-type(1) .option-icon{background:linear-gradient(135deg,#00BCD4,#2196F3) !important} #opcionesScreen .sheet .option-btn:nth-of-type(2) .option-icon{background:linear-gradient(135deg,#00C853,#00E5FF) !important} #opcionesScreen .sheet .option-btn:nth-of-type(3) .option-icon{background:linear-gradient(135deg,#FF9800,#FF5252) !important} #opcionesScreen .sheet .option-btn:nth-of-type(4) .option-icon{background:linear-gradient(135deg,#FF5252,#FF9800) !important} #opcionesScreen .sheet .option-btn:nth-of-type(5) .option-icon{background:linear-gradient(135deg,#7B1FA2,#5e17eb) !important} #opcionesScreen .sheet .option-btn:nth-of-type(6) .option-icon{background:linear-gradient(135deg,#00BCD4,#26C6DA) !important} #opcionesScreen .new-badge{background:rgba(151,71,255,0.30) !important;border:1px solid rgba(200,170,255,0.22) !important;color:#fff !important} #opcionesScreen .option-btn{height:66px !important;border-radius:20px !important;padding:0 14px 0 12px !important;border:0.5px solid rgba(200,170,255,0.14) !important;box-shadow:0 6px 14px rgba(0,0,0,0.18) !important} #opcionesScreen .option-text{font-size:18px !important} #opcionesScreen .option-icon{width:48px !important;height:48px !important;border-radius:16px !important} #opcionesScreen .soporte-btn{height:62px !important;border-radius:20px !important;background:rgba(255,255,255,0.05) !important;border:0.5px solid rgba(255,255,255,0.08) !important;box-shadow:0 6px 14px rgba(0,0,0,0.18) !important} #opcionesScreen .opciones-wrapper{height:100vh !important;overflow:hidden !important;display:flex !important;flex-direction:column !important} #opcionesScreen .opciones-header{flex:0 0 auto !important} #opcionesScreen .sheet{flex:1 1 auto !important;overflow-y:visible !important;overflow-x:hidden !important;-webkit-overflow-scrolling:auto !important;overscroll-behavior:auto !important;padding-bottom:calc(env(safe-area-inset-bottom) + 70px) !important} #opcionesScreen .owner-tag{margin:26px 0 34px;text-align:center;font-size:13px;letter-spacing:2px;color:rgba(255,255,255,0.58);animation:fadeOwner 2.6s ease-in-out infinite alternate} #opcionesScreen .owner-tag span{color:#b388ff;font-weight:650;text-shadow:0 0 12px rgba(179,136,255,0.55)} @keyframes fadeOwner{from{opacity:0.55;transform:translateY(0px)} to{opacity:1;transform:translateY(-4px)}} #opcionesScreen{position:relative !important;overflow:hidden !important;background:linear-gradient(180deg,#742284 0%,#681a88 28%,#53106d 62%,#3b084f 100%) !important;color:#fff !important;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif !important;-webkit-text-size-adjust:100% !important} #opcionesScreen::before{content:none !important;display:none !important} #opcionesScreen .opciones-wrapper{min-height:100% !important;background:transparent !important;padding-bottom:22px !important;position:relative !important} #opcionesScreen .opciones-header{padding:22px 18px 10px !important;display:flex !important;gap:12px !important;align-items:flex-start !important;background:transparent !important} #opcionesScreen .opciones-header::before,#opcionesScreen .opciones-header::after{content:none !important;display:none !important;background:transparent !important} #opcionesScreen .back-opciones{color:#fff !important;font-size:28px !important;padding:8px !important;border-radius:14px !important} #opcionesScreen .opciones-hero-text{padding-top:6px !important} #opcionesScreen .opciones-hero-title{font-size:30px !important;letter-spacing:0.5px !important;font-weight:600 !important;line-height:1.05 !important} #opcionesScreen .opciones-hero-desc{margin-top:6px !important;font-size:13px !important;letter-spacing:1.6px !important;color:rgba(207,207,207,0.95) !important;font-weight:500 !important;text-transform:uppercase !important} #opcionesScreen .sheet.opciones-card{margin:14px 14px 0 !important;border-radius:20px !important;background:rgba(255,255,255,0.07) !important;border:1px solid rgba(255,255,255,0.10) !important;box-shadow:0 18px 55px rgba(0,0,0,0.45) !important;backdrop-filter:blur(16px) !important;-webkit-backdrop-filter:blur(16px) !important;padding:14px 0 10px !important} #opcionesScreen .section-label{padding:6px 18px 10px !important;font-size:12px !important;letter-spacing:2.2px !important;color:rgba(255,255,255,0.45) !important;text-transform:uppercase !important} #opcionesScreen .otras-label{padding-top:14px !important} #opcionesScreen .option-list{border-radius:16px !important;overflow:hidden !important} #opcionesScreen .option-btn,#opcionesScreen .soporte-btn{height:60px !important;margin:0 !important;padding:0 16px !important;border-radius:0 !important;background:transparent !important;border:none !important;box-shadow:none !important;display:flex !important;align-items:center !important;justify-content:space-between !important} #opcionesScreen .option-btn + .option-btn,#opcionesScreen .option-btn + .soporte-btn,#opcionesScreen .soporte-btn + .soporte-btn{border-top:1px solid rgba(255,255,255,0.10) !important} #opcionesScreen .option-left{display:flex !important;align-items:center !important;gap:14px !important;min-width:0 !important} #opcionesScreen .option-text{font-size:16px !important;font-weight:500 !important;color:rgba(255,255,255,0.92) !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;text-transform:none !important} #opcionesScreen .option-right{display:flex !important;align-items:center !important;gap:10px !important;flex-shrink:0 !important} #opcionesScreen .option-chevron{font-size:22px !important;color:rgba(255,255,255,0.55) !important} #opcionesScreen .new-badge{padding:4px 10px !important;border-radius:999px !important;font-size:11px !important;font-weight:600 !important;letter-spacing:0.6px !important;background:linear-gradient(135deg,rgba(168,85,247,1),rgba(124,58,237,1)) !important;color:#fff !important;border:1px solid rgba(255,255,255,0.18) !important} #opcionesScreen .option-icon{width:42px !important;height:42px !important;border-radius:12px !important;display:flex !important;align-items:center !important;justify-content:center !important;color:#fff !important;background:rgba(255,255,255,0.10) !important;border:1px solid rgba(255,255,255,0.14) !important} #opcionesScreen .option-icon .material-symbols-outlined{font-size:22px !important} #opcionesScreen .principal-list .option-btn:nth-child(1) .option-icon{background:rgba(140,70,255,0.75) !important} #opcionesScreen .principal-list .option-btn:nth-child(2) .option-icon{background:rgba(45,160,255,0.75) !important} #opcionesScreen .principal-list .option-btn:nth-child(3) .option-icon{background:rgba(34,197,94,0.70) !important} #opcionesScreen .principal-list .option-btn:nth-child(4) .option-icon{background:rgba(245,158,11,0.75) !important} #opcionesScreen .principal-list .option-btn:nth-child(5) .option-icon{background:rgba(251,113,133,0.75) !important} #opcionesScreen .principal-list .option-btn:nth-child(6) .option-icon{background:rgba(168,85,247,0.70) !important} #opcionesScreen .principal-list .option-btn:nth-child(7) .option-icon{background:rgba(59,130,246,0.70) !important} #opcionesScreen .option-btn:active,#opcionesScreen .soporte-btn:active{background:rgba(255,255,255,0.06) !important}&lt;/style&gt;
 &lt;style&gt;#datosView{--bg0:#070714;--bg1:#0b0b17;--bg2:#071a2a;--fg:#F8FAFC;--muted:#B7B7C7;--muted2:rgba(183,183,199,.75);--stroke:rgba(255,255,255,0.10);--stroke2:rgba(255,255,255,0.08);--glass:rgba(255,255,255,0.06);--glass2:rgba(0,0,0,0.22);--glow:rgba(124,58,237,0.16);--glow2:rgba(139,92,246,0.22);--purple:#7c3aed;--purple2:#8b5cf6;--radius:22px;--radiusSm:16px;--pad:16px;--max:430px} #datosView,#datosView *{box-sizing:border-box} #datosView{height:100%;width:100%;margin:0;color:var(--fg);overflow:hidden;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji"} #datosView .nebula{height:100dvh;width:100%;display:flex;justify-content:center;background:radial-gradient(120% 90% at 18% 6%,rgba(47,124,245,.18) 0%,rgba(47,124,245,0) 46%),radial-gradient(100% 70% at 55% 18%,rgba(124,58,237,.35) 0%,rgba(124,58,237,0) 55%),radial-gradient(110% 85% at 70% 88%,rgba(139,92,246,.22) 0%,rgba(139,92,246,0) 58%),radial-gradient(95% 85% at 35% 78%,rgba(7,26,42,.85) 0%,rgba(7,26,42,0) 55%),linear-gradient(180deg,var(--bg0) 0%,var(--bg1) 55%,#050511 100%);position:relative;overflow:hidden;padding:calc(env(safe-area-inset-top) + 10px) 14px calc(env(safe-area-inset-bottom) + 10px)} #datosView .nebula::after{content:"";position:absolute;inset:-60px;pointer-events:none;background-image:radial-gradient(circle at 10% 20%,rgba(255,255,255,0.06),rgba(255,255,255,0) 38%),radial-gradient(circle at 80% 30%,rgba(255,255,255,0.05),rgba(255,255,255,0) 40%),radial-gradient(circle at 30% 80%,rgba(255,255,255,0.04),rgba(255,255,255,0) 40%);filter:blur(10px);opacity:.55} #datosView .shell{width:min(100%,var(--max));height:100%;display:flex;flex-direction:column;position:relative;z-index:1} #datosView .d-header{flex:0 0 auto;display:flex;align-items:flex-start;gap:12px;padding:6px 2px 10px} #datosView #backFromDatos{width:40px;height:40px;border-radius:14px;border:1px solid var(--stroke2);background:rgba(255,255,255,0.05);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:var(--fg);display:grid;place-items:center;font-size:22px;line-height:1;cursor:pointer;user-select:none;position:relative;z-index:2147483646;pointer-events:auto!important;touch-action:manipulation!important;-webkit-tap-highlight-color:transparent!important;flex:0 0 40px} #datosView #backFromDatos::after{content:"";position:absolute;inset:-12px;border-radius:20px} #datosView #backFromDatos:active{transform:scale(.98);opacity:.9} #datosView .welcomeRow{display:flex;gap:12px;align-items:center;min-width:0;flex:1;padding-top:2px} #datosView .avatarCircle{width:54px;height:54px;border-radius:999px;display:grid;place-items:center;font-weight:500;letter-spacing:.2px;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.22),rgba(255,255,255,0) 52%),linear-gradient(135deg,rgba(124,58,237,1),rgba(139,92,246,1));box-shadow:0 12px 35px rgba(0,0,0,.55),0 0 45px rgba(124,58,237,0.22);border:1px solid rgba(255,255,255,0.14);flex:0 0 auto} #datosView .welcomeText{min-width:0;flex:1} #datosView .welcomeSmall{font-size:11px;letter-spacing:.10em;color:rgba(183,183,199,.85);text-transform:none} #datosView .welcomeName{margin-top:2px;width:100%;border:0;outline:0;background:transparent;color:var(--fg);font-weight:500;font-size:28px;line-height:1.05;padding:0} #datosView .welcomeName::placeholder{color:rgba(248,250,252,.55);font-weight:500} #datosView .welcomeMeta{margin-top:4px;font-size:13px;color:rgba(183,183,199,.75)} #datosView .d-main{flex:1 1 auto;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;padding:8px 0 92px} #datosView .glass{background:linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.04));border:1px solid var(--stroke2);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:var(--radius);box-shadow:0 12px 35px rgba(0,0,0,.55),0 0 45px var(--glow)} #datosView .summary{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px} #datosView .sumCard{position:relative;overflow:hidden;padding:14px 14px 12px;border-radius:20px} #datosView .sumTop{display:flex;align-items:center;gap:10px} #datosView .sumIcon{width:34px;height:34px;border-radius:14px;display:grid;place-items:center;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.10);box-shadow:0 10px 22px rgba(0,0,0,.25);flex:0 0 auto;font-size:18px} #datosView .sumValueInput,#datosView .sumValue{margin-top:10px;font-size:30px;font-weight:500;letter-spacing:-0.5px;color:var(--fg);line-height:1} #datosView .sumValueInput{width:100%;border:0;outline:0;background:transparent;padding:0} #datosView .sumValueInput::placeholder{color:rgba(248,250,252,.42)} #datosView .sumCard.balance-active{border:2px solid rgba(255,52,52,.98) !important;box-shadow:0 0 0 1px rgba(255,52,52,.32),0 0 18px rgba(255,52,52,.34),inset 0 0 14px rgba(255,52,52,.08) !important} #datosView .sumCard.balance-active .sumValueInput{color:#ff4b4b !important;text-shadow:0 0 10px rgba(255,70,70,.22)} #datosView .sumCard.balance-active .sumIcon{border-color:rgba(255,90,90,.72);box-shadow:inset 0 0 10px rgba(255,70,70,.10)} #datosView .sumCard.balance-active::before,#datosView .sumCard.balance-active::after{content:none !important;display:none !important} #datosView .sumValueInput.balance-pop{animation:saldoPop .42s ease} @keyframes saldoPop{0%{transform:scale(1)} 35%{transform:scale(1.12)} 65%{transform:scale(.97)} 100%{transform:scale(1)}} #saveBtn.balance-ready{animation:savePulse 1s ease-in-out 2;box-shadow:0 10px 28px rgba(132,74,255,.34),0 0 0 1px rgba(255,255,255,.10) inset} @keyframes savePulse{0%{transform:scale(1);box-shadow:0 8px 22px rgba(132,74,255,.24)} 35%{transform:scale(1.03);box-shadow:0 12px 34px rgba(132,74,255,.42),0 0 18px rgba(190,120,255,.32)} 70%{transform:scale(.99);box-shadow:0 10px 28px rgba(132,74,255,.30)} 100%{transform:scale(1);box-shadow:0 8px 22px rgba(132,74,255,.24)}} #datosView .sumLabel{margin-top:6px;font-size:11px;color:rgba(183,183,199,.82);font-weight:500;letter-spacing:.02em} #datosView .sectionTitle{margin:18px 4px 10px;font-size:11px;letter-spacing:.22em;color:rgba(183,183,199,.70);font-weight:500} #datosView .services{display:flex;flex-direction:column;gap:12px} #datosView .svcCard{padding:14px 14px 12px;border-radius:22px} #datosView .svcRow{display:flex;align-items:flex-start;justify-content:space-between;gap:12px} #datosView .svcLeft{display:flex;gap:12px;align-items:flex-start;min-width:0;flex:1} #datosView .svcIco{width:44px;height:43px;border-radius:16px;display:grid;place-items:center;color:#fff;flex:0 0 auto;box-shadow:0 12px 24px rgba(0,0,0,.28);border:1px solid rgba(255,255,255,0.12)} #datosView .svcIco.purple{background:linear-gradient(135deg,#7B1FA2,#5e17eb)} #datosView .svcIco.blue{background:linear-gradient(135deg,#00BCD4,#2196F3)} #datosView .svcIco.green{background:linear-gradient(135deg,#00C853,#00E5FF)} #datosView .svcIco.orange{background:linear-gradient(135deg,#FF9800,#FF5252)} #datosView .svcIco.red{background:linear-gradient(135deg,#ff3b6b,#b3003a)} #datosView .svcText{min-width:0;flex:1} #datosView .svcTitle{font-size:16px;font-weight:500;color:var(--fg);line-height:1.15} #datosView .svcSub{margin-top:4px;font-size:12.5px;color:rgba(183,183,199,.78);font-weight:500;line-height:1.25} #datosView .svcFields{margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.10);display:flex;flex-direction:column;gap:10px} #datosView .fieldLabel{font-size:11px;color:rgba(183,183,199,.78);font-weight:500} #datosView .fieldInput{width:100%;height:43px;border-radius:16px;border:1px solid rgba(255,255,255,0.10);background:rgba(0,0,0,0.25);color:var(--fg);padding:0 14px;outline:none} #datosView .fieldInput::placeholder{color:rgba(183,183,199,.55);font-weight:500} #datosView .fieldInput:focus{border-color:rgba(124,58,237,0.55);box-shadow:0 0 0 4px rgba(124,58,237,0.18),0 0 45px rgba(124,58,237,0.20)} #datosView .switch{position:relative;width:42px;height:20px;flex:0 0 auto} #datosView .switch input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer} #datosView .switchTrack{position:absolute;inset:0;border-radius:999px;background:rgba(255,255,255,0.18);box-shadow:inset 0 0 0 1px rgba(255,255,255,0.10);transition:background .18s ease} #datosView .switch{z-index:5;touch-action:manipulation;-webkit-tap-highlight-color:transparent} #datosView .switchTrack,#datosView .switchThumb{pointer-events:none} #datosView .autoSvc .svcLeft,#datosView .autoSvc .autoNotice{pointer-events:none} #datosView .switchThumb{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:999px;background:#fff;box-shadow:0 10px 18px rgba(0,0,0,.35);transition:transform .18s ease,box-shadow .18s ease} #datosView .switch input:checked + .switchTrack{background:linear-gradient(135deg,rgba(124,58,237,1),rgba(139,92,246,1));box-shadow:inset 0 0 0 1px rgba(255,255,255,0.16),0 0 24px rgba(124,58,237,0.35)} #datosView .switch input:checked + .switchTrack .switchThumb{transform:translateX(22px)} #datosView .svcCard.autoSvc{transition:border-color .24s ease,box-shadow .24s ease,transform .24s ease} #datosView .svcCard.autoSvc.active{border-color:rgba(255,90,90,.32);box-shadow:0 0 0 1px rgba(255,90,90,.14),0 16px 38px rgba(120,0,20,.18)} #datosView .svcCard.autoSvc.active .switch input:checked + .switchTrack{background:linear-gradient(135deg,#ff4d4f,#ff2d55);box-shadow:inset 0 0 0 1px rgba(255,255,255,0.16),0 0 24px rgba(255,45,85,0.30)} #datosView .autoNotice{margin-top:12px;padding:12px 14px;border-radius:16px;border:1px solid rgba(255,204,102,.20);background:linear-gradient(180deg,rgba(255,190,70,.08),rgba(255,255,255,.03));color:rgba(244,239,231,.92);transform-origin:top left} #datosView .autoNoticeTitle{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:500;letter-spacing:.12em;color:#ffd166;margin-bottom:6px} #datosView .autoNoticeText{font-size:12.5px;line-height:1.5;color:rgba(244,239,231,.82);font-weight:600} #datosView .svcCard.autoSvc.notice-pop .autoNotice{animation:autoNoticePop .36s ease} @keyframes autoNoticePop{0%{opacity:.72;transform:translateY(6px) scale(.985)} 100%{opacity:1;transform:translateY(0) scale(1)}} #datosView .sticky{position:absolute;left:0;right:0;bottom:0;padding:10px 0 calc(env(safe-area-inset-bottom) + 10px);display:flex;justify-content:center;pointer-events:none} #datosView .stickyInner{width:min(100%,var(--max));padding:0 2px;pointer-events:auto} #datosView #saveBtn{width:100%;height:46px;border:0;border-radius:22px;background:linear-gradient(135deg,rgba(124,58,237,1),rgba(139,92,246,1));color:#fff;font-weight:950;font-size:16px;letter-spacing:.2px;box-shadow:0 14px 34px rgba(0,0,0,.45),0 0 45px rgba(124,58,237,0.26);cursor:pointer} #datosView #saveBtn:active{transform:scale(.99);filter:brightness(1.03)} #datosView #toast{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(72px + env(safe-area-inset-bottom));background:rgba(17,17,20,.92);color:#fff;padding:10px 14px;border-radius:14px;font-size:13px;font-weight:500;opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease;box-shadow:0 10px 26px rgba(0,0,0,.30)} #datosView #toast.show{opacity:1;transform:translateX(-50%) translateY(-2px)} @media (max-width:380px){#datosView .welcomeName{font-size:26px} #datosView .sumValueInput,#datosView .sumValue{font-size:28px}} #datosView input,#datosView textarea{-webkit-user-select:text !important;user-select:text !important}&lt;/style&gt;
 &lt;link href="manifest.json" rel="manifest"/&gt; &lt;meta content="#5B2C83" name="theme-color"/&gt; &lt;meta content="yes" name="apple-mobile-web-app-capable"/&gt; &lt;meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/&gt;
@@ -5274,21 +5313,21 @@ window.cerrarQR = hideQR;
 &lt;/body&gt; &lt;/html&gt; &lt;/template&gt;
 &lt;script&gt;/* ================= HOME DATA ================= */
 const ICONS = [
-"img/iconos/recargar.png",
-"img/iconos/servicios.png",
-"img/iconos/promos.png",
-"img/iconos/aprobacion.png",
-"img/iconos/creditos.png",
-"img/iconos/tienda.png",
-"img/iconos/dolares.png",
-"img/iconos/remesas.png",
-"img/iconos/soat.png",
+"assets/recargar.png",
+"assets/icono_yapear_servicios.svg",
+"assets/icono_promos.webp",
+"assets/aprobacion.png",
+"assets/creditos.png",
+"assets/icono_tienda.svg",
+"assets/dolares.png",
+"assets/remesas.png",
+"assets/soat.png",
 "assets/icono_contactos_yape.webp",
-"img/iconos/gaming.png",
-"img/iconos/vermas.png",
+"assets/icono_gaming.webp",
+"assets/icono_ver_todo_base.webp",
 ];
 // Video usado por &#39;Yapear servicios&#39; (se comparte entre Home y Ver más)
-const SERVICES_VIDEO_SRC = "media/yapear_servicios.mp4";
+
 const LABELS = [
 "Recargar&lt;br/&gt;celular",
 "Yapear&lt;br/&gt;servicios",
@@ -5334,18 +5373,18 @@ let verMasBuilt = false;
 const VER_MAS_ITEMS = [
 { label: &#39;Recargar\ncelular&#39;, tab: &#39;finanzas&#39;, src: &#39;&#39; },
 { label: &#39;Yapear\nservicios&#39;, tab: &#39;yapeos&#39;, src: &#39;&#39; },
-{ label: &#39;Giro/retiro\nde efectivo&#39;, tab: &#39;finanzas&#39;, src: &#39;media/giro.png&#39; },
+{ label: &#39;Giro/retiro\nde efectivo&#39;, tab: &#39;finanzas&#39;, src: &#39;assets/icono_movimientos.svg&#39; },
 { label: &#39;Aprobar\ncompras&#39;, tab: &#39;compras&#39;, src: &#39;&#39; },
-{ label: &#39;Biometría\ndigital&#39;, tab: &#39;finanzas&#39;, src: &#39;media/biometria.png&#39; },
+{ label: &#39;Biometría\ndigital&#39;, tab: &#39;finanzas&#39;, src: &#39;assets/biometria.png&#39; },
 { label: &#39;Créditos&#39;, tab: &#39;finanzas&#39;, src: &#39;&#39; },
 { label: &#39;SOAT&#39;, tab: &#39;finanzas&#39;, src: &#39;&#39; },
-{ label: &#39;Seguros&#39;, tab: &#39;finanzas&#39;, src: &#39;media/seguros.png&#39; },
+{ label: &#39;Seguros&#39;, tab: &#39;finanzas&#39;, src: &#39;assets/soat.png&#39; },
 { label: &#39;Dólares&#39;, tab: &#39;finanzas&#39;, src: &#39;&#39; },
 { label: &#39;Remesas&#39;, tab: &#39;finanzas&#39;, src: &#39;&#39; },
-{ label: &#39;Aprende\ncon Yape&#39;, tab: &#39;yapeos&#39;, src: &#39;media/aprende.png&#39; },
-{ label: &#39;Enviar al\nexterior&#39;, tab: &#39;finanzas&#39;, src: &#39;media/enviar_exterior.png&#39; },
+{ label: &#39;Aprende\ncon Yape&#39;, tab: &#39;yapeos&#39;, src: &#39;assets/yape_personaje.svg&#39; },
+{ label: &#39;Enviar al\nexterior&#39;, tab: &#39;finanzas&#39;, src: &#39;assets/remesas.png&#39; },
 { label: &#39;Promos&#39;, tab: &#39;compras&#39;, src: &#39;&#39; },
-{ label: &#39;Entradas\nJoinnus&#39;, tab: &#39;compras&#39;, src: &#39;media/entradas.png&#39; },
+{ label: &#39;Entradas\nJoinnus&#39;, tab: &#39;compras&#39;, src: &#39;assets/icono_aprobar_compras.svg&#39; },
 { label: &#39;Gaming&#39;, tab: &#39;compras&#39;, src: &#39;&#39; },
 { label: &#39;Tienda&#39;, tab: &#39;compras&#39;, src: &#39;&#39; },
 ];
@@ -5361,20 +5400,7 @@ icon.className = &#39;vmIcon&#39;;
 const labelKey = normalizeLabel(it.label);
 const fallbackHome = HOME_ICON_BY_LABEL[labelKey];
 // Si es "Yapear servicios", usamos el MISMO video del Home (sin duplicar archivos)
-if (labelKey === normalizeLabel(&#39;Yapear servicios&#39;)) {
-const vid = document.createElement(&#39;video&#39;);
-vid.src = SERVICES_VIDEO_SRC;
-vid.muted = true;
-vid.loop = true;
-vid.autoplay = true;
-vid.playsInline = true;
-vid.setAttribute(&#39;webkit-playsinline&#39;, &#39;true&#39;);
-vid.style.width = &#39;100%&#39;;
-vid.style.height = &#39;100%&#39;;
-vid.style.objectFit = &#39;cover&#39;;
-vid.style.borderRadius = &#39;14px&#39;;
-icon.appendChild(vid);
-} else {
+
 const img = document.createElement(&#39;img&#39;);
 img.alt = it.label.replace(/\n/g,&#39; &#39;);
 // Si no hay src, usa el mismo ícono del Home (por nombre).
@@ -5387,7 +5413,6 @@ img.src = it.src || fallbackHome || (&#39;data:image/svg+xml;utf8,&#39; + encode
             &lt;/svg&gt;
           `));
 icon.appendChild(img);
-}
 const txt = document.createElement(&#39;div&#39;);
 txt.className = &#39;vmText&#39;;
 txt.innerHTML = it.label.replace(/\n/g,&#39;&lt;br&gt;&#39;);
@@ -6607,89 +6632,51 @@ bHelp.addEventListener("click", () =&gt; {
 }
 })();
 const promos = [
-{ src: "img/promos/promo1.png", alt: "Promo 1" },
-{ src: "img/promos/promo2.png", alt: "Promo 2" },
-{ src: "img/promos/promo3.png", alt: "Promo 3" },
-{ src: "img/promos/promo4.png", alt: "Promo 4" }
+{ src: &quot;assets/promo_01.webp&quot;, alt: &quot;Promo 1&quot; },
+{ src: &quot;assets/promo_02.webp&quot;, alt: &quot;Promo 2&quot; },
+{ src: &quot;assets/promo_03.webp&quot;, alt: &quot;Promo 3&quot; },
+{ src: &quot;assets/promo_04.webp&quot;, alt: &quot;Promo 4&quot; },
+{ src: &quot;assets/promo_05.webp&quot;, alt: &quot;Promo 5&quot; },
+{ src: &quot;assets/promo_06.webp&quot;, alt: &quot;Promo 6&quot; }
 ];
-const KEY = "yape_promo_index";
-function getRemoteVoucherConfig(){
-try{
-var st = null;
-try{
-if(window.parent &amp;&amp; window.parent !== window) st = window.parent.__yosiRemotePromosV99State || null;
-}catch(e){}
-if(st &amp;&amp; typeof st.voucherEnabled !== "undefined"){
-var arr = Array.isArray(st.voucherImages) ? st.voucherImages : [];
-return {
-known:true,
-enabled:st.voucherEnabled !== false,
-promos:arr.map(function(src,idx){ return {src:String(src||"").trim(), alt:"Promo "+(idx+1)}; })
-.filter(function(p){ return /^https:\/\//i.test(p.src); })
-};
-}
-}catch(e){}
-try{
-var raw = localStorage.getItem("yape_remote_voucher_promos_v99");
-var data = raw ? JSON.parse(raw) : null;
-if(data &amp;&amp; typeof data.enabled !== "undefined"){
-var urls = Array.isArray(data.urls) ? data.urls : [];
-return {
-known:true,
-enabled:data.enabled !== false,
-promos:urls.map(function(src,idx){ return {src:String(src||"").trim(), alt:"Promo "+(idx+1)}; })
-.filter(function(p){ return /^https:\/\//i.test(p.src); })
-};
-}
-}catch(e){}
-return {known:false,enabled:true,promos:[]};
-}
+const KEY = &quot;yape_promo_index&quot;;
+// Las promociones del voucher siempre salen de la carpeta local.
 function setVoucherPromoVisible(show){
 try{
-var img = document.getElementById("promoImg");
-var wrap = img &amp;&amp; img.closest ? img.closest(".promo-wrap") : null;
-if(wrap) wrap.style.setProperty("display", show ? "" : "none", show ? "" : "important");
+var img = document.getElementById(&quot;promoImg&quot;);
+var wrap = img &amp;&amp; img.closest ? img.closest(&quot;.promo-wrap&quot;) : null;
+if(wrap) wrap.style.setProperty(&quot;display&quot;, show ? &quot;&quot; : &quot;none&quot;, show ? &quot;&quot; : &quot;important&quot;);
 }catch(e){}
 }
-function getPromoList(){
-var cfg = getRemoteVoucherConfig();
-if(cfg.known &amp;&amp; cfg.enabled === false) return [];
-return cfg.promos &amp;&amp; cfg.promos.length ? cfg.promos : promos;
-}
+function getPromoList(){ return promos; }
 function rotatePromo() {
-const img = document.getElementById("promoImg");
+const img = document.getElementById(&quot;promoImg&quot;);
 if (!img) return null;
-const cfg = getRemoteVoucherConfig();
-if(cfg.known &amp;&amp; cfg.enabled === false){
-setVoucherPromoVisible(false);
-return {src:"",alt:"",disabled:true};
-}
 setVoucherPromoVisible(true);
-const list = cfg.promos &amp;&amp; cfg.promos.length ? cfg.promos : promos;
-if(!list || !list.length) return null;
-let i = parseInt(localStorage.getItem(KEY) || "0", 10);
+const list = getPromoList();
+if(!list.length) return null;
+let i = 0;
+try{ i = parseInt(localStorage.getItem(KEY) || &quot;0&quot;, 10); }catch(e){}
 if (isNaN(i) || i &lt; 0) i = 0;
 i = i % list.length;
 const p = list[i];
 img.src = p.src;
-img.alt = p.alt || ("Promo " + (i + 1));
-img.setAttribute("data-promo-position", String(i + 1));
-localStorage.setItem(KEY, String((i + 1) % list.length));
+img.alt = p.alt;
+img.setAttribute(&quot;data-promo-position&quot;, String(i + 1));
+try{ localStorage.setItem(KEY, String((i + 1) % list.length)); }catch(e){}
 return p;
 }
 function setPromoFixed(src, alt){
-const img = document.getElementById("promoImg");
+const img = document.getElementById(&quot;promoImg&quot;);
 if(!img) return;
-var cfg = getRemoteVoucherConfig();
-if(cfg.known &amp;&amp; cfg.enabled === false){
-setVoucherPromoVisible(false);
-return;
-}
 setVoucherPromoVisible(true);
-if(src){
-img.src = src;
-img.alt = alt || "Promo";
-}
+// Reutiliza el anuncio local guardado; los enlaces externos antiguos usan el primero.
+const saved = String(src || &quot;&quot;).trim().split(/[?#]/)[0];
+let i = promos.findIndex(function(p){ return saved === p.src || saved.endsWith(&quot;/&quot; + p.src); });
+if(i &lt; 0) i = 0;
+img.src = promos[i].src;
+img.alt = alt || promos[i].alt;
+img.setAttribute(&quot;data-promo-position&quot;, String(i + 1));
 }
 // ===== SERPENTINAS YAPE CON LOTTIE (INLINE EN EL MISMO HTML) =====
 window.__confettiPlayed = false;
@@ -6861,7 +6848,7 @@ if(logoWrap){
 if(isFromMov){
 logoWrap.innerHTML = &#39;&lt;img src="assets/embedded/logo-yape-principal.svg" alt="Yape"&gt;&#39;;
 }else{
-logoWrap.innerHTML = `&lt;img src="media/logo.gif" class="yape-gif" alt="Yape"&gt;`;
+logoWrap.innerHTML = `&lt;img src="assets/embedded/logo-yape-principal.svg" class="yape-gif" alt="Yape"&gt;`;
 }
 }
 // Botones solo en movimientos
@@ -10022,7 +10009,7 @@ function markup(){ return &#39;&lt;div id="&#39;+ROOT_ID+&#39;" aria-hidden="tru
 &#39;&lt;/button&gt;&#39;+
 &#39;&lt;/div&gt;&#39;+
 &#39;&lt;/section&gt;&#39;+
-&#39;&lt;section class="yr-body"&gt;&lt;h2 class="yr-section-title"&gt;Últimos contactos recargados&lt;/h2&gt;&lt;div class="yr-empty"&gt;&lt;div class="yr-book" aria-hidden="true"&gt;&lt;img class="yr-book-img" src="assets/yapearservicios/cuaderno.png" alt=""&gt;&lt;/div&gt;&lt;p class="yr-empty-text"&gt;Aquí verás tus contactos recargados en&lt;br&gt;los últimos 30 días.&lt;/p&gt;&lt;/div&gt;&lt;/section&gt;&#39;+
+&#39;&lt;section class="yr-body"&gt;&lt;h2 class="yr-section-title"&gt;Últimos contactos recargados&lt;/h2&gt;&lt;div class="yr-empty"&gt;&lt;div class="yr-book" aria-hidden="true"&gt;&lt;img class="yr-book-img" src="assets/icono_contactos_yape.webp" alt=""&gt;&lt;/div&gt;&lt;p class="yr-empty-text"&gt;Aquí verás tus contactos recargados en&lt;br&gt;los últimos 30 días.&lt;/p&gt;&lt;/div&gt;&lt;/section&gt;&#39;+
 &#39;&lt;/section&gt;&#39;+
 &#39;&lt;section class="yr-screen yr-screen-operadoras yr-flow yr-ops"&gt;&#39;+
 &#39;&lt;div class="yr-flow-head"&gt;&lt;button class="yr-flow-btn yr-ops-back" type="button" aria-label="Volver"&gt;&lt;svg viewBox="0 0 24 24" fill="none"&gt;&lt;path d="M15 5 8 12l7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/&gt;&lt;/svg&gt;&lt;/button&gt;&lt;h2 class="yr-flow-title"&gt;Recargar a&lt;/h2&gt;&lt;button class="yr-flow-btn yr-close" type="button" aria-label="Cerrar"&gt;&lt;svg viewBox="0 0 24 24" fill="none"&gt;&lt;path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/&gt;&lt;/svg&gt;&lt;/button&gt;&lt;/div&gt;&#39;+
@@ -10069,7 +10056,7 @@ var wrap=v.querySelector(&#39;.rcvCardWrap&#39;); if(!wrap) return null;
 var b=wrap.querySelector(&#39;.rcvNewRechargeBtn&#39;);
 if(!b){
 b=document.createElement(&#39;button&#39;); b.type=&#39;button&#39;; b.className=&#39;rcvNewRechargeBtn&#39;;
-b.innerHTML=&#39;&lt;img src="assets/yapearservicios/celularbaucher.png" alt="" aria-hidden="true" style="width:3.4vw;height:5.1vw;object-fit:contain;display:block;margin:0;padding:0"&gt;&lt;span&gt;Nueva recarga&lt;/span&gt;&#39;;
+b.innerHTML=&#39;&lt;img src="assets/recargar.png" alt="" aria-hidden="true" style="width:3.4vw;height:5.1vw;object-fit:contain;display:block;margin:0;padding:0"&gt;&lt;span&gt;Nueva recarga&lt;/span&gt;&#39;;
 wrap.appendChild(b);
 b.addEventListener(&#39;click&#39;,function(ev){
 try{ev.preventDefault();ev.stopPropagation();}catch(e){}
@@ -11699,7 +11686,7 @@ screen = document.createElement('section');
 screen.id = 'yapeHelpPersonajeScreen';
 screen.setAttribute('aria-hidden','true');
 screen.innerHTML = ''
-+ '<img class="yapeHelpCharacter" src="assets/clave/personaje_yape.png" alt="Yape personaje">'
++ '<img class="yapeHelpCharacter" src="assets/yape_personaje.svg" alt="Yape personaje">'
 + '<div class="yapeHelpCopy">'
 +   '<h1 class="yapeHelpTitle">Ups, algo salió mal</h1>'
 +   '<p class="yapeHelpText">Cierre la aplicación y vuelve a intentarlo.</p>'
@@ -15861,60 +15848,62 @@ setTimeout(applyAll,50); setTimeout(applyAll,400); setTimeout(applyAll,1200);
 })();</script>
 <style>#mNameBox{font-weight:500 !important;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif !important} #mAmountInput{font-weight:400 !important;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif !important}</style>
 <script id="yape-remote-banknotes-cache-v1">(function(){
-if(window.__yapeRemoteBanknotesCacheV1)return;window.__yapeRemoteBanknotesCacheV1=true;
-var STORAGE_KEY='yape_remote_banknotes_v1';
-var KEYS=['jose-quinones','miguel-grau','abraham-vadelomar','pedro-paulet','santa-rosa-de-lima'];
-var urls=Object.create(null);
-function clean(v){v=String(v||'').trim();return /^https:\/\//i.test(v)?v:'';}
-function normalize(raw){raw=raw&&typeof raw==='object'?raw:{};var out={};KEYS.forEach(function(k){var v=raw[k];if(v&&typeof v==='object')v=v.url||v.secure_url||'';v=clean(v);if(v)out[k]=v;});return out;}
-function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(urls));}catch(e){}}
-function warm(list){
-list=(list||[]).filter(Boolean);if(!list.length)return;
-try{navigator.serviceWorker&&navigator.serviceWorker.ready&&navigator.serviceWorker.ready.then(function(reg){try{if(reg.active)reg.active.postMessage({type:'CACHE_URLS',urls:list});}catch(e){}}).catch(function(){});}catch(e){}
-list.forEach(function(u){try{var im=new Image();im.crossOrigin='anonymous';im.decoding='async';im.src=u;}catch(e){}});
+'use strict';
+if(window.__yapeRemoteBanknotesCacheV1) return;
+window.__yapeRemoteBanknotesCacheV1=true;
+// Siempre se usa la carpeta del proyecto. Se sustituyen únicamente los ajustes de recursos.
+var KEY="yape_remote_banknotes_v1";
+var LOCAL={"jose-quinones": "assets/watermark-jose-quinones.png", "miguel-grau": "assets/Miguel-grau.png", "abraham-vadelomar": "assets/Abraham-vadelomar.png", "pedro-paulet": "assets/Pedro-paulet.png", "santa-rosa-de-lima": "assets/santa-rosa-de-lima.png"};
+function absolute(ref){try{return new URL(ref,document.baseURI).href;}catch(e){return ref;}}
+function urls(){var out={};Object.keys(LOCAL).forEach(function(k){out[k]=absolute(LOCAL[k]);});return out;}
+window.__yapeGetBanknoteUrl=function(key){var ref=LOCAL[String(key||'')];return ref?absolute(ref):'';};
+function apply(){}
+
+function publish(){
+  var current=urls();
+  try{localStorage.setItem(KEY,JSON.stringify(current));}catch(e){}
+  apply();
+  try{window.dispatchEvent(new CustomEvent("yape-banknotes-updated",{detail:{urls:current}}));}catch(e){}
 }
-window.__yapeGetBanknoteUrl=function(key){return clean(urls[String(key||'')])||'';};
-window.__yapeSetRemoteBanknotes=function(raw){var next=normalize(raw);Object.keys(urls).forEach(function(k){delete urls[k];});Object.keys(next).forEach(function(k){urls[k]=next[k];});save();warm(Object.keys(urls).map(function(k){return urls[k];}));try{window.dispatchEvent(new CustomEvent('yape-banknotes-updated',{detail:{urls:Object.assign({},urls)}}));}catch(e){}};
-try{urls=normalize(JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}'));}catch(e){urls=Object.create(null);}warm(Object.keys(urls).map(function(k){return urls[k];}));
+// Se mantiene la API anterior; los enlaces remotos ya no reemplazan los archivos locales.
+window.__yapeSetRemoteBanknotes=function(){publish();};
+publish();
+var list=Object.keys(LOCAL).map(function(k){return absolute(LOCAL[k]);});
+try{if(navigator.serviceWorker)navigator.serviceWorker.ready.then(function(reg){
+  if(reg.active)reg.active.postMessage({type:'CACHE_URLS',urls:list});
+}).catch(function(){});}catch(e){}
+list.forEach(function(url){try{var img=new Image();img.decoding='async';img.src=url;}catch(e){}});
 })();</script>
-<script type="module" id="yape-remote-banknotes-firestore-v1">import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getFirestore, doc, getDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-try{
-const firebaseConfig={apiKey:'AIzaSyCfjKjr5rqM8qzpUpgqKfWMx3QsiPMHUeY',authDomain:'login-48d79.firebaseapp.com',projectId:'login-48d79',storageBucket:'login-48d79.firebasestorage.app',messagingSenderId:'1081911677152',appId:'1:1081911677152:web:dfe5416b6fe656f8994085',measurementId:'G-KG2RDVTX9E'};
-const app=getApps().find(a=>a&&a.name==='yape-remote-banknotes-v1')||initializeApp(firebaseConfig,'yape-remote-banknotes-v1');
-const db=getFirestore(app),ref=doc(db,'config','promotions');
-const useData=d=>{try{window.__yapeSetRemoteBanknotes&&window.__yapeSetRemoteBanknotes((d&&d.banknoteImages)||(d&&d.banknotes)||{});}catch(e){}};
-getDoc(ref).then(s=>{if(s.exists())useData(s.data())}).catch(()=>{});
-try{onSnapshot(ref,s=>{if(s.exists())useData(s.data())},()=>{});}catch(e){}
-}catch(e){}</script>
+
 <script id="yape-banknotes-refresh-v1">window.addEventListener('yape-banknotes-updated',function(){try{document.querySelectorAll('iframe').forEach(function(fr){try{var d=fr.contentDocument;if(!d)return;d.querySelectorAll('img[data-voucher-watermark-pool]').forEach(function(img){var key=img.getAttribute('data-voucher-watermark-pool'),u=window.__yapeGetBanknoteUrl?window.__yapeGetBanknoteUrl(key):'';if(u&&img.src!==u){img.dataset.fileIndex='0';img.dataset.banknotePrimary=u;img.src=u;}});}catch(e){}});}catch(e){}});</script>
 <script id="yape-login-assets-cache-v1">(function(){
-if(window.__yapeLoginAssetsCacheV1)return;window.__yapeLoginAssetsCacheV1=true;
-var STORAGE_KEY='yape_login_assets_v1';
-var KEYS=['qr','actions'];
-var urls=Object.create(null);
-function clean(v){v=String(v||'').trim();return /^https:\/\//i.test(v)?v:'';}
-function normalize(raw){raw=raw&&typeof raw==='object'?raw:{};var out={};KEYS.forEach(function(k){var v=raw[k];if(v&&typeof v==='object')v=v.url||v.secure_url||'';v=clean(v);if(v)out[k]=v;});return out;}
-function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(urls));}catch(e){}}
-function warm(list){
-list=(list||[]).filter(Boolean);if(!list.length)return;
-try{navigator.serviceWorker&&navigator.serviceWorker.ready&&navigator.serviceWorker.ready.then(function(reg){try{if(reg.active)reg.active.postMessage({type:'CACHE_URLS',urls:list});}catch(e){}}).catch(function(){});}catch(e){}
-list.forEach(function(u){try{var im=new Image();im.crossOrigin='anonymous';im.decoding='async';im.src=u;}catch(e){}});
+'use strict';
+if(window.__yapeLoginAssetsCacheV1) return;
+window.__yapeLoginAssetsCacheV1=true;
+// Siempre se usa la carpeta del proyecto. Se sustituyen únicamente los ajustes de recursos.
+var KEY="yape_login_assets_v1";
+var LOCAL={"qr": "assets/qr_yape_morado.webp", "actions": "assets/barra_opciones_perfil.webp"};
+function absolute(ref){try{return new URL(ref,document.baseURI).href;}catch(e){return ref;}}
+function urls(){var out={};Object.keys(LOCAL).forEach(function(k){out[k]=absolute(LOCAL[k]);});return out;}
+window.__yapeGetLoginAssetUrl=function(key){var ref=LOCAL[String(key||'')];return ref?absolute(ref):'';};
+function apply(){}
+
+function publish(){
+  var current=urls();
+  try{localStorage.setItem(KEY,JSON.stringify(current));}catch(e){}
+  apply();
+  try{window.dispatchEvent(new CustomEvent("yape-login-assets-updated",{detail:{urls:current}}));}catch(e){}
 }
-window.__yapeGetLoginAssetUrl=function(key){return clean(urls[String(key||'')])||'';};
-window.__yapeSetLoginAssets=function(raw){var next=normalize(raw);Object.keys(urls).forEach(function(k){delete urls[k];});Object.keys(next).forEach(function(k){urls[k]=next[k];});save();warm(Object.keys(urls).map(function(k){return urls[k];}));try{window.dispatchEvent(new CustomEvent('yape-login-assets-updated',{detail:{urls:Object.assign({},urls)}}));}catch(e){}};
-try{urls=normalize(JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}'));}catch(e){urls=Object.create(null);}warm(Object.keys(urls).map(function(k){return urls[k];}));
+// Se mantiene la API anterior; los enlaces remotos ya no reemplazan los archivos locales.
+window.__yapeSetLoginAssets=function(){publish();};
+publish();
+var list=Object.keys(LOCAL).map(function(k){return absolute(LOCAL[k]);});
+try{if(navigator.serviceWorker)navigator.serviceWorker.ready.then(function(reg){
+  if(reg.active)reg.active.postMessage({type:'CACHE_URLS',urls:list});
+}).catch(function(){});}catch(e){}
+list.forEach(function(url){try{var img=new Image();img.decoding='async';img.src=url;}catch(e){}});
 })();</script>
-<script type="module" id="yape-login-assets-firestore-v1">import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getFirestore, doc, getDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-try{
-const firebaseConfig={apiKey:'AIzaSyCfjKjr5rqM8qzpUpgqKfWMx3QsiPMHUeY',authDomain:'login-48d79.firebaseapp.com',projectId:'login-48d79',storageBucket:'login-48d79.firebasestorage.app',messagingSenderId:'1081911677152',appId:'1:1081911677152:web:dfe5416b6fe656f8994085',measurementId:'G-KG2RDVTX9E'};
-const app=getApps().find(a=>a&&a.name==='yape-login-assets-v1')||initializeApp(firebaseConfig,'yape-login-assets-v1');
-const db=getFirestore(app),ref=doc(db,'config','promotions');
-const useData=d=>{try{window.__yapeSetLoginAssets&&window.__yapeSetLoginAssets((d&&d.loginAssets)||(d&&d.lockScreenAssets)||(d&&d.loginScreenAssets)||{});}catch(e){}};
-getDoc(ref).then(s=>{if(s.exists())useData(s.data())}).catch(()=>{});
-try{onSnapshot(ref,s=>{if(s.exists())useData(s.data())},()=>{});}catch(e){}
-}catch(e){}</script>
+
 <script id="yape-login-assets-refresh-v1">(function(){
 function applyDoc(doc){
 try{
@@ -16870,9 +16859,9 @@ recargaImg.setAttribute('aria-hidden','true');
 /* El PNG real está en /assets/yapearservicios/.
 Se resuelve desde el documento exterior para que funcione también dentro del iframe srcdoc. */
 try{
-recargaImg.src=makeOuterAssetUrl('assets/yapearservicios/celularbaucher.png');
+recargaImg.src=makeOuterAssetUrl('assets/recargar.png');
 }catch(e){
-recargaImg.src='assets/yapearservicios/celularbaucher.png';
+recargaImg.src='assets/recargar.png';
 }
 
 recargaImg.style.cssText=[
@@ -18578,7 +18567,7 @@ root.innerHTML = `
         <img class="bridgeEntryYapeLogo" src="assets/embedded/logo-yape-principal.svg" alt="Yape">
         <div class="bridgeEntryLoaderBlock">
           <div class="bridgeEntryCharacterTrack" aria-hidden="true">
-            <img class="bridgeEntryCharacter" src="assets/clave/personaje_yape.png" alt="">
+            <img class="bridgeEntryCharacter" src="assets/yape_personaje.svg" alt="">
           </div>
           <div class="bridgeEntryProgress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="12"><i></i></div>
           <strong class="bridgeEntryPercent" id="bridgeEntryPercent">12%</strong>
@@ -27002,12 +26991,12 @@ var old = doc.getElementById('yapetonSearchScreen');
 if(old) return old;
 
 var items = [
-{ label:'Yapear servicios', key:'yapear servicios', homeKey:'Yapear servicios', src:'media/yapear_servicios.mp4', fallback:'img/iconos/servicios.png', isVideo:true },
-{ label:'Aprobar compras', key:'codigo de aprobacion', homeKey:'Código de aprobación', src:'img/iconos/aprobacion.png' },
-{ label:'Promos', key:'promos', homeKey:'Promos', src:'img/iconos/promos.png' },
-{ label:'Entradas', key:'entradas', homeKey:'Entradas', src:'media/entradas.png', fallback:'media/entradas.png' },
-{ label:'Tienda', key:'tienda', homeKey:'Tienda', src:'img/iconos/tienda.png' },
-{ label:'Gaming', key:'gaming', homeKey:'Gaming', src:'img/iconos/gaming.png' }
+{ label:'Yapear servicios', key:'yapear servicios', homeKey:'Yapear servicios', src:'assets/icono_yapear_servicios.svg', fallback:'assets/icono_yapear_servicios.svg', isVideo:false },
+{ label:'Aprobar compras', key:'codigo de aprobacion', homeKey:'Código de aprobación', src:'assets/aprobacion.png' },
+{ label:'Promos', key:'promos', homeKey:'Promos', src:'assets/icono_promos.webp' },
+{ label:'Entradas', key:'entradas', homeKey:'Entradas', src:'assets/icono_aprobar_compras.svg', fallback:'assets/icono_aprobar_compras.svg' },
+{ label:'Tienda', key:'tienda', homeKey:'Tienda', src:'assets/icono_tienda.svg' },
+{ label:'Gaming', key:'gaming', homeKey:'Gaming', src:'assets/icono_gaming.webp' }
 ];
 
 var screen = doc.createElement('div');
@@ -27051,7 +27040,7 @@ var wrap = doc.createElement('span');
 wrap.className = 'ys-img-wrap';
 
 if(item.isVideo){
-var videoSrc = getVideoFromHome(item.homeKey || item.key, item.src || 'media/yapear_servicios.mp4');
+var videoSrc = getVideoFromHome(item.homeKey || item.key, item.src || 'assets/icono_yapear_servicios.svg');
 var vid = doc.createElement('video');
 vid.className = 'ys-img ys-video';
 vid.muted = true;
@@ -27060,7 +27049,7 @@ vid.autoplay = true;
 vid.playsInline = true;
 vid.preload = 'metadata';
 vid.setAttribute('webkit-playsinline','true');
-vid.src = videoSrc || item.src || 'media/yapear_servicios.mp4';
+vid.src = videoSrc || item.src || 'assets/icono_yapear_servicios.svg';
 /* No agregamos imagen fallback aquí: en Chrome se veía junto al MP4 y salía bugueado. */
 vid.addEventListener('error', function(){
 vid.style.visibility = 'hidden';
@@ -27196,7 +27185,7 @@ openSearch();
 bindSearchBar();
 var mo = new MutationObserver(function(){
 bindSearchBar();
-getIconFromHome('promos','img/iconos/promos.png');
+getIconFromHome('promos','assets/icono_promos.webp');
 });
 try{ mo.observe(doc.body, {childList:true, subtree:true}); }catch(e){}
 (win.__yosiPerfInterval || win.setInterval)(bindSearchBar, 2500);
@@ -37851,7 +37840,7 @@ window.__yosiPerfInterval(run, 1200);
       var t = ev.target;
       if(!t || !t.closest) return;
       /* V235: no interceptar pantallas ni botones de comprobante/recarga.
-         El botón "Nueva recarga" usa assets/yapearservicios/celularbaucher.png y,
+         El botón "Nueva recarga" usa assets/recargar.png y,
          después de una recarga, esa imagen puede quedar oculta dentro de "Nuevo Yapeo".
          La detección genérica por src contenía "servicios" y abría Yapear servicios
          antes de que se ejecutara la navegación correcta del comprobante. */
@@ -39563,9 +39552,7 @@ window.addEventListener('load', function(){
 
 window.__yosiPerfInterval(scanAll, 1500);
 })();</script>
-<script id="yosi-remote-promos-v99" type="module">import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
+<script id="yosi-remote-promos-v99" type="module">
 (function(){
 'use strict';
 if (window.__yosiRemotePromosV99Installed) return;
@@ -39581,29 +39568,30 @@ appId: "1:1081911677152:web:dfe5416b6fe656f8994085",
 measurementId: "G-KG2RDVTX9E"
 };
 
-const app = getApps().find(a => a && a.name === 'yosi-remote-promos-v99') ||
-initializeApp(firebaseConfig, 'yosi-remote-promos-v99');
-const db = getFirestore(app);
-const cfgRef = doc(db, 'config', 'promotions');
-
-let state = {
-homeEnabled: true,
-homeMasterEnabled: true,
-homeImages: [],
-homeCampaigns: [],
-voucherEnabled: true,
-voucherMasterEnabled: true,
-voucherImages: [],
-voucherCampaigns: [],
-accessBadges: {}
-};
-
-function cleanUrl(v){
-const s = String(v || '').trim();
-return /^https:\/\//i.test(s) ? s : '';
+// Home y voucher usan archivos de la misma carpeta del proyecto.
+// La carga de sus imágenes funciona aunque Firebase no esté disponible.
+const LOCAL_HOME_IMAGES = [
+  'assets/promo_01.webp', 'assets/promo_02.webp', 'assets/promo_03.webp',
+  'assets/promo_04.webp', 'assets/promo_05.webp', 'assets/promo_06.webp'
+];
+const LOCAL_VOUCHER_IMAGES = [
+  'assets/promo_01.webp', 'assets/promo_02.webp', 'assets/promo_03.webp', 'assets/promo_04.webp', 'assets/promo_05.webp', 'assets/promo_06.webp'
+];
+function makeLocalState(accessBadges){
+  return {
+    homeEnabled: true,
+    homeMasterEnabled: true,
+    homeImages: LOCAL_HOME_IMAGES.slice(),
+    homeCampaigns: [],
+    voucherEnabled: true,
+    voucherMasterEnabled: true,
+    voucherImages: LOCAL_VOUCHER_IMAGES.slice(),
+    voucherCampaigns: [],
+    accessBadges: normalizeAccessBadges(accessBadges)
+  };
 }
-
 const ACCESS_BADGE_KEYS = ['recargar','yapear_servicios','promos','aprobar_compras','creditos','gaming','dolares','remesas','soat','tienda','viajar_bus','ver_todo'];
+let state = makeLocalState();
 
 function cleanBadgeText(v){
 return String(v == null ? '' : v).replace(/\s+/g,' ').trim().slice(0,18);
@@ -39628,72 +39616,9 @@ color: cleanBadgeColor(item.color)
 return out;
 }
 
-function campaignMs(v){
-const n = Number(v);
-return Number.isFinite(n) && n > 0 ? n : null;
-}
-
-function normalizeCampaigns(raw){
-if(!Array.isArray(raw)) return [];
-return raw.map(function(c){
-c = c && typeof c === 'object' ? c : {};
-return {
-url: cleanUrl(c.url),
-enabled: c.enabled !== false,
-startAt: campaignMs(c.startAt),
-endAt: campaignMs(c.endAt)
-};
-}).filter(function(c){ return !!c.url; }).slice(0,12);
-}
-
-function campaignIsActive(c, now){
-if(!c || c.enabled === false) return false;
-if(c.startAt && now < c.startAt) return false;
-if(c.endAt && now > c.endAt) return false;
-return true;
-}
-
-function activeCampaignUrls(arr){
-const now = Date.now();
-return (arr || []).filter(function(c){ return campaignIsActive(c, now); }).map(function(c){ return c.url; }).filter(Boolean).slice(0,12);
-}
-
 function normalize(data){
-data = data || {};
-const homeCampaigns = normalizeCampaigns(data.campaigns && data.campaigns.home);
-const voucherCampaigns = normalizeCampaigns(data.campaigns && data.campaigns.voucher);
-const legacyHome = Array.isArray(data.homeImages) ? data.homeImages.map(cleanUrl).filter(Boolean).slice(0,12) : [];
-const legacyVoucher = Array.isArray(data.voucherImages) ? data.voucherImages.map(cleanUrl).filter(Boolean).slice(0,12) : (cleanUrl(data.voucherImage) ? [cleanUrl(data.voucherImage)] : []);
-const homeMasterEnabled = data.homeEnabled !== false;
-const voucherMasterEnabled = data.voucherEnabled !== false;
-const homeImages = homeCampaigns.length ? activeCampaignUrls(homeCampaigns) : legacyHome;
-const voucherImages = voucherCampaigns.length ? activeCampaignUrls(voucherCampaigns) : legacyVoucher;
-return {
-homeMasterEnabled: homeMasterEnabled,
-homeEnabled: homeMasterEnabled && (!homeCampaigns.length || homeImages.length > 0),
-homeImages: homeImages,
-homeCampaigns: homeCampaigns,
-voucherMasterEnabled: voucherMasterEnabled,
-voucherEnabled: voucherMasterEnabled && (!voucherCampaigns.length || voucherImages.length > 0),
-voucherImages: voucherImages,
-voucherCampaigns: voucherCampaigns,
-accessBadges: normalizeAccessBadges(data.accessBadges)
-};
-}
-
-function refreshScheduledState(){
-if(state.homeCampaigns && state.homeCampaigns.length){
-state.homeImages = activeCampaignUrls(state.homeCampaigns);
-state.homeEnabled = state.homeMasterEnabled !== false && state.homeImages.length > 0;
-}else{
-state.homeEnabled = state.homeMasterEnabled !== false;
-}
-if(state.voucherCampaigns && state.voucherCampaigns.length){
-state.voucherImages = activeCampaignUrls(state.voucherCampaigns);
-state.voucherEnabled = state.voucherMasterEnabled !== false && state.voucherImages.length > 0;
-}else{
-state.voucherEnabled = state.voucherMasterEnabled !== false;
-}
+  // Los ajustes externos de imágenes, fechas y activación no reemplazan los anuncios locales.
+  return makeLocalState(data && data.accessBadges);
 }
 
 function getFrameDoc(frame){
@@ -39949,7 +39874,6 @@ return 'url("' + String(url || '').replace(/\\/g,'\\\\').replace(/"/g,'\\"') + '
   }
 
   function applyAll(){
-    refreshScheduledState();
     try{
       const homeFrame = document.getElementById('homeFrame');
       const homeDoc = getFrameDoc(homeFrame);
@@ -39974,16 +39898,27 @@ return 'url("' + String(url || '').replace(/\\/g,'\\\\').replace(/"/g,'\\"') + '
     [80,250,650,1200].forEach(ms => setTimeout(applyAll, ms));
   }
 
-  getDoc(cfgRef).then(s => {
-    if(s.exists()) useData(s.data());
-    else applyAll();
-  }).catch(() => applyAll());
-
-  try{
-    onSnapshot(cfgRef, s => {
+  // Firebase conserva únicamente los distintivos de los accesos en este módulo.
+  // Se importa después: un fallo de red nunca bloquea el carrusel local.
+  async function startRemoteAccessBadges(){
+    const [appApi, storeApi] = await Promise.all([
+      import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"),
+      import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js")
+    ]);
+    const app = appApi.getApps().find(a => a && a.name === 'yosi-remote-promos-v99') ||
+      appApi.initializeApp(firebaseConfig, 'yosi-remote-promos-v99');
+    const db = storeApi.getFirestore(app);
+    const cfgRef = storeApi.doc(db, 'config', 'promotions');
+    storeApi.getDoc(cfgRef).then(s => {
       if(s.exists()) useData(s.data());
-    }, function(){ /* el getDoc/escaneo mantienen la app sin romperse si no hay listener */ });
-  }catch(e){}
+    }).catch(() => {});
+    try{
+      storeApi.onSnapshot(cfgRef, s => {
+        if(s.exists()) useData(s.data());
+      }, function(){});
+    }catch(e){}
+  }
+  startRemoteAccessBadges().catch(() => {});
 
   if(document.readyState === 'loading'){
     document.addEventListener('DOMContentLoaded', applyAll, {once:true});
@@ -41671,14 +41606,14 @@ function markup(){return `
   <button class="yfr-face-back" data-action="face-back" aria-label="Volver"><svg viewBox="0 0 24 24" fill="none"><path d="M15.5 5 8.5 12l7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
   <div class="yfr-face-center">
     <h1 class="yfr-face-title">Tómate una foto para<br>validar tu identidad</h1>
-    <div class="yfr-illustration"><img src="assets/clave/verificacion_selfie.png" alt="Verificación de identidad"></div>
+    <div class="yfr-illustration"><img src="assets/biometria.png" alt="Verificación de identidad"></div>
     <p class="yfr-face-tip">Ve a un lugar iluminado y<br><strong>no cubras tu rostro.</strong><span class="yfr-info-dot">i</span></p>
   </div>
   <div class="yfr-bottom"><button class="yfr-primary" data-action="face-start">Empezar</button></div>
 </div>
 <div class="yfr-screen yfr-face-scan" data-step="face-scan">
   <button class="yfr-face-back" data-action="scan-back" aria-label="Volver"><svg viewBox="0 0 24 24" fill="none"><path d="M15.5 5 8.5 12l7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-  <div class="yfr-scan-top"><img class="yfr-mini-logo" src="assets/clave/logo_yapeton.png" alt="Yape"></div>
+  <div class="yfr-scan-top"><img class="yfr-mini-logo" src="assets/embedded/logo-yape-principal.svg" alt="Yape"></div>
   <div class="yfr-camera-ring"><video class="yfr-video" autoplay muted playsinline></video><div class="yfr-camera-fallback" aria-hidden="true">☺</div></div>
   <div class="yfr-scan-progress"><span></span></div>
   <div class="yfr-scan-message">⚠️ Ubica tu rostro<br>en el centro del círculo</div>
