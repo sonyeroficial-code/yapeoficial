@@ -534,6 +534,7 @@ window.addEventListener('pageshow',queueScan);
   function warmAll() {
     if (navigator.onLine === false) return;
     lastWarm = Date.now();
+    discovered.clear();
     send({type: 'CACHE_ALL_ASSETS'});
     scanAll();
   }
@@ -599,8 +600,16 @@ window.addEventListener('pageshow',queueScan);
     try {
       doc.querySelectorAll('img[src]').forEach(function (img) {
         if (img.complete && !img.naturalWidth && /^https?:/i.test(img.src)) {
-          var count = Number(img.dataset.offlineRetries || 0);
-          if (count < 3) { img.dataset.offlineRetries = String(count + 1); img.src = img.src; }
+          if (img.dataset.offlineRetryBusy === '1') return;
+          img.dataset.offlineRetryBusy = '1';
+          var src = img.src;
+          var cached = window.caches ? (status && status.cacheName
+            ? caches.open(status.cacheName).then(function (cache) { return cache.match(src); })
+            : caches.match(src)).catch(function () { return null; }) : Promise.resolve(null);
+          cached.then(function (response) {
+            if (response && response.ok && !/text\/html/i.test(response.headers.get('content-type') || '') &&
+                img.src === src && !img.naturalWidth) img.src = src;
+          }).finally(function () { delete img.dataset.offlineRetryBusy; });
         }
       });
       doc.querySelectorAll('iframe').forEach(function (f) { try { retryImages(f.contentDocument, depth + 1); } catch (_) {} });
@@ -640,14 +649,8 @@ window.addEventListener('pageshow',queueScan);
     registration = reg;
     // Persistence is best effort and the browser can decline it.
     try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function () {}); } catch (_) {}
-    setTimeout(function(){
-      var startWarm = function(){ if (!document.hidden) warmAll(); };
-      if ('requestIdleCallback' in window) {
-        try { requestIdleCallback(startWarm, {timeout:1800}); return; } catch (_) {}
-      }
-      startWarm();
-    }, 3200);
-    [18000, 48000].forEach(function (delay) { setTimeout(function () {
+    warmAll();
+    [5000, 20000].forEach(function (delay) { setTimeout(function () {
       if (!status || !status.complete) warmAll();
     }, delay); });
   }).catch(function () {});
@@ -659,7 +662,7 @@ window.addEventListener('pageshow',queueScan);
 try{
 if(window.top !== window || !('serviceWorker' in navigator)) return;
 
-var SW_URL = './service-worker.js';
+var SW_URL = './sw.js';
 var UPDATE_KEY = 'yape_sw_last_update_v1';
 var UPDATE_EVERY_MS = 6 * 60 * 60 * 1000;
 
@@ -692,16 +695,7 @@ console.warn('SW register failed', e);
 });
 }
 
-function scheduleRegister(){
-setTimeout(function(){
-  if('requestIdleCallback' in window){
-    try{ requestIdleCallback(registerSW, { timeout: 1800 }); return; }catch(e){}
-  }
-  setTimeout(registerSW, 0);
-}, 2200);
-}
-
-scheduleRegister();
+registerSW();
 }catch(e){ console.warn(e); }
 })();</script>
 <script id="yosi-android-status-color-sync-v215">(function(){
@@ -3771,7 +3765,7 @@ async function testDevice(){
     if(native){ render(...native); feedback.textContent=&#x27;Primero permite las notificaciones con “Activar y verificar”.&#x27;; return; }
     const base = new URL(&#x27;./&#x27;,owner.location.href).href;
     let reg = await timed(owner.navigator.serviceWorker.getRegistration(base));
-    if(!reg) reg = await timed(owner.navigator.serviceWorker.register(new URL(&#x27;service-worker.js&#x27;,base).href,{scope:base}));
+    if(!reg) reg = await timed(owner.navigator.serviceWorker.register(new URL(&#x27;sw.js&#x27;,base).href,{scope:base}));
     if(!reg.active) reg = await timed(owner.navigator.serviceWorker.ready);
     if(!reg.active) throw new Error(&#x27;push-worker-not-active&#x27;);
     await timed(reg.showNotification(&#x27;Yapetón · Prueba&#x27;,{
@@ -22102,7 +22096,7 @@ return '';
 async function getSWRegistration(){
 if(!('serviceWorker' in navigator)) return null;
 try {
-return (await navigator.serviceWorker.getRegistration('./')) || (await navigator.serviceWorker.register('./service-worker.js', { scope: './' }));
+return (await navigator.serviceWorker.getRegistration('./')) || (await navigator.serviceWorker.register('./sw.js', { scope: './' }));
 } catch (e) {
 try { return await navigator.serviceWorker.getRegistration(); } catch (_) { return null; }
 }
