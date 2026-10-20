@@ -1,4 +1,4 @@
-<!DOCTYPE html> <html lang="es"> <head><meta charset="utf-8"/> <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" name="viewport"/><script id="yosi-performance-poller-v1">(function(){
+<!DOCTYPE html> <html lang="es"> <head><script id="mobile-entry">(function(){var n=navigator,u=n.userAgent||'',p=n.platform||'';var ios=/iPhone|iPad|iPod/i.test(u)||(/MacIntel|Macintosh/i.test(u+' '+p)&&n.maxTouchPoints>1);var mobile=ios||/Android/i.test(u);var app=n.standalone===true||matchMedia('(display-mode: standalone)').matches||matchMedia('(display-mode: fullscreen)').matches;if(!mobile||!app){document.documentElement.style.visibility='hidden';var target=new URL('instalar.html',location.href);location.replace(target.href);}})();</script><meta charset="utf-8"/> <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" name="viewport"/><script id="yosi-performance-poller-v1">(function(){
 'use strict';
 if(window.__yosiPerfInterval) return;
 var nativeSetInterval = window.setInterval.bind(window);
@@ -14753,113 +14753,7 @@ function rebinder(){ bindDoc(document); document.querySelectorAll('iframe').forE
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', rebinder); else rebinder();
 window.__yosiPerfInterval(rebinder, 1200);
 })();</script>
-<style>#pwaInstallBanner{position:fixed;left:16px;right:16px;bottom:max(16px,env(safe-area-inset-bottom));z-index:2147483646;display:none;opacity:0;transform:translateY(18px);transition:opacity .25s ease,transform .25s ease;pointer-events:none} #pwaInstallBanner.show{display:block;opacity:1;transform:translateY(0);pointer-events:auto} #pwaInstallBanner .pwa-card{max-width:480px;margin:0 auto;background:linear-gradient(180deg,rgba(126,38,147,.98),rgba(94,23,118,.98));color:#fff;border:1px solid rgba(255,255,255,.14);border-radius:22px;box-shadow:0 18px 50px rgba(0,0,0,.35);padding:16px;backdrop-filter:blur(10px)} #pwaInstallBanner .pwa-head{display:flex;gap:12px;align-items:flex-start} #pwaInstallBanner .pwa-icon{width:48px;height:48px;border-radius:14px;flex:0 0 48px;object-fit:cover;box-shadow:0 10px 18px rgba(0,0,0,.18);background:rgba(255,255,255,.12)} #pwaInstallBanner .pwa-title{font-size:16px;font-weight:500;line-height:1.15;margin:1px 0 4px;color:#fff} #pwaInstallBanner .pwa-text{font-size:13px;line-height:1.35;opacity:.95;margin:0;color:#f5eefe} #pwaInstallBanner .pwa-actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap} #pwaInstallBanner button{appearance:none;border:0;border-radius:14px;padding:12px 16px;font-weight:500;font-size:14px;cursor:pointer} #pwaInstallBtn{flex:1 1 170px;background:#fff;color:#742284;box-shadow:0 10px 22px rgba(0,0,0,.16)} #pwaLaterBtn{flex:1 1 120px;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.14)} #pwaInstallBanner .pwa-steps{margin-top:12px;padding:12px;border-radius:16px;background:rgba(255,255,255,.10);font-size:13px;line-height:1.4;color:#fff;display:none} #pwaInstallBanner.ios-help .pwa-steps,#pwaInstallBanner.manual-help .pwa-steps{display:block} #pwaInstallBanner .pwa-close{position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:999px;background:rgba(255,255,255,.14);color:#fff;font-size:18px;line-height:34px;text-align:center;padding:0} @media (min-width:768px){#pwaInstallBanner{left:auto;right:22px;bottom:22px;width:min(430px,calc(100vw - 44px))} #pwaInstallBanner .pwa-card{margin:0}}</style>
-<div aria-live="polite" id="pwaInstallBanner"> <div class="pwa-card"> <button aria-label="Cerrar aviso" class="pwa-close" id="pwaCloseBtn" type="button">×</button> <div class="pwa-head"> <img alt="App" class="pwa-icon" decoding="async" loading="lazy" src="icon-192.png"/> <div> <div class="pwa-title">Instala esta app en tu celular</div> <p class="pwa-text" id="pwaInstallText">Toca <strong>Instalar app</strong> para tener acceso más rápido desde tu pantalla de inicio.</p> </div> </div> <div class="pwa-actions"> <button id="pwaInstallBtn" type="button">Instalar app</button> <button id="pwaLaterBtn" type="button">Ahora no</button> </div> <div class="pwa-steps" id="pwaInstallSteps"></div> </div> </div>
-<script>(function(){
-var deferredPrompt = null;
-var banner = document.getElementById('pwaInstallBanner');
-var installBtn = document.getElementById('pwaInstallBtn');
-var laterBtn = document.getElementById('pwaLaterBtn');
-var closeBtn = document.getElementById('pwaCloseBtn');
-var stepsBox = document.getElementById('pwaInstallSteps');
-var installText = document.getElementById('pwaInstallText');
-var DISMISS_KEY = 'pwa-install-dismissed-v1';
-var SHOWN_KEY = 'pwa-install-shown-v1';
 
-function isStandalone(){
-try{
-return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-}catch(e){ return false; }
-}
-
-function isiOS(){
-var ua = window.navigator.userAgent || '';
-return /iphone|ipad|ipod/i.test(ua);
-}
-
-function isSafari(){
-var ua = window.navigator.userAgent || '';
-return /safari/i.test(ua) && !/chrome|crios|android|edg|opr/i.test(ua);
-}
-
-function closeBanner(remember){
-banner.classList.remove('show','ios-help','manual-help');
-if(remember){
-try{ localStorage.setItem(DISMISS_KEY, String(Date.now())); }catch(e){}
-}
-}
-
-function canShowAgain(){
-try{
-var dismissedAt = Number(localStorage.getItem(DISMISS_KEY) || '0');
-if(!dismissedAt) return true;
-return (Date.now() - dismissedAt) > (1000 * 60 * 60 * 12);
-}catch(e){ return true; }
-}
-
-function showBanner(mode){
-if(!banner || isStandalone() || !canShowAgain()) return;
-banner.classList.remove('ios-help','manual-help');
-stepsBox.innerHTML = '';
-
-if(mode === 'install'){
-installBtn.style.display = '';
-installText.innerHTML = 'Toca <strong>Instalar app</strong> para tener acceso más rápido desde tu pantalla de inicio.';
-} else if(mode === 'ios'){
-banner.classList.add('ios-help');
-installBtn.style.display = 'none';
-installText.innerHTML = 'En iPhone puedes agregar esta app a tu pantalla de inicio en unos pasos rápidos.';
-stepsBox.innerHTML = '1. Toca el botón <strong>Compartir</strong> de Safari.<br>2. Elige <strong>Agregar a pantalla de inicio</strong>.<br>3. Confirma tocando <strong>Agregar</strong>.';
-} else {
-banner.classList.add('manual-help');
-installBtn.style.display = 'none';
-installText.innerHTML = 'Tu navegador puede instalar esta app desde el menú principal.';
-stepsBox.innerHTML = 'Abre el menú del navegador y busca <strong>Instalar app</strong> o <strong>Agregar a pantalla de inicio</strong>.';
-}
-
-banner.style.display = 'block';
-requestAnimationFrame(function(){ banner.classList.add('show'); });
-try{ localStorage.setItem(SHOWN_KEY, String(Date.now())); }catch(e){}
-}
-
-window.addEventListener('beforeinstallprompt', function(e){
-e.preventDefault();
-deferredPrompt = e;
-setTimeout(function(){ showBanner('install'); }, 420);
-});
-
-installBtn.addEventListener('click', async function(){
-try{
-if(!deferredPrompt) return;
-deferredPrompt.prompt();
-await deferredPrompt.userChoice;
-}catch(e){}
-deferredPrompt = null;
-closeBanner(false);
-});
-
-laterBtn.addEventListener('click', function(){ closeBanner(true); });
-closeBtn.addEventListener('click', function(){ closeBanner(true); });
-
-window.addEventListener('appinstalled', function(){
-deferredPrompt = null;
-closeBanner(false);
-});
-
-window.addEventListener('load', function(){
-setTimeout(function(){
-if(isStandalone()) return;
-if(deferredPrompt) return;
-if(isiOS() && isSafari()){
-showBanner('ios');
-return;
-}
-if(!('BeforeInstallPromptEvent' in window)){
-showBanner('manual');
-}
-}, 3600);
-});
-})();</script>
 <script>(function(){
 const INJECT_CSS = `
   .movVerTodosBtn{display:block;width:100%;text-align:center;background:transparent;border:0;color:#20c7c1;font-weight:500;font-size:16px;line-height:1.2;padding:12px 0 6px;cursor:pointer}
