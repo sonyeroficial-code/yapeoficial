@@ -1599,168 +1599,7 @@ window.visualViewport.addEventListener('scroll',syncFlashFrame,{passive:true});
 }
 }catch(e){}
 })();</script>
-<style id="device-install-screen-v1">
-html.install-gated body{overflow:hidden!important}
-html.install-gated body>*:not(#deviceInstallScreen){visibility:hidden!important}
-#deviceInstallScreen[hidden],#deviceInstallScreen [hidden]{display:none!important}
-#deviceInstallScreen{position:fixed!important;inset:0!important;z-index:2147483647!important;visibility:visible!important;overflow:auto;overscroll-behavior:contain;background:#800699!important;color:#fff;font-family:Arial,Helvetica,sans-serif;line-height:1.45;text-align:center;padding:env(safe-area-inset-top,0px) 24px env(safe-area-inset-bottom,0px);box-sizing:border-box;isolation:isolate}
-#deviceInstallScreen *{box-sizing:border-box}
-#deviceInstallScreen button,#deviceInstallScreen a{font:inherit;-webkit-appearance:none;appearance:none;cursor:pointer;touch-action:manipulation}
-#deviceInstallScreen button:focus-visible,#deviceInstallScreen a:focus-visible{outline:3px solid #fff;outline-offset:5px}
-#deviceInstallScreen .install-android{min-height:100%;min-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));display:flex;align-items:center;justify-content:center}
-#deviceInstallScreen .install-center{width:100%;max-width:420px;transform:translateY(6vh)}
-#deviceInstallScreen h1{font-size:28px;line-height:1.2;margin:0 0 30px;font-weight:700;color:#fff;letter-spacing:0}
-#deviceInstallScreen .install-subtitle{font-size:16px;margin:0 0 30px;color:#ead8ee}
-#deviceInstallScreen .install-button{border:0;border-radius:7px;background:#e2e8ef;color:#4b5868;min-height:50px;padding:12px 20px;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;width:100%}
-#deviceInstallScreen .install-android .install-button{max-width:264px;margin:0 auto}
-#deviceInstallScreen .install-help{color:#fff;display:inline-flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;margin-top:30px;min-height:44px;font-size:15px}
-#deviceInstallScreen svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
-#deviceInstallScreen .install-status{font-size:14px;color:#f3e9f5;margin:18px auto 0;max-width:340px}
-#deviceInstallScreen .install-ios{max-width:480px;margin:auto;min-height:100%;min-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;padding:72px 0 30px}
-#deviceInstallScreen .install-ios h1{font-size:21px;margin-bottom:28px}
-#deviceInstallScreen .install-progress{display:flex;align-items:center;gap:14px;margin:0 0 34px;justify-content:space-between}
-#deviceInstallScreen .install-progress button{flex:none;width:40px;height:40px;border-radius:50%;border:3px solid #e1e5ea;background:#fff;color:#6d7883;font-size:23px;font-weight:700;padding:0}
-#deviceInstallScreen .install-progress button[aria-current="step"]{background:#03c8b2;border-color:#03c8b2;color:#fff}
-#deviceInstallScreen .install-progress .install-line{height:2px;background:#e4dbe8;flex:1}
-#deviceInstallScreen .install-step-copy{font-size:16px;min-height:48px;margin:0 0 14px;color:#f3e8f6}
-#deviceInstallScreen .install-illustration{background:#9026a3;border:1px solid #b044bc;border-radius:30px;padding:15px 12px;margin:0 0 16px;min-height:130px;display:flex;flex-direction:column;justify-content:center}
-#deviceInstallScreen .install-address{background:#541366;border-radius:30px;padding:11px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:15px;min-width:0}
-#deviceInstallScreen .install-host{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#deviceInstallScreen .install-toolbar{display:flex;align-items:center;justify-content:space-around;padding-top:12px;color:#fff}
-#deviceInstallScreen .install-toolbar .install-share{border:3px solid #ff3434;border-radius:10px;padding:5px;box-shadow:0 0 0 2px rgba(255,52,52,.2)}
-#deviceInstallScreen .install-share svg{width:27px;height:27px}
-#deviceInstallScreen .install-menu-row{background:#f4f2f6;color:#242027;border-radius:11px;padding:15px;display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:15px;text-align:left}
-#deviceInstallScreen .install-confirm{color:#0781fa;font-weight:700;font-size:18px;text-align:right;margin-bottom:18px}
-#deviceInstallScreen .install-next{align-self:center;background:none;border:0;color:#fff;padding:10px 20px;font-size:15px;min-height:44px;text-decoration:underline;text-underline-offset:4px}
-#deviceInstallScreen .install-ios-actions{margin-top:auto;padding-top:40px;width:100%;max-width:290px;align-self:center;display:grid;gap:18px}
-#deviceInstallScreen .install-ios-actions .install-button{min-height:56px}
-#deviceInstallScreen .install-ios-actions .install-help{background:#02c7b1;border-radius:7px;margin:0;min-height:56px;font-weight:700;font-size:16px}
-#deviceInstallScreen .install-tutorial{background:#6a087f;border:1px solid #a557b7;border-radius:12px;text-align:left;padding:16px;margin:15px 0 0;font-size:15px}
-#deviceInstallScreen .install-tutorial ol{padding-left:22px;margin:0}
-#deviceInstallScreen .install-tutorial li+li{margin-top:10px}
-#deviceInstallScreen .install-browser-note{font-size:14px;margin:0 0 18px;color:#f8e9fd}
-@media(max-height:650px){#deviceInstallScreen .install-ios{padding-top:28px}#deviceInstallScreen .install-ios-actions{padding-top:20px}#deviceInstallScreen .install-center{transform:none}}
-@media(min-width:700px){#deviceInstallScreen .install-ios{padding-top:70px}}
-</style>
-<script id="device-install-bootstrap-v1">
-(function(){
-'use strict';
-var nav=navigator,ua=nav.userAgent||'',platform=nav.platform||'';
-var ios=/iPhone|iPad|iPod/i.test(ua)||(/MacIntel|Macintosh/i.test(platform+' '+ua)&&nav.maxTouchPoints>1);
-var android=/Android/i.test(ua);
-// El APK Android incorpora un identificador propio (User-Agent y puente nativo).
-// Dentro del APK no hay que pedir instalar una PWA de nuevo.
-var nativeAPK=/\b(?:YapeDemon|YapeNativeApp|SonyerNativeApp)\/[0-9.]+\b/i.test(ua)
- || typeof window.AndroidStatusBar!=='undefined';
-var mode=window.matchMedia('(display-mode: standalone)');
-function standalone(){return nav.standalone===true||mode.matches||window.matchMedia('(display-mode: fullscreen)').matches;}
-var state=window.__deviceInstallScreen={ios:ios,android:android,nativeAPK:nativeAPK,prompt:null,busy:false,installed:false};
-function update(){
- var gated=(ios||android)&&!nativeAPK&&!standalone()&&!state.installed;
- document.documentElement.classList.toggle('install-gated',gated);
- var root=document.getElementById('deviceInstallScreen');
- if(root){root.hidden=!gated;root.setAttribute('aria-hidden',String(!gated));}
-}
-state.update=update;
-window.addEventListener('beforeinstallprompt',function(e){
- if(!android||nativeAPK||standalone()||state.installed)return;
- e.preventDefault();state.prompt=e;
- var status=document.getElementById('installAndroidStatus');
- if(status)status.hidden=true;
-});
-window.addEventListener('appinstalled',function(){state.prompt=null;state.installed=true;update();});
-if(mode.addEventListener)mode.addEventListener('change',update);
-else if(mode.addListener)mode.addListener(update);
-window.addEventListener('pageshow',update);
-update();
-})();
-</script>
-
-</head> <body class="mode-login">
-<section id="deviceInstallScreen" aria-label="Instalación de la aplicación" hidden>
- <div class="install-android" id="installAndroid" hidden>
-  <div class="install-center">
-   <h1>Instala la app</h1>
-   <p class="install-subtitle">Para continuar, instala la app en tu dispositivo.</p>
-   <button class="install-button" id="installAndroidButton" type="button">Instalar app</button>
-   <p id="installAndroidStatus" class="install-status" role="status" hidden></p>
-   <a class="install-help" href="https://wa.me/51942978154?text=Hola%2C%20necesito%20ayuda%20para%20instalar%20la%20app." target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14v-3a8 8 0 0 1 16 0v3M4 12H3v7h4v-7H4Zm16 0h1v7h-4v-7h3ZM18 19c0 2-2 3-5 3"/></svg>Necesito Ayuda</a>
-  </div>
- </div>
- <div class="install-ios" id="installIOS" hidden>
-  <h1>INSTALACIÓN PARA IPHONE</h1>
-  <nav class="install-progress" aria-label="Pasos de instalación">
-   <button type="button" data-install-step="1" aria-label="Paso 1: Compartir" aria-current="step">1</button><span class="install-line" aria-hidden="true"></span>
-   <button type="button" data-install-step="2" aria-label="Paso 2: Agregar a inicio">2</button><span class="install-line" aria-hidden="true"></span>
-   <button type="button" data-install-step="3" aria-label="Paso 3: Confirmar">3</button>
-  </nav>
-  <p id="installIOSBrowserNote" class="install-browser-note" hidden>Abre este enlace en Safari para seguir esta guía.</p>
-  <p class="install-step-copy" id="installIOSCopy" aria-live="polite">En tu navegador Safari busca el ícono Compartir:</p>
-  <div class="install-illustration" id="installIOSIllustration" role="img" aria-label="Ejemplo del botón Compartir de Safari">
-   <div id="installIOSShareExample">
-    <div class="install-address"><span aria-hidden="true">☰</span><span class="install-host" id="installIOSHost">Tu aplicación</span><span aria-hidden="true">↻</span></div>
-    <div class="install-toolbar" aria-hidden="true"><span>❮</span><span>❯</span><span class="install-share"><svg viewBox="0 0 24 24"><path d="M12 15V2m-4 4 4-4 4 4M8 9H5v12h14V9h-3"/></svg></span><svg viewBox="0 0 24 24"><path d="M12 5C8 2 4 3 2 4v16c4-2 7-1 10 1 3-2 6-3 10-1V4c-2-1-6-2-10 1Zm0 0v16"/></svg><svg viewBox="0 0 24 24"><rect x="7" y="7" width="14" height="14" rx="2"/><path d="M17 7V3H3v14h4"/></svg></div>
-   </div>
-   <div id="installIOSAddExample" hidden><div class="install-menu-row"><span>Agregar a pantalla de inicio</span><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 7v10M7 12h10"/></svg></div></div>
-   <div id="installIOSConfirmExample" hidden><div class="install-confirm">Agregar</div><div class="install-menu-row"><span>Tu app en la pantalla de inicio</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 12 5 5L20 6"/></svg></div></div>
-  </div>
-  <button class="install-next" id="installIOSNext" type="button">Siguiente paso →</button>
-  <div class="install-tutorial" id="installIOSTutorial" hidden><ol><li>Abre esta web en Safari y pulsa <strong>Compartir</strong>. Su ubicación puede variar según la versión de iOS.</li><li>Busca <strong>Agregar a pantalla de inicio</strong> o <strong>Agregar a inicio</strong>. Si no aparece, revisa <strong>Editar acciones</strong>.</li><li>Si aparece <strong>Abrir como app web</strong>, actívalo. Pulsa <strong>Agregar</strong> y abre la app desde su nuevo icono.</li></ol></div>
-  <div class="install-ios-actions">
-   <button class="install-button" id="installIOSTutorialButton" type="button" aria-controls="installIOSTutorial" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="13" height="14" rx="2"/><path d="m15 10 7-4v12l-7-4"/></svg><span>Ver Tutorial</span></button>
-   <a class="install-help" href="https://wa.me/51942978154?text=Hola%2C%20necesito%20ayuda%20para%20instalar%20la%20app%20en%20iPhone." target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a9 9 0 0 1-13 8L2 21l1.5-6a9 9 0 1 1 17.5-3.5Z"/><path d="M8 7c-3 3 3 9 6 9l2-2-3-2-1 1-2-2 1-1-2-3Z"/></svg>Necesito Ayuda</a>
-  </div>
- </div>
-</section>
-<script id="device-install-controls-v1">
-(function(){
-'use strict';
-var state=window.__deviceInstallScreen;
-var root=document.getElementById('deviceInstallScreen');
-var androidButton=document.getElementById('installAndroidButton');
-var status=document.getElementById('installAndroidStatus');
-var ios=document.getElementById('installIOS');
-var android=document.getElementById('installAndroid');
-android.hidden=!state.android;ios.hidden=!state.ios;
-function message(text){status.textContent=text;status.hidden=false;}
-androidButton.addEventListener('click',async function(){
- if(state.busy)return;
- var event=state.prompt;
- if(!event){
-  if(!window.isSecureContext){message('Abre la web desde su enlace HTTPS para instalarla.');return;}
-  var embedded=/FBAN|FBAV|Instagram|; wv\)/i.test(navigator.userAgent||'');
-  message(embedded?'Abre este enlace en Chrome. Luego toca el menú ⋮ y elige «Instalar app» o «Agregar a pantalla de inicio».':'Si no aparece la ventana, abre el menú ⋮ de Chrome y busca «Instalar app» o «Agregar a pantalla de inicio». Si ya la instalaste, ábrela desde su icono.');return;
- }
- state.prompt=null;state.busy=true;androidButton.disabled=true;
- try{
-  await event.prompt();var choice=await event.userChoice;
-  message(choice.outcome==='accepted'?'Instalación solicitada. Cuando termine, abre la app desde su icono.':'Puedes instalarla después desde el menú ⋮ del navegador.');
- }catch(e){message('No se pudo abrir la instalación. Inténtalo desde el menú ⋮ de Chrome.');}
- finally{state.busy=false;androidButton.disabled=false;}
-});
-var current=1;
-var copy=document.getElementById('installIOSCopy');
-var next=document.getElementById('installIOSNext');
-var illustration=document.getElementById('installIOSIllustration');
-var examples=['installIOSShareExample','installIOSAddExample','installIOSConfirmExample'];
-var descriptions=['En tu navegador Safari busca el ícono Compartir:','Desliza las opciones y pulsa «Agregar a pantalla de inicio»:','Pulsa «Agregar» y abre la app desde su nuevo icono:'];
-function step(value){
- current=value;copy.textContent=descriptions[value-1];illustration.setAttribute('aria-label',descriptions[value-1]);
- root.querySelectorAll('[data-install-step]').forEach(function(button){if(Number(button.dataset.installStep)===value)button.setAttribute('aria-current','step');else button.removeAttribute('aria-current');});
- examples.forEach(function(id,index){document.getElementById(id).hidden=index!==value-1;});
- next.textContent=value===3?'Volver al primer paso':'Siguiente paso →';
-}
-root.querySelectorAll('[data-install-step]').forEach(function(button){button.addEventListener('click',function(){step(Number(button.dataset.installStep));});});
-next.addEventListener('click',function(){step(current===3?1:current+1);});
-var tutorial=document.getElementById('installIOSTutorial');
-var tutorialButton=document.getElementById('installIOSTutorialButton');
-tutorialButton.addEventListener('click',function(){tutorial.hidden=!tutorial.hidden;tutorialButton.setAttribute('aria-expanded',String(!tutorial.hidden));tutorialButton.querySelector('span').textContent=tutorial.hidden?'Ver Tutorial':'Ocultar Tutorial';if(!tutorial.hidden)tutorial.scrollIntoView({block:'nearest',behavior:'smooth'});});
-document.getElementById('installIOSHost').textContent=location.hostname||'Tu aplicación';
-document.getElementById('installIOSBrowserNote').hidden=!state.ios||(/Safari/i.test(navigator.userAgent)&&!/CriOS|FxiOS|EdgiOS|OPiOS|FBAN|FBAV|Instagram/i.test(navigator.userAgent));
-state.update();
-})();
-</script>
- <div aria-hidden="true" id="preSplash"> <img alt="Logo" data-splash-asset-key="logo" data-local-src="assets/embedded/logo-yape-principal.svg" decoding="async" id="preSplashLogo" loading="eager" onerror="if(this.dataset.fallbackDone!=='1'){this.dataset.fallbackDone='1';this.src='assets/logo_yape_principal.webp';}" src="assets/embedded/logo-yape-principal.svg"/> <img alt="BCP" data-splash-asset-key="bcp" data-local-src="bcp.png" decoding="async" id="preSplashBCP" loading="eager" onerror="if(!this.dataset.remoteActive){this.style.display='none';}" src="bcp.png"/> </div>
+</head> <body class="mode-login"> <div aria-hidden="true" id="preSplash"> <img alt="Logo" data-splash-asset-key="logo" data-local-src="assets/embedded/logo-yape-principal.svg" decoding="async" id="preSplashLogo" loading="eager" onerror="if(this.dataset.fallbackDone!=='1'){this.dataset.fallbackDone='1';this.src='assets/logo_yape_principal.webp';}" src="assets/embedded/logo-yape-principal.svg"/> <img alt="BCP" data-splash-asset-key="bcp" data-local-src="bcp.png" decoding="async" id="preSplashBCP" loading="eager" onerror="if(!this.dataset.remoteActive){this.style.display='none';}" src="bcp.png"/> </div>
 <script>(function(){
 var MIN_MS = 3000; // splash mínimo visible
 var MAX_MS = 7000; // jamás quedarse pegado más de esto
@@ -14914,7 +14753,113 @@ function rebinder(){ bindDoc(document); document.querySelectorAll('iframe').forE
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', rebinder); else rebinder();
 window.__yosiPerfInterval(rebinder, 1200);
 })();</script>
+<style>#pwaInstallBanner{position:fixed;left:16px;right:16px;bottom:max(16px,env(safe-area-inset-bottom));z-index:2147483646;display:none;opacity:0;transform:translateY(18px);transition:opacity .25s ease,transform .25s ease;pointer-events:none} #pwaInstallBanner.show{display:block;opacity:1;transform:translateY(0);pointer-events:auto} #pwaInstallBanner .pwa-card{max-width:480px;margin:0 auto;background:linear-gradient(180deg,rgba(126,38,147,.98),rgba(94,23,118,.98));color:#fff;border:1px solid rgba(255,255,255,.14);border-radius:22px;box-shadow:0 18px 50px rgba(0,0,0,.35);padding:16px;backdrop-filter:blur(10px)} #pwaInstallBanner .pwa-head{display:flex;gap:12px;align-items:flex-start} #pwaInstallBanner .pwa-icon{width:48px;height:48px;border-radius:14px;flex:0 0 48px;object-fit:cover;box-shadow:0 10px 18px rgba(0,0,0,.18);background:rgba(255,255,255,.12)} #pwaInstallBanner .pwa-title{font-size:16px;font-weight:500;line-height:1.15;margin:1px 0 4px;color:#fff} #pwaInstallBanner .pwa-text{font-size:13px;line-height:1.35;opacity:.95;margin:0;color:#f5eefe} #pwaInstallBanner .pwa-actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap} #pwaInstallBanner button{appearance:none;border:0;border-radius:14px;padding:12px 16px;font-weight:500;font-size:14px;cursor:pointer} #pwaInstallBtn{flex:1 1 170px;background:#fff;color:#742284;box-shadow:0 10px 22px rgba(0,0,0,.16)} #pwaLaterBtn{flex:1 1 120px;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.14)} #pwaInstallBanner .pwa-steps{margin-top:12px;padding:12px;border-radius:16px;background:rgba(255,255,255,.10);font-size:13px;line-height:1.4;color:#fff;display:none} #pwaInstallBanner.ios-help .pwa-steps,#pwaInstallBanner.manual-help .pwa-steps{display:block} #pwaInstallBanner .pwa-close{position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:999px;background:rgba(255,255,255,.14);color:#fff;font-size:18px;line-height:34px;text-align:center;padding:0} @media (min-width:768px){#pwaInstallBanner{left:auto;right:22px;bottom:22px;width:min(430px,calc(100vw - 44px))} #pwaInstallBanner .pwa-card{margin:0}}</style>
+<div aria-live="polite" id="pwaInstallBanner"> <div class="pwa-card"> <button aria-label="Cerrar aviso" class="pwa-close" id="pwaCloseBtn" type="button">×</button> <div class="pwa-head"> <img alt="App" class="pwa-icon" decoding="async" loading="lazy" src="icon-192.png"/> <div> <div class="pwa-title">Instala esta app en tu celular</div> <p class="pwa-text" id="pwaInstallText">Toca <strong>Instalar app</strong> para tener acceso más rápido desde tu pantalla de inicio.</p> </div> </div> <div class="pwa-actions"> <button id="pwaInstallBtn" type="button">Instalar app</button> <button id="pwaLaterBtn" type="button">Ahora no</button> </div> <div class="pwa-steps" id="pwaInstallSteps"></div> </div> </div>
+<script>(function(){
+var deferredPrompt = null;
+var banner = document.getElementById('pwaInstallBanner');
+var installBtn = document.getElementById('pwaInstallBtn');
+var laterBtn = document.getElementById('pwaLaterBtn');
+var closeBtn = document.getElementById('pwaCloseBtn');
+var stepsBox = document.getElementById('pwaInstallSteps');
+var installText = document.getElementById('pwaInstallText');
+var DISMISS_KEY = 'pwa-install-dismissed-v1';
+var SHOWN_KEY = 'pwa-install-shown-v1';
 
+function isStandalone(){
+try{
+return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}catch(e){ return false; }
+}
+
+function isiOS(){
+var ua = window.navigator.userAgent || '';
+return /iphone|ipad|ipod/i.test(ua);
+}
+
+function isSafari(){
+var ua = window.navigator.userAgent || '';
+return /safari/i.test(ua) && !/chrome|crios|android|edg|opr/i.test(ua);
+}
+
+function closeBanner(remember){
+banner.classList.remove('show','ios-help','manual-help');
+if(remember){
+try{ localStorage.setItem(DISMISS_KEY, String(Date.now())); }catch(e){}
+}
+}
+
+function canShowAgain(){
+try{
+var dismissedAt = Number(localStorage.getItem(DISMISS_KEY) || '0');
+if(!dismissedAt) return true;
+return (Date.now() - dismissedAt) > (1000 * 60 * 60 * 12);
+}catch(e){ return true; }
+}
+
+function showBanner(mode){
+if(!banner || isStandalone() || !canShowAgain()) return;
+banner.classList.remove('ios-help','manual-help');
+stepsBox.innerHTML = '';
+
+if(mode === 'install'){
+installBtn.style.display = '';
+installText.innerHTML = 'Toca <strong>Instalar app</strong> para tener acceso más rápido desde tu pantalla de inicio.';
+} else if(mode === 'ios'){
+banner.classList.add('ios-help');
+installBtn.style.display = 'none';
+installText.innerHTML = 'En iPhone puedes agregar esta app a tu pantalla de inicio en unos pasos rápidos.';
+stepsBox.innerHTML = '1. Toca el botón <strong>Compartir</strong> de Safari.<br>2. Elige <strong>Agregar a pantalla de inicio</strong>.<br>3. Confirma tocando <strong>Agregar</strong>.';
+} else {
+banner.classList.add('manual-help');
+installBtn.style.display = 'none';
+installText.innerHTML = 'Tu navegador puede instalar esta app desde el menú principal.';
+stepsBox.innerHTML = 'Abre el menú del navegador y busca <strong>Instalar app</strong> o <strong>Agregar a pantalla de inicio</strong>.';
+}
+
+banner.style.display = 'block';
+requestAnimationFrame(function(){ banner.classList.add('show'); });
+try{ localStorage.setItem(SHOWN_KEY, String(Date.now())); }catch(e){}
+}
+
+window.addEventListener('beforeinstallprompt', function(e){
+e.preventDefault();
+deferredPrompt = e;
+setTimeout(function(){ showBanner('install'); }, 420);
+});
+
+installBtn.addEventListener('click', async function(){
+try{
+if(!deferredPrompt) return;
+deferredPrompt.prompt();
+await deferredPrompt.userChoice;
+}catch(e){}
+deferredPrompt = null;
+closeBanner(false);
+});
+
+laterBtn.addEventListener('click', function(){ closeBanner(true); });
+closeBtn.addEventListener('click', function(){ closeBanner(true); });
+
+window.addEventListener('appinstalled', function(){
+deferredPrompt = null;
+closeBanner(false);
+});
+
+window.addEventListener('load', function(){
+setTimeout(function(){
+if(isStandalone()) return;
+if(deferredPrompt) return;
+if(isiOS() && isSafari()){
+showBanner('ios');
+return;
+}
+if(!('BeforeInstallPromptEvent' in window)){
+showBanner('manual');
+}
+}, 3600);
+});
+})();</script>
 <script>(function(){
 const INJECT_CSS = `
   .movVerTodosBtn{display:block;width:100%;text-align:center;background:transparent;border:0;color:#20c7c1;font-weight:500;font-size:16px;line-height:1.2;padding:12px 0 6px;cursor:pointer}
